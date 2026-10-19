@@ -547,6 +547,7 @@ class _MergePageState extends State<MergePage> {
   late Merge2048 game;
   bool finished = false;
   Offset drag = Offset.zero;
+  int moveAnimationId = 0;
 
   @override
   void initState() {
@@ -557,7 +558,7 @@ class _MergePageState extends State<MergePage> {
   void move(MoveDirection d) {
     if (finished) return;
     setState(() {
-      game.move(d);
+      if (game.move(d)) moveAnimationId++;
       final goal = const ObjectiveCatalog().forGame('merge2048', floor: widget.floor);
       if (goal.isComplete(game.highest)) {
         finished = true;
@@ -620,7 +621,13 @@ class _MergePageState extends State<MergePage> {
             }
             drag = Offset.zero;
           },
-          child: AspectRatio(aspectRatio: 1, child: Container(
+          child: TweenAnimationBuilder<double>(
+            key: ValueKey<int>(moveAnimationId),
+            tween: Tween<double>(begin: .988, end: 1),
+            duration: const Duration(milliseconds: 165),
+            curve: Curves.easeOutBack,
+            builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+            child: AspectRatio(aspectRatio: 1, child: Container(
             padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(color: const Color(0xFFDCD6E7), borderRadius: BorderRadius.circular(20)),
             child: GridView.builder(
@@ -665,6 +672,7 @@ class _MergePageState extends State<MergePage> {
               },
             ),
           )),
+          ),
         ),
       ),
       const SizedBox(height: 20),
