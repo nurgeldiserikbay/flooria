@@ -41,19 +41,17 @@ class DreamTowerPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final cx = w * .50;
-    final sy = h / 275;
-    final s = math.min(w / 340, h / 275);
-    canvas.save();
-    canvas.translate(cx, 0);
-    canvas.scale(s, sy);
-    canvas.translate(-170, 0);
-
+    // Fill the stage first, then uniformly scale the tower artwork.
+    // Independent X/Y scaling made the tower unnaturally tall on phones.
     final background = Paint()..shader = const LinearGradient(
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
       colors: [Color(0xFF8BD8FA), Color(0xFFD2F3FF), Color(0xFFF5F2D8)],
-    ).createShader(const Rect.fromLTWH(0, 0, 340, 275));
-    canvas.drawRect(const Rect.fromLTWH(0, 0, 340, 275), background);
+    ).createShader(Rect.fromLTWH(0, 0, w, h));
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), background);
+    final scale = math.min(w / 300, h * .70 / 275);
+    canvas.save();
+    canvas.translate(w / 2 - 170 * scale, h * .11);
+    canvas.scale(scale);
     _circle(canvas, 269, 46, 34, const Color(0xFFFFE29C));
     _circle(canvas, 269, 46, 44, const Color(0xFFFFFBEF).withValues(alpha: .38));
     for (final star in const [(48.0, 48.0, 2.0), (86.0, 84.0, 2.0), (245.0, 101.0, 2.0), (297.0, 118.0, 3.0), (226.0, 34.0, 2.0)]) {
