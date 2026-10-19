@@ -8,6 +8,7 @@ import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/dream_tower.dart';
+import 'ui/floor_victory.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,24 +83,28 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     await prefs.setStringList('recent', recent);
   }
 
-  void _open(String gameId, {bool tower = false}) {
+  Future<void> _open(String gameId, {bool tower = false}) async {
     setState(() {
       recent.remove(gameId);
       recent.insert(0, gameId);
     });
     _save();
-    Navigator.push(context, MaterialPageRoute<void>(builder: (_) {
-      if (gameId == 'merge2048') {
-        return MergePage(
-          floor: tower ? floor : null,
-          onComplete: () => _completeFloor(),
-        );
-      }
-      return SequencePage(
-        floor: tower ? floor : null,
-        onComplete: () => _completeFloor(),
-      );
-    }));
+    final startingFloor = tower ? floor : null;
+    final next = await Navigator.push<bool>(context, MaterialPageRoute<bool>(
+      builder: (_) => gameId == 'merge2048'
+        ? MergePage(
+            floor: startingFloor,
+            onComplete: () => _completeFloor(),
+          )
+        : SequencePage(
+            floor: startingFloor,
+            onComplete: () => _completeFloor(),
+          ),
+    ));
+    if (!mounted) return;
+    if (next == true && tower) {
+      _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
+    }
   }
 
   void _completeFloor() {
@@ -549,6 +554,7 @@ class _MergePageState extends State<MergePage> {
   bool finished = false;
   Offset drag = Offset.zero;
   int moveAnimationId = 0;
+  bool victoryPresented = false;
 
   @override
   void initState() {
@@ -557,15 +563,31 @@ class _MergePageState extends State<MergePage> {
   }
 
   void move(MoveDirection d) {
-    if (finished) return;
+    if (finished || !game.canMove) return;
+    var won = false;
     setState(() {
       if (game.move(d)) moveAnimationId++;
       final goal = const ObjectiveCatalog().forGame('merge2048', floor: widget.floor);
       if (goal.isComplete(game.highest)) {
         finished = true;
-        if (widget.floor != null) widget.onComplete();
+        won = true;
       }
     });
+    if (won) _onVictory();
+  }
+
+  Future<void> _onVictory() async {
+    if (victoryPresented || !mounted) return;
+    victoryPresented = true;
+    if (widget.floor == null) return; // Library mode has no tower unlock.
+    widget.onComplete(); // Award this floor exactly once.
+    final action = await showFloorVictory(context,
+      completedFloor: widget.floor!,
+      achievement: 'You created the ${game.highest} tile!',
+      detail: 'Your adventure continues above the clouds.',
+    );
+    if (!mounted) return;
+    Navigator.of(context).pop(action == VictoryAction.nextFloor);
   }
 
   @override
@@ -677,11 +699,11 @@ class _MergePageState extends State<MergePage> {
         ),
       ),
       const SizedBox(height: 20),
-      if (finished) _notice(widget.floor == null ? 'Wonderful! You reached 2048.' : 'Floor complete! Your tower awaits.'),
+      if (finished && widget.floor == null) _notice('Wonderful! You reached 2048.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
       OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
-      if (finished && widget.floor != null) FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Back to tower')),
+
     ]))),
   );
 
@@ -703,6 +725,7 @@ class _SequencePageState extends State<SequencePage> {
   bool done = false;
   late SequencePuzzle puzzle;
   bool passed = false;
+  bool resultPresented = false;
 
   @override
   void initState() {
@@ -724,12 +747,27 @@ class _SequencePageState extends State<SequencePage> {
       round++;
       if (round >= 3) {
         done = true;
-        passed = const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor).isComplete(correct);
-        if (widget.floor != null && passed) widget.onComplete();
+        passed = const ObjectiveCatalog()
+            .forGame('numberSequence', floor: widget.floor)
+            .isComplete(correct);
       } else {
         _buildChoices();
       }
     });
+    if (done && passed && widget.floor != null) _onVictory();
+  }
+
+  Future<void> _onVictory() async {
+    if (resultPresented || !mounted || widget.floor == null) return;
+    resultPresented = true;
+    widget.onComplete();
+    final action = await showFloorVictory(context,
+      completedFloor: widget.floor!,
+      achievement: '$correct of 3 patterns solved!',
+      detail: 'A fresh puzzle is waiting on the next floor.',
+    );
+    if (!mounted) return;
+    Navigator.of(context).pop(action == VictoryAction.nextFloor);
   }
 
   @override
@@ -751,14 +789,14 @@ class _SequencePageState extends State<SequencePage> {
           crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
           children: [for (final v in puzzle.choices) FilledButton(onPressed: () => answer(v), style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Text('$v', style: const TextStyle(fontSize: 24)))],
         ),
-      ] else ...[
+      ] else if (widget.floor == null || !passed) ...[
         Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
         const SizedBox(height: 20),
         FilledButton(onPressed: () {
           if (passed) {
             Navigator.pop(context);
           } else {
-            setState(() { round = 0; correct = 0; done = false; passed = false; _buildChoices(); });
+            setState(() { round = 0; correct = 0; done = false; passed = false; resultPresented = false; _buildChoices(); });
           }
         }, child: Text(passed ? 'Back to tower' : 'Try again')),
       ],
