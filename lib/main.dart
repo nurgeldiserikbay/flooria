@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
+import 'ui/dream_tower.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,7 @@ void main() {
 
 const ink = Color(0xFF343855);
 const lavender = Color(0xFF8A7ACC);
-const paper = Color(0xFFF8F7FC);
+const paper = Color(0xFFFBFAFE);
 const mint = Color(0xFFB9E3D5);
 
 class FlooriaApp extends StatelessWidget {
@@ -124,13 +125,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 _profile(),
               ])),
               Container(
-                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(26))),
-                padding: const EdgeInsets.fromLTRB(8, 7, 8, 5),
+                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+                padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
                 child: Row(children: [
                   _nav(0, Icons.home_rounded, 'Home'),
-                  _nav(1, Icons.apartment_rounded, 'Tower'),
-                  _nav(2, Icons.apps_rounded, 'Games'),
-                  _nav(3, Icons.insights_rounded, 'My Mind'),
+                  _nav(1, Icons.auto_awesome_mosaic_rounded, 'Tower'),
+                  _nav(2, Icons.extension_rounded, 'Games'),
+                  _nav(3, Icons.psychology_alt_rounded, 'Mind'),
                 ]),
               ),
             ]),
@@ -145,9 +146,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       borderRadius: BorderRadius.circular(15),
       onTap: () => setState(() => tab = index),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: tab == index ? lavender : const Color(0xFF9A9AAC)),
+          Icon(icon, color: tab == index ? lavender : const Color(0xFFA8A6B8)),
           const SizedBox(height: 3),
           Text(title, style: TextStyle(fontSize: 11, fontWeight: tab == index ? FontWeight.w700 : FontWeight.w500, color: tab == index ? lavender : const Color(0xFF9A9AAC))),
         ]),
@@ -161,34 +162,115 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     Text(title, style: Theme.of(context).textTheme.headlineMedium),
   ]);
 
-  Widget _home() => ListView(padding: const EdgeInsets.fromLTRB(24, 26, 24, 20), children: [
-    _heading('YOUR JOURNEY', 'Hello, explorer ✨'),
-    const SizedBox(height: 17),
-    Container(
-      decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFEAE5FA), Color(0xFFF1F7F5)]), borderRadius: BorderRadius.circular(32)),
-      child: Column(children: [
-        const SizedBox(height: 20),
-        SizedBox(height: 230, child: CustomPaint(painter: TowerPainter(), child: const Center())),
-        const Text('KEEP CLIMBING', style: TextStyle(fontSize: 11, letterSpacing: 2.5, fontWeight: FontWeight.w700, color: lavender)),
-        const SizedBox(height: 6),
-        Text('Floor $floor', style: Theme.of(context).textTheme.headlineLarge),
-        const SizedBox(height: 5),
-        const Text('A new challenge is waiting above', style: TextStyle(color: Color(0xFF82849B), fontSize: 13)),
-        const SizedBox(height: 22),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 24), child: FilledButton.icon(
-          onPressed: () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true),
-          icon: const Icon(Icons.arrow_upward_rounded),
-          label: const Text('Continue climbing'),
-          style: FilledButton.styleFrom(backgroundColor: lavender, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 54), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
-        )),
-        const SizedBox(height: 24),
-      ]),
-    ),
-    const SizedBox(height: 24),
-    _heading('TAKE A BREAK', 'Your games'),
-    const SizedBox(height: 13),
-    ...games.map((g) => _gameTile(g.$1, g.$2, g.$3, g.$4, g.$5)),
-  ]);
+  Widget _home() => ListView(
+    padding: EdgeInsets.zero,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(26, 24, 26, 16),
+        child: Row(children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('A LITTLE HIGHER EVERY DAY', style: TextStyle(
+              fontSize: 10, letterSpacing: 1.8, color: Color(0xFF9790B9),
+              fontWeight: FontWeight.w800)),
+            const SizedBox(height: 5),
+            Text('Flooria', style: Theme.of(context).textTheme.headlineLarge),
+          ])),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(color: Color(0xFFF0ECF8), shape: BoxShape.circle),
+            child: const Icon(Icons.auto_awesome_rounded, color: lavender, size: 23),
+          ),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Container(
+            color: const Color(0xFFF0EDFB),
+            child: Column(children: [
+              const SizedBox(height: 4),
+              const SizedBox(height: 260, width: double.infinity, child: DreamTower()),
+              const SizedBox(height: 6),
+              const Text('YOUR NEXT DISCOVERY', style: TextStyle(
+                fontSize: 10, color: Color(0xFF9188B7),
+                letterSpacing: 2, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 5),
+              Text('Floor $floor', style: const TextStyle(
+                color: ink, fontSize: 36, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 3),
+              const Text('The tower has a new surprise for you',
+                style: TextStyle(color: Color(0xFF8E8FA7), fontSize: 12)),
+              const SizedBox(height: 19),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: FilledButton(
+                  onPressed: () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF8372C9),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 54),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                  ),
+                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Text('Continue journey', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    SizedBox(width: 12), Icon(Icons.arrow_upward_rounded, size: 20),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 25),
+            ]),
+          ),
+        ),
+      ),
+      const SizedBox(height: 27),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(children: [
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('A WORLD OF PUZZLES', style: TextStyle(
+              fontSize: 10, letterSpacing: 1.4, fontWeight: FontWeight.w800,
+              color: Color(0xFF9B90C3))),
+            const SizedBox(height: 5),
+            Text('Pick a little challenge', style: Theme.of(context).textTheme.titleLarge),
+          ])),
+          TextButton(onPressed: () => setState(() => tab = 2), child: const Text('See all →')),
+        ]),
+      ),
+      const SizedBox(height: 11),
+      SizedBox(height: 158, child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        children: [
+          for (final g in games)
+            GestureDetector(
+              onTap: () => _open(g.$1),
+              child: Container(
+                width: 156, margin: const EdgeInsets.symmetric(horizontal: 6),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFF0EDF6)),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    width: 52, height: 52,
+                    decoration: BoxDecoration(color: g.$5, borderRadius: BorderRadius.circular(17)),
+                    child: Icon(g.$4, color: ink, size: 27),
+                  ),
+                  const Spacer(),
+                  Text(g.$2, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 16)),
+                  const SizedBox(height: 3),
+                  Text(g.$3, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Color(0xFF9394A5), fontSize: 11)),
+                ]),
+              ),
+            ),
+        ],
+      )),
+      const SizedBox(height: 28),
+    ],
+  );
 
   Widget _tower() => ListView(padding: const EdgeInsets.all(24), children: [
     _heading('THE INFINITE TOWER', 'Climb at your pace'),
@@ -254,37 +336,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       ListTile(leading: const Icon(Icons.history_rounded, color: lavender), title: const Text('Recently played'), trailing: Text('${recent.length}')),
     ])),
   ]);
-}
-
-class TowerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final x = size.width / 2;
-    final paint = Paint()..style = PaintingStyle.fill;
-    paint.color = const Color(0xFFD6D1F0);
-    canvas.drawOval(Rect.fromCenter(center: Offset(x, size.height - 21), width: 215, height: 27), paint);
-    paint.color = const Color(0xFFC8BDEB);
-    final body = Path()..moveTo(x - 64, 210)..lineTo(x - 64, 63)..lineTo(x, 30)..lineTo(x + 64, 63)..lineTo(x + 64, 210)..close();
-    canvas.drawPath(body, paint);
-    paint.color = const Color(0xFFEDE7FD);
-    final roof = Path()..moveTo(x - 75, 60)..lineTo(x, 18)..lineTo(x + 75, 60)..lineTo(x, 99)..close();
-    canvas.drawPath(roof, paint);
-    paint.color = const Color(0xFFA89BD9);
-    final side = Path()..moveTo(x, 99)..lineTo(x + 64, 63)..lineTo(x + 64, 210)..lineTo(x, 226)..close();
-    canvas.drawPath(side, paint);
-    paint.color = const Color(0xFFFCDBAB);
-    for (var row = 0; row < 3; row++) {
-      for (var col = 0; col < 2; col++) {
-        final left = col == 0 ? x - 44 : x + 22;
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(left, 111 + row * 33, 19, 23), const Radius.circular(8)), paint);
-      }
-    }
-    paint.color = Colors.white.withValues(alpha: .75);
-    canvas.drawCircle(Offset(x - 108, 48), 5, paint);
-    canvas.drawCircle(Offset(x + 110, 87), 4, paint);
-  }
-  @override
-  bool shouldRepaint(covariant TowerPainter oldDelegate) => false;
 }
 
 class MergePage extends StatefulWidget {
