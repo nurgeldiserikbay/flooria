@@ -12,8 +12,8 @@ void main() {
 }
 
 const ink = Color(0xFF343855);
-const lavender = Color(0xFF8A7ACC);
-const paper = Color(0xFFFBFAFE);
+const lavender = Color(0xFF7959C9);
+const paper = Color(0xFFFFFAED);
 const mint = Color(0xFFB9E3D5);
 
 class FlooriaApp extends StatelessWidget {
@@ -51,8 +51,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   final List<String> recent = [];
   bool loaded = false;
   static const games = [
-    ('merge2048', '2048', 'Merge the numbers', Icons.grid_view_rounded, Color(0xFFEBCBA2)),
-    ('numberSequence', 'Number Trail', 'Find the next number', Icons.route_rounded, Color(0xFFAFE0CF)),
+    ('merge2048', '2048', 'Merge the numbers', Icons.grid_view_rounded, Color(0xFFFFC367)),
+    ('numberSequence', 'Number Trail', 'Find the next number', Icons.route_rounded, Color(0xFF86E9D0)),
   ];
 
   @override
@@ -128,9 +128,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
                 padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
                 child: Row(children: [
-                  _nav(0, Icons.home_rounded, 'Home'),
+                  _nav(0, Icons.castle_rounded, 'Home'),
                   _nav(1, Icons.auto_awesome_mosaic_rounded, 'Tower'),
-                  _nav(2, Icons.extension_rounded, 'Games'),
+                  _nav(2, Icons.toys_rounded, 'Games'),
                   _nav(3, Icons.psychology_alt_rounded, 'Mind'),
                 ]),
               ),
@@ -148,8 +148,19 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: tab == index ? lavender : const Color(0xFFA8A6B8)),
-          const SizedBox(height: 3),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 44, height: 39,
+            decoration: BoxDecoration(
+              color: tab == index ? const Color(0xFFFFD475) : const Color(0xFFF0EBF6),
+              borderRadius: BorderRadius.circular(14),
+              border: Border(bottom: BorderSide(
+                color: tab == index ? const Color(0xFFDE9F50) : const Color(0xFFDED7EC),
+                width: 3)),
+            ),
+            child: Icon(icon, color: tab == index ? const Color(0xFF584264) : const Color(0xFF8982A4)),
+          ),
+          const SizedBox(height: 4),
           Text(title, style: TextStyle(fontSize: 11, fontWeight: tab == index ? FontWeight.w700 : FontWeight.w500, color: tab == index ? lavender : const Color(0xFF9A9AAC))),
         ]),
       ),
@@ -169,7 +180,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         padding: const EdgeInsets.fromLTRB(26, 24, 26, 16),
         child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('A LITTLE HIGHER EVERY DAY', style: TextStyle(
+            const Text('YOUR NEXT ADVENTURE', style: TextStyle(
               fontSize: 10, letterSpacing: 1.8, color: Color(0xFF9790B9),
               fontWeight: FontWeight.w800)),
             const SizedBox(height: 5),
@@ -187,12 +198,12 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: Container(
-            color: const Color(0xFFF0EDFB),
+            color: const Color(0xFFBDEBFB),
             child: Column(children: [
               const SizedBox(height: 4),
-              const SizedBox(height: 260, width: double.infinity, child: DreamTower()),
+              const SizedBox(height: 315, width: double.infinity, child: DreamTower()),
               const SizedBox(height: 6),
-              const Text('YOUR NEXT DISCOVERY', style: TextStyle(
+              const Text('YOUR NEXT FLOOR', style: TextStyle(
                 fontSize: 10, color: Color(0xFF9188B7),
                 letterSpacing: 2, fontWeight: FontWeight.w800)),
               const SizedBox(height: 5),
@@ -207,13 +218,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 child: FilledButton(
                   onPressed: () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF8372C9),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 54),
+                    backgroundColor: const Color(0xFFFFA748),
+                    foregroundColor: const Color(0xFF463752),
+                    minimumSize: const Size(double.infinity, 58),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   ),
                   child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('Continue journey', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    Text('LET’S CLIMB!', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
                     SizedBox(width: 12), Icon(Icons.arrow_upward_rounded, size: 20),
                   ]),
                 ),
@@ -232,7 +243,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               fontSize: 10, letterSpacing: 1.4, fontWeight: FontWeight.w800,
               color: Color(0xFF9B90C3))),
             const SizedBox(height: 5),
-            Text('Pick a little challenge', style: Theme.of(context).textTheme.titleLarge),
+            Text('Choose your quest', style: Theme.of(context).textTheme.titleLarge),
           ])),
           TextButton(onPressed: () => setState(() => tab = 2), child: const Text('See all →')),
         ]),
@@ -249,13 +260,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 width: 156, margin: const EdgeInsets.symmetric(horizontal: 6),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFF0EDF6)),
+                  color: g.$5, borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFF6EACA)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(
                     width: 52, height: 52,
-                    decoration: BoxDecoration(color: g.$5, borderRadius: BorderRadius.circular(17)),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .60), borderRadius: BorderRadius.circular(17)),
                     child: Icon(g.$4, color: ink, size: 27),
                   ),
                   const Spacer(),
