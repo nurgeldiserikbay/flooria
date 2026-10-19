@@ -23,7 +23,7 @@ class FloorEngine {
   int sequenceAnswer(int floor, int step) {
     final random = Random(seedFor(floor, 'numberSequence'));
     final start = random.nextInt(10) + 1;
-    final delta = random.nextInt(4) + 2 + min(5, floor ~/ 15);
+    final delta = random.nextInt(4) + 2 + min<int>(5, floor ~/ 15);
     return start + delta * step;
   }
 }
