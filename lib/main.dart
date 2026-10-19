@@ -451,42 +451,66 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 
   Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
     Container(
-      margin: const EdgeInsets.only(bottom: 11),
+      margin: const EdgeInsets.only(bottom: 13),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFF0EDF6)),
-        borderRadius: BorderRadius.circular(23),
+        color: color,
+        borderRadius: BorderRadius.circular(25),
+        border: Border(bottom: BorderSide(
+          color: Color.lerp(color, const Color(0xFF725586), .32)!,
+          width: 5)),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(25),
         onTap: () => _open(id),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(13, 12, 9, 12),
           child: Row(children: [
             Container(
-              width: 62, height: 62,
-              decoration: BoxDecoration(
-                color: color, borderRadius: BorderRadius.circular(19)),
+              width: 78, height: 74,
               alignment: Alignment.center,
-              child: Icon(icon, size: 29, color: ink),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .43),
+                borderRadius: BorderRadius.circular(18)),
+              child: id == 'merge2048'
+                ? Wrap(spacing: 4, runSpacing: 4, children: [
+                    for (final n in [2, 4, 8, 16])
+                      Container(
+                        width: 29, height: 29,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: n == 16 ? const Color(0xFFF39B79) : Colors.white,
+                          borderRadius: BorderRadius.circular(8)),
+                        child: Text('$n', style: const TextStyle(
+                          color: ink, fontSize: 13, fontWeight: FontWeight.w900)),
+                      ),
+                  ])
+                : const Row(mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('3', style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 24)),
+                      Icon(Icons.arrow_forward_rounded, color: Color(0xFF628C98), size: 18),
+                      Text('6', style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 24)),
+                    ]),
             ),
             const SizedBox(width: 14),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(name, style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w800, color: ink)),
+                fontSize: 19, fontWeight: FontWeight.w900, color: ink)),
               const SizedBox(height: 4),
               Text(subtitle, style: const TextStyle(
-                fontSize: 12, color: Color(0xFF9192A5))),
+                fontSize: 12, color: Color(0xFF675C70))),
+              const SizedBox(height: 9),
+              const Text('▶  PLAY', style: TextStyle(
+                fontSize: 11, letterSpacing: 1.1,
+                fontWeight: FontWeight.w900, color: Color(0xFF655184))),
             ])),
             IconButton(
               tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
               onPressed: () => _toggleFavorite(id),
-              icon: Icon(favorites.contains(id)
-                ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              icon: Icon(
+                favorites.contains(id) ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: favorites.contains(id)
-                ? const Color(0xFFE38E9B) : const Color(0xFFB9B4C8)),
+                  ? const Color(0xFFD84979) : const Color(0xFF82688D)),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Color(0xFFB6B1C8), size: 19),
           ]),
         ),
       ),
