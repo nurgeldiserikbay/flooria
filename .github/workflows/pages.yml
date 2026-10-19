@@ -28,8 +28,12 @@ jobs:
         with:
           channel: stable
           cache: true
+      - name: Generate Flutter platform scaffolding
+        run: flutter create --project-name flooria --platforms=web,android,ios .
       - name: Get dependencies
         run: flutter pub get
+      - name: Analyze Dart
+        run: flutter analyze
       - name: Build web
         run: flutter build web --release --base-href /flooria/
       - name: Upload Pages artifact
