@@ -50,7 +50,9 @@ class Merge2048 {
         result.add(values[i]);
       }
     }
-    while (result.length < 4) result.add(0);
+    while (result.length < 4) {
+      result.add(0);
+    }
     return result;
   }
 
