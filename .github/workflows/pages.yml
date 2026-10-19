@@ -34,6 +34,8 @@ jobs:
         run: flutter pub get
       - name: Analyze Dart
         run: flutter analyze
+      - name: Run automated tests
+        run: flutter test --reporter expanded
       - name: Build web
         run: flutter build web --release --base-href /flooria/
       - name: Upload Pages artifact
