@@ -56,7 +56,7 @@ class DreamTowerPainter extends CustomPainter {
     canvas.drawRect(const Rect.fromLTWH(0, 0, 340, 275), background);
     _circle(canvas, 269, 46, 34, const Color(0xFFFFF7E3));
     _circle(canvas, 269, 46, 44, const Color(0xFFFFFBEF).withValues(alpha: .38));
-    for (final star in const [(48.0, 48.0, 2.0), (86, 84, 2), (245, 101, 2), (297, 118, 3), (226, 34, 2)]) {
+    for (final star in const [(48.0, 48.0, 2.0), (86.0, 84.0, 2.0), (245.0, 101.0, 2.0), (297.0, 118.0, 3.0), (226.0, 34.0, 2.0)]) {
       _circle(canvas, star.$1, star.$2 + math.sin(phase * math.pi * 2 + star.$1) * 2, star.$3, Colors.white);
     }
     _cloud(canvas, 48, 217 + phase * 5, 1.05, const Color(0xFFDADDF5));
