@@ -337,11 +337,17 @@ class _MergePageState extends State<MergePage> {
         onKeyEvent: (_, event) {
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
           final key = event.logicalKey;
-          if (key == LogicalKeyboardKey.arrowLeft) move(MoveDirection.left);
-          else if (key == LogicalKeyboardKey.arrowRight) move(MoveDirection.right);
-          else if (key == LogicalKeyboardKey.arrowUp) move(MoveDirection.up);
-          else if (key == LogicalKeyboardKey.arrowDown) move(MoveDirection.down);
-          else return KeyEventResult.ignored;
+          if (key == LogicalKeyboardKey.arrowLeft) {
+            move(MoveDirection.left);
+          } else if (key == LogicalKeyboardKey.arrowRight) {
+            move(MoveDirection.right);
+          } else if (key == LogicalKeyboardKey.arrowUp) {
+            move(MoveDirection.up);
+          } else if (key == LogicalKeyboardKey.arrowDown) {
+            move(MoveDirection.down);
+          } else {
+            return KeyEventResult.ignored;
+          }
           return KeyEventResult.handled;
         },
         child: GestureDetector(
