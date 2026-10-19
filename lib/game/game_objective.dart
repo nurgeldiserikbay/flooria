@@ -27,7 +27,7 @@ class ObjectiveCatalog {
       case 'merge2048':
         final target = floor == null
             ? 2048
-            : min<int>(256, 16 << min<int>(4, (floor - 1) ~/ 6));
+            : 128 << min<int>(4, (floor - 1) ~/ 12);
         return GameObjective(
           title: 'Reach the $target tile',
           instruction: 'Swipe to merge equal tiles until you create $target.',
@@ -35,10 +35,11 @@ class ObjectiveCatalog {
           unit: 'Highest tile',
         );
       case 'numberSequence':
-        return const GameObjective(
-          title: 'Solve 2 of 3 patterns',
-          instruction: 'Choose the missing number. Get at least 2 answers right.',
-          target: 2,
+        final required = floor != null && floor >= 14 ? 3 : 2;
+        return GameObjective(
+          title: 'Solve $required of 3 patterns',
+          instruction: 'Find the missing number in three different puzzles.',
+          target: required,
           unit: 'Correct answers',
         );
       default:
