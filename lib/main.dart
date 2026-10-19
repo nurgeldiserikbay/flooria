@@ -726,6 +726,9 @@ class _SequencePageState extends State<SequencePage> {
   late SequencePuzzle puzzle;
   bool passed = false;
   bool resultPresented = false;
+  bool answering = false;
+  int? selectedAnswer;
+  bool selectedCorrect = false;
 
   @override
   void initState() {
@@ -739,12 +742,22 @@ class _SequencePageState extends State<SequencePage> {
     );
   }
 
-  void answer(int chosen) {
-    if (done) return;
-    final expected = puzzle.answer;
+  Future<void> answer(int chosen) async {
+    if (done || answering) return;
+    final wasCorrect = chosen == puzzle.answer;
     setState(() {
-      if (chosen == expected) correct++;
+      answering = true;
+      selectedAnswer = chosen;
+      selectedCorrect = wasCorrect;
+    });
+    // The player must see whether the answer was right before it disappears.
+    await Future<void>.delayed(const Duration(milliseconds: 480));
+    if (!mounted) return;
+    setState(() {
+      if (wasCorrect) correct++;
       round++;
+      answering = false;
+      selectedAnswer = null;
       if (round >= 3) {
         done = true;
         passed = const ObjectiveCatalog()
@@ -783,11 +796,57 @@ class _SequencePageState extends State<SequencePage> {
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
       const SizedBox(height: 20),
       if (!done) ...[
-        Text('${puzzle.numbers.join('   ')}   ?', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 240),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(.08, 0), end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          child: FittedBox(
+            key: ValueKey<int>(round),
+            fit: BoxFit.scaleDown,
+            child: Text('${puzzle.numbers.join('   ')}   ?',
+              style: const TextStyle(
+                fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
+          ),
+        ),
         const SizedBox(height: 28),
         GridView.count(
           crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
-          children: [for (final v in puzzle.choices) FilledButton(onPressed: () => answer(v), style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Text('$v', style: const TextStyle(fontSize: 24)))],
+          children: [
+            for (final v in puzzle.choices)
+              AnimatedScale(
+                scale: answering && selectedAnswer == v ? 1.055 : 1,
+                curve: Curves.easeOutBack,
+                duration: const Duration(milliseconds: 175),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  decoration: BoxDecoration(
+                    color: answering && selectedAnswer == v
+                      ? selectedCorrect
+                        ? const Color(0xFF94E2BE) : const Color(0xFFFFBAA6)
+                      : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: const Border(bottom: BorderSide(
+                      color: Color(0xFFD6CEDF), width: 4)),
+                  ),
+                  child: TextButton(
+                    onPressed: answering ? null : () => answer(v),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ink,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16))),
+                    child: Text('$v', style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.w800)),
+                  ),
+                ),
+              ),
+          ],
         ),
       ] else if (widget.floor == null || !passed) ...[
         Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
@@ -796,7 +855,7 @@ class _SequencePageState extends State<SequencePage> {
           if (passed) {
             Navigator.pop(context);
           } else {
-            setState(() { round = 0; correct = 0; done = false; passed = false; resultPresented = false; _buildChoices(); });
+            setState(() { round = 0; correct = 0; done = false; passed = false; resultPresented = false; answering = false; selectedAnswer = null; _buildChoices(); });
           }
         }, child: Text(passed ? 'Back to tower' : 'Try again')),
       ],
