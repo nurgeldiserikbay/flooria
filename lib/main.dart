@@ -436,7 +436,6 @@ class _MergePageState extends State<MergePage> {
   late Merge2048 game;
   bool finished = false;
   Offset drag = Offset.zero;
-  int boardRevision = 0;
 
   @override
   void initState() {
@@ -447,7 +446,7 @@ class _MergePageState extends State<MergePage> {
   void move(MoveDirection d) {
     if (finished) return;
     setState(() {
-      if (game.move(d)) boardRevision++;
+      game.move(d);
       final target = widget.floor == null ? 2048 : min(256, 16 << min(4, (widget.floor! - 1) ~/ 6));
       if (game.highest >= target) {
         finished = true;
@@ -559,7 +558,7 @@ class _MergePageState extends State<MergePage> {
       if (finished) _notice(widget.floor == null ? 'Wonderful! You reached 2048.' : 'Floor complete! Your tower awaits.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
-      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; boardRevision++; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
+      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
       if (finished && widget.floor != null) FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Back to tower')),
     ]))),
   );
