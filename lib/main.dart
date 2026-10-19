@@ -284,76 +284,150 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   );
 
   Widget _tower() => ListView(
-    padding: const EdgeInsets.fromLTRB(22, 25, 22, 25),
+    padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
     children: [
-      _heading('DISCOVER WHAT IS ABOVE', 'The endless tower'),
-      const SizedBox(height: 18),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 9),
+        child: _heading('THE SKY IS THE LIMIT', 'Climb the tower!'),
+      ),
+      const SizedBox(height: 16),
       Container(
-        height: 190,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0ECFB),
-          borderRadius: BorderRadius.circular(27),
-        ),
+        height: 470,
         clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          color: const Color(0xFFBDEBFB),
+        ),
         child: Stack(children: [
           const Positioned.fill(child: DreamTower()),
+          Positioned.fill(
+            child: DecoratedBox(decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFFFFFFFF).withValues(alpha: .05),
+                  const Color(0xFFFFFFFF).withValues(alpha: .35),
+                  const Color(0xFFFFF1D5).withValues(alpha: .96),
+                ],
+                stops: const [0, .48, 1],
+              ),
+            )),
+          ),
           Positioned(
-            left: 18, bottom: 18,
+            left: 18, top: 14,
+            child: _floorMarker(
+              floor + 2, const Color(0xFFA998EB),
+              Icons.lock_outline_rounded, false,
+            ),
+          ),
+          Positioned(
+            right: 17, top: 96,
+            child: _floorMarker(
+              floor + 1, const Color(0xFFFFB97B),
+              Icons.lock_outline_rounded, false,
+            ),
+          ),
+          Positioned(
+            left: 40, top: 211,
+            child: _floorMarker(
+              floor, const Color(0xFFFFD16D),
+              Icons.play_arrow_rounded, true,
+            ),
+          ),
+          if (floor > 1)
+            Positioned(
+              right: 24, top: 320,
+              child: _floorMarker(
+                floor - 1, const Color(0xFF90DFBB),
+                Icons.check_rounded, false,
+                completed: true,
+              ),
+            ),
+          Positioned(
+            left: 18, bottom: 15, right: 18,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .92),
-                borderRadius: BorderRadius.circular(17)),
-              child: Text('You are on floor $floor',
-                style: const TextStyle(color: ink, fontSize: 13,
-                fontWeight: FontWeight.w800)),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFAF1),
+                borderRadius: BorderRadius.circular(20),
+                border: const Border(bottom: BorderSide(
+                  color: Color(0xFFE9BD83), width: 4)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.auto_awesome_rounded,
+                  color: Color(0xFFE6A83C)),
+                const SizedBox(width: 10),
+                Expanded(child: Text(
+                  'Floor $floor · Next adventure',
+                  style: const TextStyle(color: ink, fontWeight: FontWeight.w800),
+                )),
+                const Icon(Icons.north_rounded, color: Color(0xFF9D65C1)),
+              ]),
             ),
           ),
         ]),
       ),
-      const SizedBox(height: 22),
-      Row(children: [
-        const Icon(Icons.explore_rounded, color: lavender, size: 20),
-        const SizedBox(width: 8),
-        const Text('Your journey', style: TextStyle(
-          fontSize: 19, color: ink, fontWeight: FontWeight.w800)),
-        const Spacer(),
-        const Text('Keep going ↑', style: TextStyle(color: Color(0xFF9695A7), fontSize: 12)),
-      ]),
-      const SizedBox(height: 14),
-      for (var f = floor + 2; f >= max(1, floor - 4); f--)
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            color: f == floor ? const Color(0xFFE9E3FA) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: f == floor
-              ? const Color(0xFFCDC0F4) : const Color(0xFFF1EEF6)),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-            leading: Container(
-              width: 46, height: 46,
-              decoration: BoxDecoration(
-                color: f == floor ? lavender : const Color(0xFFF3F1F9),
-                borderRadius: BorderRadius.circular(15)),
-              alignment: Alignment.center,
-              child: Icon(f < floor ? Icons.check_rounded
-                : f == floor ? Icons.auto_awesome_rounded : Icons.lock_outline_rounded,
-                color: f == floor ? Colors.white : const Color(0xFFA39DBB)),
-            ),
-            title: Text('Floor $f', style: const TextStyle(
-              color: ink, fontWeight: FontWeight.w800)),
-            subtitle: Text(f < floor ? 'A lovely challenge completed'
-              : f == floor ? 'Ready for your next discovery' : 'Something new awaits',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF8E8EA3))),
-            trailing: f == floor
-              ? const Icon(Icons.arrow_forward_rounded, color: lavender) : null,
-            onTap: f == floor
-              ? () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)
-              : null,
-          ),
+      const SizedBox(height: 16),
+      FilledButton.icon(
+        onPressed: () => _open(
+          const FloorEngine().challengeFor(floor).gameId, tower: true),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFFFFAE54),
+          foregroundColor: ink,
+          minimumSize: const Size.fromHeight(58),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18)),
         ),
+        icon: const Icon(Icons.play_arrow_rounded),
+        label: const Text('PLAY THIS FLOOR',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: .5)),
+      ),
     ],
+  );
+
+  Widget _floorMarker(int number, Color color, IconData icon, bool active,
+      {bool completed = false}) => GestureDetector(
+    onTap: active
+      ? () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)
+      : null,
+    child: Container(
+      width: active ? 169 : 127,
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
+      decoration: BoxDecoration(
+        color: color, borderRadius: BorderRadius.circular(20),
+        border: Border(bottom: BorderSide(
+          color: Color.lerp(color, const Color(0xFF59466D), .38)!,
+          width: active ? 6 : 4)),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF6A699F).withValues(alpha: .18),
+            blurRadius: 12, offset: const Offset(0, 5)),
+        ],
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 33, height: 33,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .75),
+            borderRadius: BorderRadius.circular(11)),
+          child: Icon(icon, color: ink, size: 20),
+        ),
+        const SizedBox(width: 8),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('FLOOR', style: TextStyle(
+              fontSize: 9, letterSpacing: 1.3,
+              fontWeight: FontWeight.w900,
+              color: ink.withValues(alpha: .65))),
+            Text('$number', style: const TextStyle(
+              fontSize: 20, color: ink, fontWeight: FontWeight.w900)),
+          ],
+        )),
+        if (completed)
+          const Icon(Icons.star_rounded, color: Color(0xFFFFF1AB), size: 19),
+      ]),
+    ),
   );
 
   Widget _library() => DefaultTabController(length: 3, child: Column(children: [
