@@ -436,6 +436,7 @@ class _MergePageState extends State<MergePage> {
   late Merge2048 game;
   bool finished = false;
   Offset drag = Offset.zero;
+  int boardRevision = 0;
 
   @override
   void initState() {
@@ -446,7 +447,7 @@ class _MergePageState extends State<MergePage> {
   void move(MoveDirection d) {
     if (finished) return;
     setState(() {
-      game.move(d);
+      if (game.move(d)) boardRevision++;
       final target = widget.floor == null ? 2048 : min(256, 16 << min(4, (widget.floor! - 1) ~/ 6));
       if (game.highest >= target) {
         finished = true;
@@ -488,15 +489,24 @@ class _MergePageState extends State<MergePage> {
           return KeyEventResult.handled;
         },
         child: GestureDetector(
-          onPanStart: (_) => drag = Offset.zero,
-          onPanUpdate: (d) => drag += d.delta,
-          onPanEnd: (_) {
-            if (drag.distance < 20) return;
-            if (drag.dx.abs() > drag.dy.abs()) {
+          behavior: HitTestBehavior.opaque,
+          // Direction-specific recognizers win against the parent ListView's
+          // vertical scroll recognizer when a gesture begins on the board.
+          onHorizontalDragStart: (_) => drag = Offset.zero,
+          onHorizontalDragUpdate: (details) => drag += details.delta,
+          onHorizontalDragEnd: (_) {
+            if (drag.dx.abs() >= 16) {
               move(drag.dx > 0 ? MoveDirection.right : MoveDirection.left);
-            } else {
+            }
+            drag = Offset.zero;
+          },
+          onVerticalDragStart: (_) => drag = Offset.zero,
+          onVerticalDragUpdate: (details) => drag += details.delta,
+          onVerticalDragEnd: (_) {
+            if (drag.dy.abs() >= 16) {
               move(drag.dy > 0 ? MoveDirection.down : MoveDirection.up);
             }
+            drag = Offset.zero;
           },
           child: AspectRatio(aspectRatio: 1, child: Container(
             padding: const EdgeInsets.all(9),
@@ -509,10 +519,36 @@ class _MergePageState extends State<MergePage> {
                 final v = game.cells[i];
                 final shades = [const Color(0xFFEEEAF3), const Color(0xFFF7F0E7), const Color(0xFFF2DEBF), const Color(0xFFE7CAA4), const Color(0xFFD4C3F0), const Color(0xFFB5DCD0), const Color(0xFF97CFC9)];
                 final rank = v == 0 ? 0 : (log(v) / ln2).floor().clamp(1, shades.length - 1);
-                return Container(
-                  decoration: BoxDecoration(color: shades[rank], borderRadius: BorderRadius.circular(11)),
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 165),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: shades[rank],
+                    borderRadius: BorderRadius.circular(13),
+                  ),
                   alignment: Alignment.center,
-                  child: Text(v == 0 ? '' : '$v', style: TextStyle(fontSize: v > 1000 ? 20 : 25, color: ink, fontWeight: FontWeight.w800)),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 145),
+                    reverseDuration: const Duration(milliseconds: 100),
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween<double>(begin: .78, end: 1).animate(
+                          CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                        ),
+                        child: child,
+                      ),
+                    ),
+                    child: Text(
+                      v == 0 ? '' : '$v',
+                      key: ValueKey<int>(v),
+                      style: TextStyle(
+                        fontSize: v > 1000 ? 20 : 25,
+                        color: ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -523,7 +559,7 @@ class _MergePageState extends State<MergePage> {
       if (finished) _notice(widget.floor == null ? 'Wonderful! You reached 2048.' : 'Floor complete! Your tower awaits.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
-      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
+      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; boardRevision++; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
       if (finished && widget.floor != null) FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Back to tower')),
     ]))),
   );
