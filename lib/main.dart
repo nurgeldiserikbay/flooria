@@ -272,22 +272,78 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ],
   );
 
-  Widget _tower() => ListView(padding: const EdgeInsets.all(24), children: [
-    _heading('THE INFINITE TOWER', 'Climb at your pace'),
-    const SizedBox(height: 18),
-    for (var f = floor + 3; f >= max(1, floor - 5); f--)
+  Widget _tower() => ListView(
+    padding: const EdgeInsets.fromLTRB(22, 25, 22, 25),
+    children: [
+      _heading('DISCOVER WHAT IS ABOVE', 'The endless tower'),
+      const SizedBox(height: 18),
       Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(color: f == floor ? const Color(0xFFEDE8FB) : Colors.white, borderRadius: BorderRadius.circular(19)),
-        child: ListTile(
-          leading: CircleAvatar(backgroundColor: f == floor ? lavender : const Color(0xFFEEEFF5), child: Icon(f < floor ? Icons.check : f == floor ? Icons.auto_awesome_rounded : Icons.lock_outline_rounded, color: f == floor ? Colors.white : ink, size: 20)),
-          title: Text('Floor $f', style: const TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: Text(f < floor ? 'Completed' : f == floor ? 'Current challenge' : 'A mystery awaits'),
-          trailing: f == floor ? const Icon(Icons.chevron_right_rounded, color: lavender) : null,
-          onTap: f == floor ? () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true) : null,
+        height: 190,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0ECFB),
+          borderRadius: BorderRadius.circular(27),
         ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(children: [
+          const Positioned.fill(child: DreamTower()),
+          Positioned(
+            left: 18, bottom: 18,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: .92),
+                borderRadius: BorderRadius.circular(17)),
+              child: Text('You are on floor $floor',
+                style: const TextStyle(color: ink, fontSize: 13,
+                fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ]),
       ),
-  ]);
+      const SizedBox(height: 22),
+      Row(children: [
+        const Icon(Icons.explore_rounded, color: lavender, size: 20),
+        const SizedBox(width: 8),
+        const Text('Your journey', style: TextStyle(
+          fontSize: 19, color: ink, fontWeight: FontWeight.w800)),
+        const Spacer(),
+        const Text('Keep going ↑', style: TextStyle(color: Color(0xFF9695A7), fontSize: 12)),
+      ]),
+      const SizedBox(height: 14),
+      for (var f = floor + 2; f >= max(1, floor - 4); f--)
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: f == floor ? const Color(0xFFE9E3FA) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: f == floor
+              ? const Color(0xFFCDC0F4) : const Color(0xFFF1EEF6)),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+            leading: Container(
+              width: 46, height: 46,
+              decoration: BoxDecoration(
+                color: f == floor ? lavender : const Color(0xFFF3F1F9),
+                borderRadius: BorderRadius.circular(15)),
+              alignment: Alignment.center,
+              child: Icon(f < floor ? Icons.check_rounded
+                : f == floor ? Icons.auto_awesome_rounded : Icons.lock_outline_rounded,
+                color: f == floor ? Colors.white : const Color(0xFFA39DBB)),
+            ),
+            title: Text('Floor $f', style: const TextStyle(
+              color: ink, fontWeight: FontWeight.w800)),
+            subtitle: Text(f < floor ? 'A lovely challenge completed'
+              : f == floor ? 'Ready for your next discovery' : 'Something new awaits',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF8E8EA3))),
+            trailing: f == floor
+              ? const Icon(Icons.arrow_forward_rounded, color: lavender) : null,
+            onTap: f == floor
+              ? () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)
+              : null,
+          ),
+        ),
+    ],
+  );
 
   Widget _library() => DefaultTabController(length: 3, child: Column(children: [
     Padding(padding: const EdgeInsets.fromLTRB(24, 26, 24, 16), child: Align(alignment: Alignment.centerLeft, child: _heading('COLLECTION', 'My games'))),
@@ -308,18 +364,48 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ]);
   }
 
-  Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) => Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-    child: ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      leading: Container(width: 52, height: 52, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)), child: Icon(icon, size: 27, color: ink)),
-      title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: ink)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Color(0xFF85869C), fontSize: 12)),
-      trailing: IconButton(onPressed: () => _toggleFavorite(id), icon: Icon(favorites.contains(id) ? Icons.favorite_rounded : Icons.favorite_border_rounded, color: favorites.contains(id) ? const Color(0xFFE48D9F) : const Color(0xFFB0B0BE))),
-      onTap: () => _open(id),
-    ),
-  );
+  Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
+    Container(
+      margin: const EdgeInsets.only(bottom: 11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFF0EDF6)),
+        borderRadius: BorderRadius.circular(23),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(23),
+        onTap: () => _open(id),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(children: [
+            Container(
+              width: 62, height: 62,
+              decoration: BoxDecoration(
+                color: color, borderRadius: BorderRadius.circular(19)),
+              alignment: Alignment.center,
+              child: Icon(icon, size: 29, color: ink),
+            ),
+            const SizedBox(width: 14),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800, color: ink)),
+              const SizedBox(height: 4),
+              Text(subtitle, style: const TextStyle(
+                fontSize: 12, color: Color(0xFF9192A5))),
+            ])),
+            IconButton(
+              tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
+              onPressed: () => _toggleFavorite(id),
+              icon: Icon(favorites.contains(id)
+                ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: favorites.contains(id)
+                ? const Color(0xFFE38E9B) : const Color(0xFFB9B4C8)),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFFB6B1C8), size: 19),
+          ]),
+        ),
+      ),
+    );
 
   Widget _profile() => ListView(padding: const EdgeInsets.all(24), children: [
     _heading('MY JOURNEY', 'My Mind'),
