@@ -51,16 +51,16 @@ class DreamTowerPainter extends CustomPainter {
 
     final background = Paint()..shader = const LinearGradient(
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
-      colors: [Color(0xFFF0EDFF), Color(0xFFF8F6FE), Color(0xFFEAF6F4)],
+      colors: [Color(0xFF8BD8FA), Color(0xFFD2F3FF), Color(0xFFF5F2D8)],
     ).createShader(const Rect.fromLTWH(0, 0, 340, 275));
     canvas.drawRect(const Rect.fromLTWH(0, 0, 340, 275), background);
-    _circle(canvas, 269, 46, 34, const Color(0xFFFFF7E3));
+    _circle(canvas, 269, 46, 34, const Color(0xFFFFE29C));
     _circle(canvas, 269, 46, 44, const Color(0xFFFFFBEF).withValues(alpha: .38));
     for (final star in const [(48.0, 48.0, 2.0), (86.0, 84.0, 2.0), (245.0, 101.0, 2.0), (297.0, 118.0, 3.0), (226.0, 34.0, 2.0)]) {
       _circle(canvas, star.$1, star.$2 + math.sin(phase * math.pi * 2 + star.$1) * 2, star.$3, Colors.white);
     }
-    _cloud(canvas, 48, 217 + phase * 5, 1.05, const Color(0xFFDADDF5));
-    _cloud(canvas, 296, 223 - phase * 4, 1.22, const Color(0xFFDDE7F3));
+    _cloud(canvas, 48, 217 + phase * 5, 1.05, const Color(0xFFF7FCFF));
+    _cloud(canvas, 296, 223 - phase * 4, 1.22, const Color(0xFFE9F8FF));
     _cloud(canvas, 57, 120, .68, Colors.white.withValues(alpha: .52));
     _cloud(canvas, 294, 138, .63, Colors.white.withValues(alpha: .5));
 
@@ -69,30 +69,53 @@ class DreamTowerPainter extends CustomPainter {
     canvas.drawOval(const Rect.fromLTWH(91, 250, 162, 17), shadow);
 
     // Floating island and six gently separated architectural levels.
-    _poly(canvas, [const Offset(70, 244), const Offset(170, 266), const Offset(269, 244), const Offset(170, 225)], const Color(0xFFE6DAEF));
-    _poly(canvas, [const Offset(70, 244), const Offset(170, 266), const Offset(170, 274), const Offset(70, 252)], const Color(0xFFC8BDE0));
-    _poly(canvas, [const Offset(170, 266), const Offset(269, 244), const Offset(269, 252), const Offset(170, 274)], const Color(0xFFAAA6D1));
+    _poly(canvas, [const Offset(70, 244), const Offset(170, 266), const Offset(269, 244), const Offset(170, 225)], const Color(0xFF9BE28A));
+    _poly(canvas, [const Offset(70, 244), const Offset(170, 266), const Offset(170, 274), const Offset(70, 252)], const Color(0xFF65AF88));
+    _poly(canvas, [const Offset(170, 266), const Offset(269, 244), const Offset(269, 252), const Offset(170, 274)], const Color(0xFF498F8E));
+    const fronts = [
+      Color(0xFFFFE3B5), Color(0xFFFFC6A6), Color(0xFFE8CCFF),
+      Color(0xFFAFF0D4), Color(0xFFFFDEA1),
+    ];
+    const sides = [
+      Color(0xFFD5A4A5), Color(0xFFE59E8A), Color(0xFFA99BDA),
+      Color(0xFF79BFBF), Color(0xFFCDA8A2),
+    ];
+    const roofs = [
+      Color(0xFFFFA987), Color(0xFFFFD17E), Color(0xFF9E91ED),
+      Color(0xFF60C9B4), Color(0xFFF59CBE),
+    ];
     for (var i = 0; i < 5; i++) {
       final y = 222.0 - i * 31;
       final left = i.isEven ? 100.0 : 106.0;
       final right = 240.0 - (i.isEven ? 0 : 6);
-      _poly(canvas, [Offset(left, y), Offset(170, y + 14), Offset(170, y - 18), Offset(left, y - 33)], const Color(0xFFEDE9FF));
-      _poly(canvas, [Offset(170, y + 14), Offset(right, y), Offset(right, y - 33), Offset(170, y - 18)], const Color(0xFFC1B9E7));
-      _poly(canvas, [Offset(left - 9, y - 33), Offset(170, y - 15), Offset(right + 9, y - 33), Offset(170, y - 53)], i == 2 ? const Color(0xFFE5D7AF) : const Color(0xFFD9D3F4));
-      _poly(canvas, [Offset(left - 9, y - 33), Offset(170, y - 15), Offset(170, y - 9), Offset(left - 9, y - 27)], const Color(0xFFB1A9D7));
-      _poly(canvas, [Offset(170, y - 15), Offset(right + 9, y - 33), Offset(right + 9, y - 27), Offset(170, y - 9)], const Color(0xFF938AC4));
+      _poly(canvas, [Offset(left, y), Offset(170, y + 14), Offset(170, y - 18), Offset(left, y - 33)], fronts[i]);
+      _poly(canvas, [Offset(170, y + 14), Offset(right, y), Offset(right, y - 33), Offset(170, y - 18)], sides[i]);
+      _poly(canvas, [Offset(left - 9, y - 33), Offset(170, y - 15), Offset(right + 9, y - 33), Offset(170, y - 53)], roofs[i]);
+      _poly(canvas, [Offset(left - 9, y - 33), Offset(170, y - 15), Offset(170, y - 9), Offset(left - 9, y - 27)], Color.lerp(roofs[i], const Color(0xFF6D508C), .22)!);
+      _poly(canvas, [Offset(170, y - 15), Offset(right + 9, y - 33), Offset(right + 9, y - 27), Offset(170, y - 9)], Color.lerp(roofs[i], const Color(0xFF403A76), .34)!);
       for (var j = 0; j < 2; j++) {
         final wx = left + 24 + j * 37;
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(wx, y - 23, 14, 22), const Radius.circular(7)), Paint()..color = i == 2 ? const Color(0xFFFFE4A4) : const Color(0xFFA7DCD7));
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(wx, y - 23, 14, 22), const Radius.circular(7)), Paint()..color = i == 2 ? const Color(0xFFFFF1A3) : const Color(0xFF86BFE5));
         _line(canvas, Offset(wx + 7, y - 23), Offset(wx + 7, y - 1), const Color(0xFFF8F3FE), 1.4);
       }
     }
     // Tower crown.
-    _poly(canvas, [const Offset(121, 63), const Offset(170, 12), const Offset(219, 63), const Offset(170, 83)], const Color(0xFFFBF9FF));
-    _poly(canvas, [const Offset(121, 63), const Offset(170, 83), const Offset(170, 100), const Offset(121, 80)], const Color(0xFFD6D0F1));
-    _poly(canvas, [const Offset(170, 83), const Offset(219, 63), const Offset(219, 80), const Offset(170, 100)], const Color(0xFFAEA3DB));
+    _poly(canvas, [const Offset(121, 63), const Offset(170, 12), const Offset(219, 63), const Offset(170, 83)], const Color(0xFFF8C4E0));
+    _poly(canvas, [const Offset(121, 63), const Offset(170, 83), const Offset(170, 100), const Offset(121, 80)], const Color(0xFFE89DCB));
+    _poly(canvas, [const Offset(170, 83), const Offset(219, 63), const Offset(219, 80), const Offset(170, 100)], const Color(0xFFB889C6));
     _line(canvas, const Offset(170, 11), const Offset(170, 0), const Color(0xFFDCB875), 3);
     _circle(canvas, 170, 3, 4, const Color(0xFFEBCB8D));
+    // Playful flags and a golden doorway make the miniature tower read as a
+    // game destination rather than a diagram. Everything remains vector based.
+    _poly(canvas, [
+      const Offset(172, 4), const Offset(199, 12),
+      const Offset(172, 22),
+    ], const Color(0xFFFF8B73));
+    final door = Paint()..color = const Color(0xFFFFD16D);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(157, 187, 23, 37),
+        const Radius.circular(11)), door);
+    _circle(canvas, 173, 205, 2.5, const Color(0xFFFFFCDB));
     _cloud(canvas, 38, 251, .88, const Color(0xFFFFFFFF));
     _cloud(canvas, 294, 259, 1.05, const Color(0xFFFFFFFF));
     canvas.restore();
