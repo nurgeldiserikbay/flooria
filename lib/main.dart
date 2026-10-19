@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
+import 'game/game_objective.dart';
+import 'ui/objective_banner.dart';
 import 'ui/dream_tower.dart';
 
 void main() {
@@ -210,8 +212,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               Text('Floor $floor', style: const TextStyle(
                 color: ink, fontSize: 36, fontWeight: FontWeight.w800)),
               const SizedBox(height: 3),
-              const Text('The tower has a new surprise for you',
-                style: TextStyle(color: Color(0xFF8E8FA7), fontSize: 12)),
+              Text(const ObjectiveCatalog().forGame(const FloorEngine().challengeFor(floor).gameId, floor: floor).title,
+                style: const TextStyle(color: Color(0xFF584E72), fontSize: 14, fontWeight: FontWeight.w800)),
               const SizedBox(height: 19),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -358,7 +360,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                   color: Color(0xFFE6A83C)),
                 const SizedBox(width: 10),
                 Expanded(child: Text(
-                  'Floor $floor · Next adventure',
+                  'Floor $floor · ${const ObjectiveCatalog().forGame(const FloorEngine().challengeFor(floor).gameId, floor: floor).title}',
                   style: const TextStyle(color: ink, fontWeight: FontWeight.w800),
                 )),
                 const Icon(Icons.north_rounded, color: Color(0xFF9D65C1)),
@@ -556,8 +558,8 @@ class _MergePageState extends State<MergePage> {
     if (finished) return;
     setState(() {
       game.move(d);
-      final target = widget.floor == null ? 2048 : min(256, 16 << min(4, (widget.floor! - 1) ~/ 6));
-      if (game.highest >= target) {
+      final goal = const ObjectiveCatalog().forGame('merge2048', floor: widget.floor);
+      if (goal.isComplete(game.highest)) {
         finished = true;
         if (widget.floor != null) widget.onComplete();
       }
@@ -572,6 +574,8 @@ class _MergePageState extends State<MergePage> {
       Text('Merge the tiles', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       const SizedBox(height: 8),
       Text('Swipe to combine matching numbers', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF85869C))),
+      const SizedBox(height: 18),
+      ObjectiveBanner(objective: const ObjectiveCatalog().forGame('merge2048', floor: widget.floor), progress: game.highest),
       const SizedBox(height: 18),
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
         _stat('SCORE', '${game.score}'),
@@ -691,6 +695,7 @@ class _SequencePageState extends State<SequencePage> {
   late final int base;
   late final int delta;
   late List<int> choices;
+  bool passed = false;
 
   @override
   void initState() {
@@ -715,7 +720,8 @@ class _SequencePageState extends State<SequencePage> {
       round++;
       if (round >= 3) {
         done = true;
-        if (widget.floor != null && correct >= 2) widget.onComplete();
+        passed = const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor).isComplete(correct);
+        if (widget.floor != null && passed) widget.onComplete();
       } else {
         _buildChoices();
       }
@@ -731,7 +737,9 @@ class _SequencePageState extends State<SequencePage> {
       Text(done ? 'Challenge finished!' : 'Find the next number', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       const SizedBox(height: 12),
       Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFF8C8DA0))),
-      const SizedBox(height: 34),
+      const SizedBox(height: 18),
+      ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
+      const SizedBox(height: 20),
       if (!done) ...[
         Text('${base + delta * round}   ${base + delta * (round + 1)}   ${base + delta * (round + 2)}   ?', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
         const SizedBox(height: 28),
@@ -740,9 +748,15 @@ class _SequencePageState extends State<SequencePage> {
           children: [for (final v in choices) FilledButton(onPressed: () => answer(v), style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Text('$v', style: const TextStyle(fontSize: 24)))],
         ),
       ] else ...[
-        Icon(correct >= 2 ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
+        Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
         const SizedBox(height: 20),
-        FilledButton(onPressed: () => Navigator.pop(context), child: Text(correct >= 2 ? 'Back to tower' : 'Try again')),
+        FilledButton(onPressed: () {
+          if (passed) {
+            Navigator.pop(context);
+          } else {
+            setState(() { round = 0; correct = 0; done = false; passed = false; _buildChoices(); });
+          }
+        }, child: Text(passed ? 'Back to tower' : 'Try again')),
       ],
     ])))),
   );
