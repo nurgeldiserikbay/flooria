@@ -120,59 +120,39 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   @override
   Widget build(BuildContext context) {
     if (!loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: Column(children: [
-              Expanded(child: IndexedStack(index: tab, children: [
-                _home(),
-                _tower(),
-                _library(),
-                _profile(),
-              ])),
-              Container(
-                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
-                padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
-                child: Row(children: [
-                  _nav(0, Icons.castle_rounded, 'Home'),
-                  _nav(1, Icons.auto_awesome_mosaic_rounded, 'Tower'),
-                  _nav(2, Icons.toys_rounded, 'Games'),
-                  _nav(3, Icons.psychology_alt_rounded, 'Mind'),
-                ]),
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
+    return Scaffold(body: SafeArea(child: Center(child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 560),
+      child: IndexedStack(index: tab, children: [_home(), _library(), _profile()]),
+    ))));
   }
 
-  Widget _nav(int index, IconData icon, String title) => Expanded(
-    child: InkWell(
-      borderRadius: BorderRadius.circular(15),
-      onTap: () => setState(() => tab = index),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            width: 44, height: 39,
-            decoration: BoxDecoration(
-              color: tab == index ? const Color(0xFFFFD475) : const Color(0xFFF0EBF6),
-              borderRadius: BorderRadius.circular(14),
-              border: Border(bottom: BorderSide(
-                color: tab == index ? const Color(0xFFDE9F50) : const Color(0xFFDED7EC),
-                width: 3)),
-            ),
-            child: Icon(icon, color: tab == index ? const Color(0xFF584264) : const Color(0xFF8982A4)),
+  Widget _portal(String label, IconData icon, Color light, Color dark, VoidCallback onTap) =>
+    InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: onTap,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 55, height: 55,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Colors.white, light, dark]),
+            borderRadius: BorderRadius.circular(19),
+            border: Border.all(color: Colors.white.withValues(alpha: .85), width: 2),
+            boxShadow: [BoxShadow(color: dark.withValues(alpha: .4),
+              blurRadius: 9, offset: const Offset(0, 5))],
           ),
-          const SizedBox(height: 4),
-          Text(title, style: TextStyle(fontSize: 11, fontWeight: tab == index ? FontWeight.w700 : FontWeight.w500, color: tab == index ? lavender : const Color(0xFF9A9AAC))),
-        ]),
-      ),
-    ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: ink, size: 27),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 11)),
+      ]),
+    );
+
+  Widget _backToTower() => TextButton.icon(
+    onPressed: () => setState(() => tab = 0),
+    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 15),
+    label: const Text('Tower'),
   );
 
   Widget _heading(String eyebrow, String title) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -181,115 +161,76 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     Text(title, style: Theme.of(context).textTheme.headlineMedium),
   ]);
 
-  Widget _home() => ListView(
-    padding: EdgeInsets.zero,
-    children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(26, 24, 26, 16),
-        child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('YOUR NEXT ADVENTURE', style: TextStyle(
-              fontSize: 10, letterSpacing: 1.8, color: Color(0xFF9790B9),
-              fontWeight: FontWeight.w800)),
-            const SizedBox(height: 5),
-            Text('Flooria', style: Theme.of(context).textTheme.headlineLarge),
-          ])),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(color: Color(0xFFF0ECF8), shape: BoxShape.circle),
-            child: const Icon(Icons.auto_awesome_rounded, color: lavender, size: 23),
-          ),
-        ]),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: Container(
-            color: const Color(0xFFBDEBFB),
-            child: Column(children: [
-              const SizedBox(height: 4),
-              const SizedBox(height: 315, width: double.infinity, child: DreamTower()),
-              const SizedBox(height: 6),
-              const Text('YOUR NEXT FLOOR', style: TextStyle(
-                fontSize: 10, color: Color(0xFF9188B7),
-                letterSpacing: 2, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 5),
-              Text('Floor $floor', style: const TextStyle(
-                color: ink, fontSize: 36, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 3),
-              Text(const ObjectiveCatalog().forGame(const FloorEngine().challengeFor(floor).gameId, floor: floor).title,
-                style: const TextStyle(color: Color(0xFF584E72), fontSize: 14, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 19),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: FilledButton(
-                  onPressed: () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFA748),
-                    foregroundColor: const Color(0xFF463752),
-                    minimumSize: const Size(double.infinity, 58),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                  ),
-                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('LET’S CLIMB!', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                    SizedBox(width: 12), Icon(Icons.arrow_upward_rounded, size: 20),
-                  ]),
-                ),
-              ),
-              const SizedBox(height: 25),
-            ]),
-          ),
+  Widget _home() => LayoutBuilder(builder: (context, bounds) {
+    final height = bounds.maxHeight;
+    final short = height < 650;
+    final objective = const ObjectiveCatalog().forGame(
+      const FloorEngine().challengeFor(floor).gameId, floor: floor);
+    return Stack(children: [
+      const Positioned.fill(child: ColoredBox(color: Color(0xFFCBEDFA))),
+      Positioned.fill(child: DreamTower()),
+      Positioned(top: 11, left: 22, right: 22, child: Row(children: [
+        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('FLOORIA', style: TextStyle(color: ink, fontSize: 30,
+            fontWeight: FontWeight.w900, letterSpacing: .8)),
+          Text('THE ENDLESS TOWER', style: TextStyle(color: Color(0xFF625986),
+            fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.7)),
+        ])),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(color: const Color(0xFFFFE5A0),
+            borderRadius: BorderRadius.circular(17),
+            boxShadow: const [BoxShadow(color: Color(0x558A6896),
+              blurRadius: 8, offset: Offset(0, 4))]),
+          child: Text('★  Floor $floor',
+            style: const TextStyle(color: ink, fontWeight: FontWeight.w900)),
         ),
-      ),
-      const SizedBox(height: 27),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('A WORLD OF PUZZLES', style: TextStyle(
-              fontSize: 10, letterSpacing: 1.4, fontWeight: FontWeight.w800,
-              color: Color(0xFF9B90C3))),
+      ])),
+      Positioned(bottom: short ? 90 : 100, left: 16, right: 16,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(18, short ? 11 : 17, 18, short ? 12 : 17),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFFFFFBEE), Color(0xFFFFEACB)]),
+            borderRadius: BorderRadius.circular(25),
+            border: const Border(bottom: BorderSide(color: Color(0xFFE1B77E), width: 5)),
+            boxShadow: const [BoxShadow(color: Color(0x448A769E),
+              blurRadius: 16, offset: Offset(0, 7))],
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('FLOOR $floor  ·  YOUR MISSION', style: const TextStyle(
+              fontSize: 11, color: Color(0xFF8F6594),
+              fontWeight: FontWeight.w900, letterSpacing: 1)),
             const SizedBox(height: 5),
-            Text('Choose your quest', style: Theme.of(context).textTheme.titleLarge),
-          ])),
-          TextButton(onPressed: () => setState(() => tab = 2), child: const Text('See all →')),
-        ]),
-      ),
-      const SizedBox(height: 11),
-      SizedBox(height: 158, child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        children: [
-          for (final g in games)
-            GestureDetector(
-              onTap: () => _open(g.$1),
-              child: Container(
-                width: 156, margin: const EdgeInsets.symmetric(horizontal: 6),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: g.$5, borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFFF6EACA)),
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Container(
-                    width: 52, height: 52,
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .60), borderRadius: BorderRadius.circular(17)),
-                    child: Icon(g.$4, color: ink, size: 27),
-                  ),
-                  const Spacer(),
-                  Text(g.$2, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 16)),
-                  const SizedBox(height: 3),
-                  Text(g.$3, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFF9394A5), fontSize: 11)),
-                ]),
-              ),
-            ),
-        ],
-      )),
-      const SizedBox(height: 28),
-    ],
-  );
+            Text(objective.title, textAlign: TextAlign.center,
+              style: TextStyle(color: ink, fontSize: short ? 19 : 23,
+                fontWeight: FontWeight.w900)),
+            const SizedBox(height: 12),
+            SizedBox(height: 52, width: double.infinity, child: FilledButton.icon(
+              onPressed: () => _open(
+                const FloorEngine().challengeFor(floor).gameId, tower: true),
+              icon: const Icon(Icons.play_arrow_rounded, size: 25),
+              label: const Text('PLAY THIS FLOOR',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFFFAB42), foregroundColor: ink,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
+            )),
+          ]),
+        )),
+      Positioned(bottom: 10, left: 18, right: 18,
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          _portal('Games', Icons.extension_rounded,
+            const Color(0xFFFFD283), const Color(0xFFDC915B),
+            () => setState(() => tab = 1)),
+          _portal('Tower', Icons.castle_rounded,
+            const Color(0xFFCAB8FF), const Color(0xFF8B76CE),
+            () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)),
+          _portal('My Mind', Icons.psychology_rounded,
+            const Color(0xFF9EE6CC), const Color(0xFF66B9A8),
+            () => setState(() => tab = 2)),
+        ])),
+    ]);
+  });
 
   Widget _tower() => ListView(
     padding: const EdgeInsets.fromLTRB(16, 18, 16, 28),
@@ -439,6 +380,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   );
 
   Widget _library() => DefaultTabController(length: 3, child: Column(children: [
+    Align(alignment: Alignment.centerLeft, child: _backToTower()),
     Padding(padding: const EdgeInsets.fromLTRB(24, 26, 24, 16), child: Align(alignment: Alignment.centerLeft, child: _heading('COLLECTION', 'My games'))),
     const TabBar(labelColor: lavender, unselectedLabelColor: Color(0xFF8B8C9C), indicatorColor: lavender, dividerColor: Colors.transparent, tabs: [Tab(text: 'All'), Tab(text: 'Recent'), Tab(text: 'Favorites')]),
     Expanded(child: TabBarView(children: [
@@ -525,6 +467,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     );
 
   Widget _profile() => ListView(padding: const EdgeInsets.all(24), children: [
+    Align(alignment: Alignment.centerLeft, child: _backToTower()),
     _heading('MY JOURNEY', 'My Mind'),
     const SizedBox(height: 24),
     Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)), child: Column(children: [
