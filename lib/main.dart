@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
+import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/dream_tower.dart';
 
@@ -700,29 +701,24 @@ class _SequencePageState extends State<SequencePage> {
   int round = 0;
   int correct = 0;
   bool done = false;
-  late final int base;
-  late final int delta;
-  late List<int> choices;
+  late SequencePuzzle puzzle;
   bool passed = false;
 
   @override
   void initState() {
     super.initState();
-    final rng = Random(widget.floor ?? DateTime.now().millisecondsSinceEpoch);
-    base = 2 + rng.nextInt(12);
-    delta = 2 + rng.nextInt(7);
     _buildChoices();
   }
 
   void _buildChoices() {
-    final solution = base + delta * (round + 3);
-    choices = [solution, solution + delta, solution - 1, solution + 2];
-    choices.shuffle(Random(base * 100 + round));
+    puzzle = const SequenceGenerator().generate(
+      floor: widget.floor ?? 2, round: round,
+    );
   }
 
   void answer(int chosen) {
     if (done) return;
-    final expected = base + delta * (round + 3);
+    final expected = puzzle.answer;
     setState(() {
       if (chosen == expected) correct++;
       round++;
@@ -749,11 +745,11 @@ class _SequencePageState extends State<SequencePage> {
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
       const SizedBox(height: 20),
       if (!done) ...[
-        Text('${base + delta * round}   ${base + delta * (round + 1)}   ${base + delta * (round + 2)}   ?', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
+        Text('${puzzle.numbers.join('   ')}   ?', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
         const SizedBox(height: 28),
         GridView.count(
           crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
-          children: [for (final v in choices) FilledButton(onPressed: () => answer(v), style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Text('$v', style: const TextStyle(fontSize: 24)))],
+          children: [for (final v in puzzle.choices) FilledButton(onPressed: () => answer(v), style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: ink, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: Text('$v', style: const TextStyle(fontSize: 24)))],
         ),
       ] else ...[
         Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
