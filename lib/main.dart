@@ -197,17 +197,19 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         child: Stack(
           key: ValueKey<int>(towerSceneRevision),
           children: [
-            const Positioned.fill(child: DreamTower()),
+            // Render a single hero tower. The procedural tower is only a
+            // fallback if the packaged art fails to decode or load.
             Positioned.fill(child: LayoutBuilder(builder: (context, scene) {
               return Center(
                 child: SizedBox(
-                  width: scene.maxWidth * .94,
-                  height: scene.maxHeight * .75,
+                  width: scene.maxWidth * .97,
+                  height: scene.maxHeight * .79,
                   child: Image.asset(
                     'assets/art/whimsical_floating_castle_island.webp',
                     fit: BoxFit.contain,
                     filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    gaplessPlayback: true,
+                    errorBuilder: (_, __, ___) => const DreamTower(),
                   ),
                 ),
               );
