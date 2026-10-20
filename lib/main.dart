@@ -135,37 +135,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ))));
   }
 
-  Widget _portal(String label, IconData icon, Color light, Color dark, VoidCallback onTap) =>
-    InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: onTap,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 55, height: 55,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Colors.white, light, dark]),
-            borderRadius: BorderRadius.circular(19),
-            border: Border.all(color: Colors.white.withValues(alpha: .85), width: 2),
-            boxShadow: [BoxShadow(color: dark.withValues(alpha: .4),
-              blurRadius: 9, offset: const Offset(0, 5))],
-          ),
-          alignment: Alignment.center,
-          child: Image.asset(
-            label == 'Games'
-              ? 'assets/art/glowing_puzzle_crown_pedestal.webp'
-              : label == 'Tower'
-                ? 'assets/art/royal_blue_castle_tower_icon.webp'
-                : 'assets/art/enchanted_brain_altar_emblem.webp',
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(icon, color: ink, size: 27),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 11)),
-      ]),
-    );
-
   Widget _home() => LayoutBuilder(builder: (context, bounds) {
     final short = bounds.maxHeight < 630;
     final goal = const ObjectiveCatalog().forGame(
@@ -240,15 +209,19 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       ),
       Positioned(bottom: 4, left: 18, right: 18,
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          _portal('Games', Icons.extension_rounded,
-            const Color(0xFFFFD283), const Color(0xFFDC915B),
-            () => setState(() => tab = 1)),
-          _portal('Play', Icons.castle_rounded,
-            const Color(0xFFCAB8FF), const Color(0xFF8B76CE),
-            () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)),
-          _portal('My Mind', Icons.psychology_rounded,
-            const Color(0xFF9EE6CC), const Color(0xFF66B9A8),
-            () => setState(() => tab = 2)),
+          FantasyPortal(
+            label: 'Games',
+            asset: 'assets/art/glowing_puzzle_crown_pedestal.webp',
+            onTap: () => setState(() => tab = 1)),
+          FantasyPortal(
+            label: 'Play',
+            asset: 'assets/art/royal_blue_castle_tower_icon.webp',
+            onTap: () => _open(
+              const FloorEngine().challengeFor(floor).gameId, tower: true)),
+          FantasyPortal(
+            label: 'My Mind',
+            asset: 'assets/art/enchanted_brain_altar_emblem.webp',
+            onTap: () => setState(() => tab = 2)),
         ])),
     ]));
   });
