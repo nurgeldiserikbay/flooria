@@ -97,9 +97,23 @@ class _VictoryCardState extends State<_VictoryCard>
             animation: sparkle,
             builder: (context, _) => CustomPaint(
               painter: _VictorySparkles(sparkle.value),
-              child: const Center(
-                child: Icon(Icons.emoji_events_rounded,
-                  color: Color(0xFFFFAC40), size: 82),
+              child: Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Image.asset(
+                    'assets/art/royal_fantasy_victory_panel.webp',
+                    width: 195,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.emoji_events_rounded,
+                      color: Color(0xFFFFAC40),
+                      size: 82,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
