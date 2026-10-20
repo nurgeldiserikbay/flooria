@@ -13,7 +13,9 @@ class ObjectiveBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE4A5),
+        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [Color(0xFFFFF8E8), Color(0xFFFFE4B8)]),
+        border: Border.all(color: const Color(0xFFFFD395), width: 2),
         borderRadius: BorderRadius.circular(20),
         border: const Border(bottom: BorderSide(color: Color(0xFFE3AE61), width: 4)),
       ),
@@ -22,7 +24,7 @@ class ObjectiveBanner extends StatelessWidget {
           Icon(achieved ? Icons.emoji_events_rounded : Icons.flag_rounded,
             color: const Color(0xFF784E63), size: 22),
           const SizedBox(width: 8),
-          const Text('YOUR GOAL', style: TextStyle(
+          const Text('FLOOR MISSION', style: TextStyle(
             color: Color(0xFF784E63), fontSize: 11,
             letterSpacing: 1.3, fontWeight: FontWeight.w900)),
           const Spacer(),
@@ -31,7 +33,8 @@ class ObjectiveBanner extends StatelessWidget {
               fontSize: 13, fontWeight: FontWeight.w900)),
         ]),
         const SizedBox(height: 8),
-        Text(objective.title, style: const TextStyle(
+        Text(objective.title, maxLines: 2, overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
           color: Color(0xFF453951), fontSize: 19, fontWeight: FontWeight.w900)),
         const SizedBox(height: 3),
         Text(objective.instruction, style: const TextStyle(
@@ -46,7 +49,7 @@ class ObjectiveBanner extends StatelessWidget {
             builder: (context, value, _) => LinearProgressIndicator(
               value: value,
               minHeight: 8,
-              backgroundColor: const Color(0xFFFFF7DE),
+              backgroundColor: const Color(0xFFE4C7A4),
               valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF63BA9A)),
             ),
           ),
