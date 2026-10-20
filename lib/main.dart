@@ -51,6 +51,7 @@ class FlooriaHome extends StatefulWidget {
 class _FlooriaHomeState extends State<FlooriaHome> {
   int tab = 0;
   int floor = 1;
+  int towerSceneRevision = 0;
   final Set<String> favorites = {};
   final List<String> recent = [];
   bool loaded = false;
@@ -102,8 +103,15 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           ),
     ));
     if (!mounted) return;
-    if (next == true && tower) {
-      _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
+    if (startingFloor != null && floor > startingFloor) {
+      // The floor was awarded behind the dialog. Start the camera animation
+      // only once the player returns to the visible home scene.
+      setState(() => towerSceneRevision++);
+      if (next == true) {
+        await Future<void>.delayed(const Duration(milliseconds: 620));
+        if (!mounted) return;
+        _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
+      }
     }
   }
 
@@ -178,7 +186,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           ).animate(animation),
           child: FadeTransition(opacity: animation, child: child),
         ),
-        child: DreamTower(key: ValueKey<int>(floor)),
+        child: DreamTower(key: ValueKey<int>(towerSceneRevision)),
       )),
       Positioned(top: 11, left: 22, right: 22, child: Row(children: [
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
