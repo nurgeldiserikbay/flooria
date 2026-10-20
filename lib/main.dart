@@ -150,7 +150,15 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               blurRadius: 9, offset: const Offset(0, 5))],
           ),
           alignment: Alignment.center,
-          child: Icon(icon, color: ink, size: 27),
+          child: Image.asset(
+            label == 'Games'
+              ? 'assets/art/glowing_puzzle_crown_pedestal.webp'
+              : label == 'Tower'
+                ? 'assets/art/royal_blue_castle_tower_icon.webp'
+                : 'assets/art/enchanted_brain_altar_emblem.webp',
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => Icon(icon, color: ink, size: 27),
+          ),
         ),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 11)),
@@ -186,7 +194,26 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           ).animate(animation),
           child: FadeTransition(opacity: animation, child: child),
         ),
-        child: DreamTower(key: ValueKey<int>(towerSceneRevision)),
+        child: Stack(
+          key: ValueKey<int>(towerSceneRevision),
+          children: [
+            const Positioned.fill(child: DreamTower()),
+            Positioned.fill(child: LayoutBuilder(builder: (context, scene) {
+              return Center(
+                child: SizedBox(
+                  width: scene.maxWidth * .94,
+                  height: scene.maxHeight * .75,
+                  child: Image.asset(
+                    'assets/art/whimsical_floating_castle_island.webp',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+              );
+            })),
+          ],
+        ),
       )),
       Positioned(top: 11, left: 22, right: 22, child: Row(children: [
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -215,7 +242,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
             boxShadow: const [BoxShadow(color: Color(0x448A769E),
               blurRadius: 16, offset: Offset(0, 7))],
           ),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
+          child: Stack(children: [
+            Positioned.fill(child: Image.asset(
+              'assets/art/ornate_garden_quest_panel.webp',
+              fit: BoxFit.fill,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            )),
+            Column(mainAxisSize: MainAxisSize.min, children: [
             Text('FLOOR $floor  ·  YOUR MISSION', style: const TextStyle(
               fontSize: 11, color: Color(0xFF8F6594),
               fontWeight: FontWeight.w900, letterSpacing: 1)),
@@ -234,6 +267,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 backgroundColor: const Color(0xFFFFAB42), foregroundColor: ink,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
             )),
+          ]),
           ]),
         )),
       Positioned(bottom: 10, left: 18, right: 18,
@@ -274,62 +308,49 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
     Container(
       margin: const EdgeInsets.only(bottom: 13),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(25),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(25),
         border: Border(bottom: BorderSide(
-          color: Color.lerp(color, const Color(0xFF725586), .32)!,
-          width: 5)),
-      ),
+          color: Color.lerp(color, const Color(0xFF725586), .32)!, width: 5))),
       child: InkWell(
         borderRadius: BorderRadius.circular(25),
         onTap: () => _open(id),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(13, 12, 9, 12),
+          padding: const EdgeInsets.all(12),
           child: Row(children: [
-            Container(
-              width: 78, height: 74,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .43),
-                borderRadius: BorderRadius.circular(18)),
-              child: id == 'merge2048'
-                ? Wrap(spacing: 4, runSpacing: 4, children: [
-                    for (final n in [2, 4, 8, 16])
-                      Container(
-                        width: 29, height: 29,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: n == 16 ? const Color(0xFFF39B79) : Colors.white,
-                          borderRadius: BorderRadius.circular(8)),
-                        child: Text('$n', style: const TextStyle(
-                          color: ink, fontSize: 13, fontWeight: FontWeight.w900)),
-                      ),
-                  ])
-                : const Row(mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('3', style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 24)),
-                      Icon(Icons.arrow_forward_rounded, color: Color(0xFF628C98), size: 18),
-                      Text('6', style: TextStyle(color: ink, fontWeight: FontWeight.w900, fontSize: 24)),
-                    ]),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: SizedBox(width: 76, height: 76,
+                child: Image.asset(
+                  id == 'merge2048'
+                    ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
+                    : 'assets/art/glowing_puzzle_crown_pedestal.webp',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => ColoredBox(
+                    color: Colors.white54,
+                    child: Icon(icon, size: 31, color: ink)),
+                )),
             ),
-            const SizedBox(width: 14),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: const TextStyle(
-                fontSize: 19, fontWeight: FontWeight.w900, color: ink)),
-              const SizedBox(height: 4),
-              Text(subtitle, style: const TextStyle(
-                fontSize: 12, color: Color(0xFF675C70))),
-              const SizedBox(height: 9),
-              const Text('▶  PLAY', style: TextStyle(
-                fontSize: 11, letterSpacing: 1.1,
-                fontWeight: FontWeight.w900, color: Color(0xFF655184))),
-            ])),
+            const SizedBox(width: 13),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(
+                  fontSize: 19, fontWeight: FontWeight.w900, color: ink)),
+                const SizedBox(height: 4),
+                Text(subtitle, style: const TextStyle(fontSize: 12,
+                  color: Color(0xFF675C70))),
+                const SizedBox(height: 7),
+                const Text('▶  PLAY', style: TextStyle(
+                  fontSize: 11, letterSpacing: 1,
+                  fontWeight: FontWeight.w900, color: Color(0xFF655184))),
+              ],
+            )),
             IconButton(
               tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
               onPressed: () => _toggleFavorite(id),
               icon: Icon(
-                favorites.contains(id) ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                favorites.contains(id)
+                  ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: favorites.contains(id)
                   ? const Color(0xFFD84979) : const Color(0xFF82688D)),
             ),
