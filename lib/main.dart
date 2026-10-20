@@ -6,7 +6,7 @@ import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
-import 'ui/dream_tower.dart';
+import 'ui/floor_tower_scene.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
@@ -137,80 +137,104 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 
   Widget _home() => LayoutBuilder(builder: (context, bounds) {
     final short = bounds.maxHeight < 630;
-    final goal = const ObjectiveCatalog().forGame(
-      const FloorEngine().challengeFor(floor).gameId, floor: floor);
-    final navHeight = short ? 69.0 : 86.0;
-    final goalHeight = short ? 100.0 : 116.0;
+    final challenge = const FloorEngine().challengeFor(floor);
+    final goal = const ObjectiveCatalog().forGame(challenge.gameId,
+      floor: floor);
+    final gameName = challenge.gameId == 'merge2048'
+      ? '2048' : 'Number Trail';
+    final navHeight = short ? 74.0 : 88.0;
+    final briefingHeight = short ? 116.0 : 132.0;
     return FantasyScene(child: Stack(children: [
       Positioned(
-        top: short ? 50 : 62, bottom: navHeight + goalHeight - 10,
-        left: 6, right: 6,
+        top: short ? 69 : 76,
+        left: 8, right: 8,
+        bottom: navHeight + briefingHeight - 14,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 800),
+          duration: const Duration(milliseconds: 600),
           transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation, child: SlideTransition(
+            opacity: animation,
+            child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0, .12), end: Offset.zero,
+                begin: const Offset(0, .16), end: Offset.zero,
               ).animate(animation), child: child)),
-          child: Image.asset(
-            'assets/art/whimsical_floating_castle_island.webp',
+          child: FloorTowerScene(
             key: ValueKey<int>(towerSceneRevision),
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.medium,
-            errorBuilder: (_, __, ___) => const DreamTower(),
+            currentFloor: floor,
+            onFloorTap: (selected) {
+              if (selected == floor) {
+                _open(challenge.gameId, tower: true);
+              } else if (selected < floor) {
+                // Replaying completed floors never awards a tower floor.
+                _open(const FloorEngine().challengeFor(selected).gameId);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Complete Floor $floor to unlock Floor $selected'),
+                  duration: const Duration(seconds: 2),
+                ));
+              }
+            },
           ),
         ),
       ),
-      Positioned(top: 10, left: 18, right: 18, child: Row(children: [
-        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('FLOORIA', style: TextStyle(fontSize: 30,
-              fontWeight: FontWeight.w900, color: Color(0xFF38305C),
-              letterSpacing: 1.1)),
-            Text('THE ENDLESS TOWER', style: TextStyle(
-              fontSize: 10, fontWeight: FontWeight.w900,
-              color: Color(0xFF625383), letterSpacing: 1.5)),
-          ])),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [
-              Color(0xFFFFF2C7), Color(0xFFF7C76E)]),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFFFE5A8), width: 2),
-            boxShadow: const [BoxShadow(color: Color(0x44836058),
-              blurRadius: 6, offset: Offset(0, 4))]),
-          child: Text('★  $floor', style: const TextStyle(
-            fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF634364))),
-        ),
-      ])),
-      Positioned(
-        bottom: navHeight + 14, left: 25, right: 25,
+      Positioned(top: 12, left: 19, right: 19,
+        child: Row(children: [
+          const Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('FLOORIA', style: TextStyle(
+                fontSize: 28, fontWeight: FontWeight.w900,
+                color: Color(0xFF38305C), letterSpacing: .8)),
+              Text('THE ENDLESS TOWER', style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w900,
+                color: Color(0xFF625383), letterSpacing: 1.2)),
+            ],
+          )),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF2C7), Color(0xFFF7C76E)]),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFE5A8), width: 2)),
+            child: Text('★  Floor $floor', style: const TextStyle(
+              fontWeight: FontWeight.w900, color: Color(0xFF634364))),
+          ),
+        ]),
+      ),
+      Positioned(bottom: navHeight + 7, left: 26, right: 26,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('FLOOR $floor  ·  $gameName',
+            style: const TextStyle(
+              fontSize: 12, letterSpacing: .7,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF654D70),
+              shadows: [Shadow(color: Colors.white, blurRadius: 8)])),
+          const SizedBox(height: 5),
           Text(goal.title, textAlign: TextAlign.center,
+            maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: short ? 20 : 24, fontWeight: FontWeight.w900,
+              fontSize: short ? 18 : 21,
+              fontWeight: FontWeight.w900,
               color: const Color(0xFF493453),
-              shadows: const [Shadow(color: Color(0xEFFFFFFF),
-                blurRadius: 10, offset: Offset(0, 2))])),
+              shadows: const [Shadow(
+                color: Colors.white, blurRadius: 10)])),
           const SizedBox(height: 9),
           FantasyButton(
-            label: 'PLAY THIS FLOOR',
-            onPressed: () => _open(
-              const FloorEngine().challengeFor(floor).gameId, tower: true)),
+            label: 'PLAY $gameName',
+            onPressed: () => _open(challenge.gameId, tower: true)),
         ]),
       ),
       Positioned(bottom: 4, left: 18, right: 18,
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          FantasyPortal(
-            label: 'Games',
-            asset: 'assets/art/glowing_puzzle_crown_pedestal.webp',
-            onTap: () => setState(() => tab = 1)),
-          FantasyPortal(
-            label: 'My Mind',
-            asset: 'assets/art/enchanted_brain_altar_emblem.webp',
-            onTap: () => setState(() => tab = 2)),
-        ])),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            FantasyPortal(label: 'Games',
+              asset: 'assets/art/glowing_puzzle_crown_pedestal.webp',
+              onTap: () => setState(() => tab = 1)),
+            FantasyPortal(label: 'My Mind',
+              asset: 'assets/art/enchanted_brain_altar_emblem.webp',
+              onTap: () => setState(() => tab = 2)),
+          ]),
+      ),
     ]));
   });
 
