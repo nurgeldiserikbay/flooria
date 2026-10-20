@@ -79,7 +79,7 @@ class _TowerBlock extends StatelessWidget {
                   right: width * .15, bottom: height * .19,
                   child: Row(children: [
                     Container(
-                      width: math.min(48, height * .56),
+                      width: math.min(48.0, height * .56),
                       height: math.min(48, height * .56),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
