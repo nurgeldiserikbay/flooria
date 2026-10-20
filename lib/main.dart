@@ -140,7 +140,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     final goal = const ObjectiveCatalog().forGame(
       const FloorEngine().challengeFor(floor).gameId, floor: floor);
     final navHeight = short ? 69.0 : 86.0;
-    final goalHeight = short ? 132.0 : 155.0;
+    final goalHeight = short ? 100.0 : 116.0;
     return FantasyScene(child: Stack(children: [
       Positioned(
         top: short ? 50 : 62, bottom: navHeight + goalHeight - 10,
@@ -185,27 +185,20 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         ),
       ])),
       Positioned(
-        bottom: navHeight + 11, left: 15, right: 15,
-        child: FantasyPanel(
-          padding: EdgeInsets.symmetric(
-            horizontal: 15, vertical: short ? 10 : 14),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('FLOOR $floor  ·  YOUR MISSION', style: const TextStyle(
-              fontSize: 10, fontWeight: FontWeight.w900,
-              color: Color(0xFF885C70), letterSpacing: 1.5)),
-            const SizedBox(height: 5),
-            FittedBox(fit: BoxFit.scaleDown, child: Text(goal.title,
-              textAlign: TextAlign.center, style: TextStyle(
-                fontSize: short ? 21 : 24, color: const Color(0xFF513C53),
-                fontWeight: FontWeight.w900))),
-            SizedBox(height: short ? 8 : 12),
-            FantasyButton(
-              label: 'PLAY THIS FLOOR',
-              onPressed: () => _open(
-                const FloorEngine().challengeFor(floor).gameId, tower: true),
-            ),
-          ]),
-        ),
+        bottom: navHeight + 14, left: 25, right: 25,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(goal.title, textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: short ? 20 : 24, fontWeight: FontWeight.w900,
+              color: const Color(0xFF493453),
+              shadows: const [Shadow(color: Color(0xEFFFFFFF),
+                blurRadius: 10, offset: Offset(0, 2))])),
+          const SizedBox(height: 9),
+          FantasyButton(
+            label: 'PLAY THIS FLOOR',
+            onPressed: () => _open(
+              const FloorEngine().challengeFor(floor).gameId, tower: true)),
+        ]),
       ),
       Positioned(bottom: 4, left: 18, right: 18,
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
@@ -213,11 +206,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
             label: 'Games',
             asset: 'assets/art/glowing_puzzle_crown_pedestal.webp',
             onTap: () => setState(() => tab = 1)),
-          FantasyPortal(
-            label: 'Play',
-            asset: 'assets/art/royal_blue_castle_tower_icon.webp',
-            onTap: () => _open(
-              const FloorEngine().challengeFor(floor).gameId, tower: true)),
           FantasyPortal(
             label: 'My Mind',
             asset: 'assets/art/enchanted_brain_altar_emblem.webp',
@@ -229,31 +217,27 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Widget _library() => FantasyScene(child: DefaultTabController(
     length: 3,
     child: Column(children: [
-      FantasyHeader(title: 'Games', eyebrow: 'Your puzzle collection',
-        onBack: () => setState(() => tab = 0)),
-      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child:
-        FantasyPanel(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-          child: Row(children: [
-            Image.asset('assets/art/glowing_puzzle_crown_pedestal.webp',
-              width: 68, height: 68, fit: BoxFit.contain),
-            const SizedBox(width: 12),
-            const Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('CHOOSE YOUR CHALLENGE', style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w900,
-                  color: Color(0xFF614568))),
-                SizedBox(height: 3),
-                Text('Play unlocked puzzles any time.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF765F6E))),
-              ])),
-          ]),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Align(alignment: Alignment.centerLeft,
+          child: Material(
+            color: const Color(0xFFFFE8B0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+              side: const BorderSide(color: Color(0xFFDAAA70), width: 2)),
+            child: IconButton(
+              tooltip: 'Back to Tower',
+              onPressed: () => setState(() => tab = 0),
+              icon: const Icon(Icons.arrow_back_rounded,
+                color: Color(0xFF61455C)),
+            ),
+          ),
         ),
       ),
-      const SizedBox(height: 9),
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(color: const Color(0xFFFFF4DF),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF4DF),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFEEC78D), width: 2)),
         child: const TabBar(
@@ -264,75 +248,98 @@ class _FlooriaHomeState extends State<FlooriaHome> {
             color: Color(0xFFFFD17F),
             borderRadius: BorderRadius.all(Radius.circular(13))),
           dividerColor: Colors.transparent,
-          tabs: [Tab(text: 'All'), Tab(text: 'Recent'), Tab(text: 'Favorites')],
+          tabs: [Tab(text: 'All'), Tab(text: 'Recent'),
+            Tab(text: 'Favorites')],
         ),
       ),
       Expanded(child: TabBarView(children: [
-        _gameList(games.map((g) => g.$1).toList()),
-        _gameList(recent),
-        _gameList(games.map((g) => g.$1).where(favorites.contains).toList()),
+        _gameGrid(games.map((g) => g.$1).toList()),
+        _gameGrid(recent),
+        _gameGrid(games.map((g) => g.$1)
+          .where(favorites.contains).toList()),
       ])),
     ]),
   ));
 
-  Widget _gameList(List<String> ids) {
-    if (ids.isEmpty) return const Center(child: Text('No games here yet ✨', style: TextStyle(color: Color(0xFF8B8C9C))));
-    return ListView(padding: const EdgeInsets.all(20), children: [
-      for (final id in ids)
-        for (final g in games)
-          if (g.$1 == id) _gameTile(g.$1, g.$2, g.$3, g.$4, g.$5),
-    ]);
+  Widget _gameGrid(List<String> ids) {
+    if (ids.isEmpty) {
+      return const Center(child: Text('No games here yet ✨',
+        style: TextStyle(color: Color(0xFF695977),
+          fontWeight: FontWeight.w700)));
+    }
+    return LayoutBuilder(builder: (context, size) => GridView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: size.maxWidth >= 520 ? 4 : 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 10,
+        childAspectRatio: .78,
+      ),
+      itemCount: ids.length,
+      itemBuilder: (context, index) {
+        final id = ids[index];
+        final game = games.where((g) => g.$1 == id).first;
+        return _gameIcon(id, game.$2, game.$4);
+      },
+    ));
   }
 
-  Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
-    Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: FantasyPanel(
-        padding: const EdgeInsets.all(11),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15),
-          onTap: () => _open(id),
-          child: Row(children: [
-            ClipRRect(
+  Widget _gameIcon(String id, String name, IconData fallback) =>
+    InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => _open(id),
+      child: Column(children: [
+        Expanded(child: Stack(children: [
+          Positioned.fill(child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [
+                Color(0xFFFFF9DB), Color(0xFFE8B767)]),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFEFC0),
+                width: 2),
+              boxShadow: const [BoxShadow(
+                color: Color(0x66503C63), blurRadius: 6,
+                offset: Offset(0, 4))]),
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(13),
               child: Image.asset(
                 id == 'merge2048'
                   ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
                   : 'assets/art/glowing_puzzle_crown_pedestal.webp',
-                width: 96, height: 93,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => SizedBox(
-                  width: 96, height: 93,
-                  child: Icon(icon, color: const Color(0xFF5C4771))),
+                errorBuilder: (_, __, ___) => Icon(fallback,
+                  color: const Color(0xFF604965)),
               ),
             ),
-            const SizedBox(width: 13),
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(name, style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w900,
-                  color: Color(0xFF55425A))),
-                const SizedBox(height: 4),
-                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11,
-                    color: Color(0xFF886F70))),
-                const SizedBox(height: 8),
-                const Text('▶ PLAY NOW', style: TextStyle(
-                  color: Color(0xFFB56F37), fontSize: 11,
-                  fontWeight: FontWeight.w900)),
-              ]),
+          )),
+          Positioned(top: 1, right: 1,
+            child: InkResponse(
+              radius: 22,
+              onTap: () => _toggleFavorite(id),
+              child: Container(
+                width: 28, height: 28,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Color(0xEFFFF5DC), shape: BoxShape.circle),
+                child: Icon(
+                  favorites.contains(id)
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                  size: 17,
+                  color: favorites.contains(id)
+                    ? const Color(0xFFD84979)
+                    : const Color(0xFF97737C)),
+              ),
             ),
-            IconButton(
-              tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
-              onPressed: () => _toggleFavorite(id),
-              icon: Icon(favorites.contains(id)
-                ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: favorites.contains(id)
-                  ? const Color(0xFFD84979) : const Color(0xFF9A807E)),
-            ),
-          ]),
-        ),
-      ),
+          ),
+        ])),
+        const SizedBox(height: 7),
+        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12,
+            fontWeight: FontWeight.w900, color: Color(0xFF4B3E5C))),
+      ]),
     );
 
   Widget _profile() => FantasyScene(child: Column(children: [
