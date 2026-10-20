@@ -66,7 +66,7 @@ class Sliding2048Board extends StatelessWidget {
     Color(0xFFFBA7C1), Color(0xFFB29EEB), Color(0xFFFFA765),
   ];
 
-  Widget _tile(int value, {bool pop = false}) {
+  Widget _tile(int value) {
     final exponent = value <= 0 ? 0 : (math.log(value) / math.ln2).round();
     final color = shades[(exponent - 1).clamp(0, shades.length - 1)];
     return Container(
