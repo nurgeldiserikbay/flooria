@@ -9,6 +9,7 @@ import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/dream_tower.dart';
 import 'ui/floor_victory.dart';
+import 'ui/sliding_2048_board.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -350,6 +351,8 @@ class _MergePageState extends State<MergePage> {
   bool finished = false;
   Offset drag = Offset.zero;
   int moveAnimationId = 0;
+  List<int>? previousBoard;
+  MoveDirection? previousDirection;
   bool victoryPresented = false;
 
   @override
@@ -362,7 +365,12 @@ class _MergePageState extends State<MergePage> {
     if (finished || !game.canMove) return;
     var won = false;
     setState(() {
-      if (game.move(d)) moveAnimationId++;
+      final before = List<int>.from(game.cells);
+      if (game.move(d)) {
+        previousBoard = before;
+        previousDirection = d;
+        moveAnimationId++;
+      }
       final goal = const ObjectiveCatalog().forGame('merge2048', floor: widget.floor);
       if (goal.isComplete(game.highest)) {
         finished = true;
@@ -440,57 +448,14 @@ class _MergePageState extends State<MergePage> {
             }
             drag = Offset.zero;
           },
-          child: TweenAnimationBuilder<double>(
-            key: ValueKey<int>(moveAnimationId),
-            tween: Tween<double>(begin: .988, end: 1),
-            duration: const Duration(milliseconds: 165),
-            curve: Curves.easeOutBack,
-            builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
-            child: AspectRatio(aspectRatio: 1, child: Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(color: const Color(0xFFDCD6E7), borderRadius: BorderRadius.circular(20)),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
-              itemCount: 16,
-              itemBuilder: (_, i) {
-                final v = game.cells[i];
-                final shades = [const Color(0xFFEEEAF3), const Color(0xFFF7F0E7), const Color(0xFFF2DEBF), const Color(0xFFE7CAA4), const Color(0xFFD4C3F0), const Color(0xFFB5DCD0), const Color(0xFF97CFC9)];
-                final rank = v == 0 ? 0 : (log(v) / ln2).floor().clamp(1, shades.length - 1);
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 165),
-                  curve: Curves.easeOutCubic,
-                  decoration: BoxDecoration(
-                    color: shades[rank],
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  alignment: Alignment.center,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 145),
-                    reverseDuration: const Duration(milliseconds: 100),
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: .78, end: 1).animate(
-                          CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-                        ),
-                        child: child,
-                      ),
-                    ),
-                    child: Text(
-                      v == 0 ? '' : '$v',
-                      key: ValueKey<int>(v),
-                      style: TextStyle(
-                        fontSize: v > 1000 ? 20 : 25,
-                        color: ink,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                );
-              },
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Sliding2048Board(
+              cells: game.cells,
+              previous: previousBoard,
+              direction: previousDirection,
+              revision: moveAnimationId,
             ),
-          )),
           ),
         ),
       ),
@@ -498,7 +463,7 @@ class _MergePageState extends State<MergePage> {
       if (finished && widget.floor == null) _notice('Wonderful! You reached 2048.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
-      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
+      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; previousBoard = null; previousDirection = null; moveAnimationId++; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
 
     ]))),
   );
