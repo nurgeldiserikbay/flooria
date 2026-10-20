@@ -265,16 +265,54 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ]));
   });
 
-  Widget _library() => DefaultTabController(length: 3, child: Column(children: [
-    Align(alignment: Alignment.centerLeft, child: _backToTower()),
-    Padding(padding: const EdgeInsets.fromLTRB(24, 26, 24, 16), child: Align(alignment: Alignment.centerLeft, child: _heading('COLLECTION', 'My games'))),
-    const TabBar(labelColor: lavender, unselectedLabelColor: Color(0xFF8B8C9C), indicatorColor: lavender, dividerColor: Colors.transparent, tabs: [Tab(text: 'All'), Tab(text: 'Recent'), Tab(text: 'Favorites')]),
-    Expanded(child: TabBarView(children: [
-      _gameList(games.map((g) => g.$1).toList()),
-      _gameList(recent),
-      _gameList(games.map((g) => g.$1).where(favorites.contains).toList()),
-    ])),
-  ]));
+  Widget _library() => FantasyScene(child: DefaultTabController(
+    length: 3,
+    child: Column(children: [
+      FantasyHeader(title: 'Games', eyebrow: 'Your puzzle collection',
+        onBack: () => setState(() => tab = 0)),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child:
+        FantasyPanel(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          child: Row(children: [
+            Image.asset('assets/art/glowing_puzzle_crown_pedestal.webp',
+              width: 68, height: 68, fit: BoxFit.contain),
+            const SizedBox(width: 12),
+            const Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('CHOOSE YOUR CHALLENGE', style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w900,
+                  color: Color(0xFF614568))),
+                SizedBox(height: 3),
+                Text('Play unlocked puzzles any time.',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF765F6E))),
+              ])),
+          ]),
+        ),
+      ),
+      const SizedBox(height: 9),
+      Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(color: const Color(0xFFFFF4DF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEC78D), width: 2)),
+        child: const TabBar(
+          labelColor: Color(0xFF734B55),
+          unselectedLabelColor: Color(0xFF9B8179),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            color: Color(0xFFFFD17F),
+            borderRadius: BorderRadius.all(Radius.circular(13))),
+          dividerColor: Colors.transparent,
+          tabs: [Tab(text: 'All'), Tab(text: 'Recent'), Tab(text: 'Favorites')],
+        ),
+      ),
+      Expanded(child: TabBarView(children: [
+        _gameList(games.map((g) => g.$1).toList()),
+        _gameList(recent),
+        _gameList(games.map((g) => g.$1).where(favorites.contains).toList()),
+      ])),
+    ]),
+  ));
 
   Widget _gameList(List<String> ids) {
     if (ids.isEmpty) return const Center(child: Text('No games here yet ✨', style: TextStyle(color: Color(0xFF8B8C9C))));
@@ -339,22 +377,69 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       ),
     );
 
-  Widget _profile() => ListView(padding: const EdgeInsets.all(24), children: [
-    Align(alignment: Alignment.centerLeft, child: _backToTower()),
-    _heading('MY JOURNEY', 'My Mind'),
-    const SizedBox(height: 24),
-    Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)), child: Column(children: [
-      const Icon(Icons.psychology_rounded, size: 68, color: lavender),
-      const SizedBox(height: 15),
-      Text('Floor $floor', style: Theme.of(context).textTheme.headlineLarge),
-      const SizedBox(height: 8),
-      const Text('Every puzzle is a new discovery.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF82849B))),
-      const SizedBox(height: 18),
-      const Divider(),
-      ListTile(leading: const Icon(Icons.favorite_rounded, color: lavender), title: const Text('Favorite games'), trailing: Text('${favorites.length}')),
-      ListTile(leading: const Icon(Icons.history_rounded, color: lavender), title: const Text('Recently played'), trailing: Text('${recent.length}')),
-    ])),
-  ]);
+  Widget _profile() => FantasyScene(child: Column(children: [
+    FantasyHeader(title: 'My Mind', eyebrow: 'Your adventure',
+      onBack: () => setState(() => tab = 0)),
+    Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
+      children: [
+        FantasyPanel(child: Column(children: [
+          Image.asset('assets/art/enchanted_brain_altar_emblem.webp',
+            height: 170, fit: BoxFit.contain),
+          const SizedBox(height: 4),
+          const Text('YOUR JOURNEY', style: TextStyle(
+            color: Color(0xFF87667A), fontSize: 12,
+            fontWeight: FontWeight.w900, letterSpacing: 1.4)),
+          Text('Floor $floor', style: const TextStyle(
+            color: Color(0xFF4B3E5C), fontSize: 32,
+            fontWeight: FontWeight.w900)),
+          const SizedBox(height: 5),
+          const Text('Keep climbing. Every puzzle makes you stronger.',
+            textAlign: TextAlign.center, style: TextStyle(
+              color: Color(0xFF776472), fontSize: 13)),
+        ])),
+        const SizedBox(height: 16),
+        Row(children: [
+          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
+            child: Column(children: [
+              const Icon(Icons.emoji_events_rounded,
+                color: Color(0xFFC78735), size: 30),
+              const SizedBox(height: 6),
+              Text('${floor - 1}', style: const TextStyle(
+                color: Color(0xFF4B3E5C), fontSize: 24,
+                fontWeight: FontWeight.w900)),
+              const Text('Floors cleared', style: TextStyle(
+                color: Color(0xFF755B68), fontSize: 11)),
+            ]))),
+          const SizedBox(width: 12),
+          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
+            child: Column(children: [
+              const Icon(Icons.favorite_rounded,
+                color: Color(0xFFDA7998), size: 30),
+              const SizedBox(height: 6),
+              Text('${favorites.length}', style: const TextStyle(
+                color: Color(0xFF4B3E5C), fontSize: 24,
+                fontWeight: FontWeight.w900)),
+              const Text('Favorite games', style: TextStyle(
+                color: Color(0xFF755B68), fontSize: 11)),
+            ]))),
+        ]),
+        const SizedBox(height: 16),
+        FantasyPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('YOUR COLLECTION', style: TextStyle(
+              color: Color(0xFF634B66), fontWeight: FontWeight.w900)),
+            const SizedBox(height: 10),
+            Row(children: [
+              const Icon(Icons.history_rounded, color: Color(0xFF8767B2)),
+              const SizedBox(width: 9),
+              const Expanded(child: Text('Recently played')),
+              Text('${recent.length}', style: const TextStyle(
+                fontWeight: FontWeight.w900)),
+            ]),
+          ])),
+      ])),
+  ]));
+
 }
 
 class MergePage extends StatefulWidget {
