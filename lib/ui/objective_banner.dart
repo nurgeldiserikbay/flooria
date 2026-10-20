@@ -17,7 +17,7 @@ class ObjectiveBanner extends StatelessWidget {
           colors: [Color(0xFFFFF8E8), Color(0xFFFFE4B8)]),
         border: Border.all(color: const Color(0xFFFFD395), width: 2),
         borderRadius: BorderRadius.circular(20),
-        border: const Border(bottom: BorderSide(color: Color(0xFFE3AE61), width: 4)),
+        boxShadow: const [BoxShadow(color: Color(0x555F405A), blurRadius: 8, offset: Offset(0, 5))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
