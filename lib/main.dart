@@ -166,18 +166,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       ]),
     );
 
-  Widget _backToTower() => TextButton.icon(
-    onPressed: () => setState(() => tab = 0),
-    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 15),
-    label: const Text('Tower'),
-  );
-
-  Widget _heading(String eyebrow, String title) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(eyebrow, style: const TextStyle(fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.w700, color: lavender)),
-    const SizedBox(height: 7),
-    Text(title, style: Theme.of(context).textTheme.headlineMedium),
-  ]);
-
   Widget _home() => LayoutBuilder(builder: (context, bounds) {
     final short = bounds.maxHeight < 630;
     final goal = const ObjectiveCatalog().forGame(
@@ -360,7 +348,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                   color: Color(0xFFB56F37), fontSize: 11,
                   fontWeight: FontWeight.w900)),
               ]),
-            )),
+            ),
             IconButton(
               tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
               onPressed: () => _toggleFavorite(id),
