@@ -488,17 +488,30 @@ class _MergePageState extends State<MergePage> {
     appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Floor ${widget.floor} · 2048'), backgroundColor: const Color(0xFFFFE9C2)),
     body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 470), child: ListView(padding: const EdgeInsets.all(20), children: [
       const SizedBox(height: 12),
-      Text('Merge the tiles', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
-      const SizedBox(height: 8),
-      Text('Swipe to combine matching numbers', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF85869C))),
-      const SizedBox(height: 18),
+      const Text('THE NUMBER FORGE', style: TextStyle(fontSize: 12,
+        fontWeight: FontWeight.w900, color: Color(0xFF664C79),
+        letterSpacing: 2), textAlign: TextAlign.center),
+      const SizedBox(height: 4),
+      Text('2048', style: Theme.of(context).textTheme.headlineLarge,
+        textAlign: TextAlign.center),
+      const SizedBox(height: 5),
+      const Text('Merge equal tiles to climb higher',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Color(0xFF594C70), fontSize: 13)),
+      const SizedBox(height: 13),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('merge2048', floor: widget.floor), progress: game.highest),
       const SizedBox(height: 18),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        _stat('SCORE', '${game.score}'),
-        _stat('BEST TILE', '${game.highest}'),
-      ]),
-      const SizedBox(height: 20),
+      FantasyPanel(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          _stat('SCORE', '${game.score}'),
+          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          _stat('BEST TILE', '${game.highest}'),
+          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          _stat('MOVES', '${game.moves}'),
+        ]),
+      ),
+      const SizedBox(height: 15),
       Focus(
         autofocus: true,
         onKeyEvent: (_, event) {
@@ -552,7 +565,15 @@ class _MergePageState extends State<MergePage> {
       if (finished && widget.floor == null) _notice('Wonderful! You reached 2048.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
-      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; previousBoard = null; previousDirection = null; moveAnimationId++; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
+      FantasyButton(label: 'RESTART PUZZLE',
+        icon: Icons.refresh_rounded,
+        onPressed: () => setState(() {
+          game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch);
+          finished = false;
+          previousBoard = null;
+          previousDirection = null;
+          moveAnimationId++;
+        })),
 
     ])))),
   );
@@ -637,16 +658,23 @@ class _SequencePageState extends State<SequencePage> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Floor ${widget.floor} · Number Trail'), backgroundColor: const Color(0xFFFFE9C2)),
     body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(padding: const EdgeInsets.all(18), decoration: const BoxDecoration(color: Color(0xFFDFF3E9), shape: BoxShape.circle), child: const Icon(Icons.route_rounded, size: 42, color: Color(0xFF519A89))),
+      Image.asset('assets/art/glowing_puzzle_crown_pedestal.webp',
+        height: 102, fit: BoxFit.contain),
       const SizedBox(height: 20),
-      Text(done ? 'Challenge finished!' : 'Find the next number', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
+      Text(done ? 'Challenge finished!' : 'NUMBER TRAIL',
+        style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       const SizedBox(height: 12),
       Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFF8C8DA0))),
       const SizedBox(height: 18),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
       const SizedBox(height: 20),
       if (!done) ...[
-        AnimatedSwitcher(
+        const Text('DISCOVER THE MISSING NUMBER', style: TextStyle(
+          color: Color(0xFF594C70), fontSize: 11,
+          letterSpacing: 1, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        FantasyPanel(padding: const EdgeInsets.all(17),
+          child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 240),
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
@@ -664,8 +692,8 @@ class _SequencePageState extends State<SequencePage> {
               style: const TextStyle(
                 fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
           ),
-        ),
-        const SizedBox(height: 28),
+        )),
+        const SizedBox(height: 19),
         GridView.count(
           crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
           children: [
@@ -680,10 +708,11 @@ class _SequencePageState extends State<SequencePage> {
                     color: answering && selectedAnswer == v
                       ? selectedCorrect
                         ? const Color(0xFF94E2BE) : const Color(0xFFFFBAA6)
-                      : Colors.white,
+                      : const Color(0xFFFFE0A6),
                     borderRadius: BorderRadius.circular(16),
-                    border: const Border(bottom: BorderSide(
-                      color: Color(0xFFD6CEDF), width: 4)),
+                    border: Border.all(color: const Color(0xFFFFF4D7), width: 2),
+                    boxShadow: const [BoxShadow(color: Color(0xFFB98556),
+                      offset: Offset(0, 4))],
                   ),
                   child: TextButton(
                     onPressed: answering ? null : () => answer(v),
