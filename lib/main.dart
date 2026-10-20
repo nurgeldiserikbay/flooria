@@ -324,53 +324,50 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   }
 
   Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
-    Container(
-      margin: const EdgeInsets.only(bottom: 13),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(25),
-        border: Border(bottom: BorderSide(
-          color: Color.lerp(color, const Color(0xFF725586), .32)!, width: 5))),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(25),
-        onTap: () => _open(id),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
+    Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: FantasyPanel(
+        padding: const EdgeInsets.all(11),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: () => _open(id),
           child: Row(children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: SizedBox(width: 76, height: 76,
-                child: Image.asset(
-                  id == 'merge2048'
-                    ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
-                    : 'assets/art/glowing_puzzle_crown_pedestal.webp',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => ColoredBox(
-                    color: Colors.white54,
-                    child: Icon(icon, size: 31, color: ink)),
-                )),
+              borderRadius: BorderRadius.circular(13),
+              child: Image.asset(
+                id == 'merge2048'
+                  ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
+                  : 'assets/art/glowing_puzzle_crown_pedestal.webp',
+                width: 96, height: 93,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => SizedBox(
+                  width: 96, height: 93,
+                  child: Icon(icon, color: const Color(0xFF5C4771))),
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(name, style: const TextStyle(
-                  fontSize: 19, fontWeight: FontWeight.w900, color: ink)),
+                  fontSize: 20, fontWeight: FontWeight.w900,
+                  color: Color(0xFF55425A))),
                 const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 12,
-                  color: Color(0xFF675C70))),
-                const SizedBox(height: 7),
-                const Text('▶  PLAY', style: TextStyle(
-                  fontSize: 11, letterSpacing: 1,
-                  fontWeight: FontWeight.w900, color: Color(0xFF655184))),
-              ],
+                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11,
+                    color: Color(0xFF886F70))),
+                const SizedBox(height: 8),
+                const Text('▶ PLAY NOW', style: TextStyle(
+                  color: Color(0xFFB56F37), fontSize: 11,
+                  fontWeight: FontWeight.w900)),
+              ]),
             )),
             IconButton(
               tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
               onPressed: () => _toggleFavorite(id),
-              icon: Icon(
-                favorites.contains(id)
-                  ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+              icon: Icon(favorites.contains(id)
+                ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                 color: favorites.contains(id)
-                  ? const Color(0xFFD84979) : const Color(0xFF82688D)),
+                  ? const Color(0xFFD84979) : const Color(0xFF9A807E)),
             ),
           ]),
         ),
