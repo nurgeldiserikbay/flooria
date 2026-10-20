@@ -113,6 +113,61 @@ class _FantasyButtonState extends State<FantasyButton> {
   );
 }
 
+/// Game-world portal: art is treated as a framed miniature, not pasted onto
+/// a generic application tab button.
+class FantasyPortal extends StatefulWidget {
+  final String label;
+  final String asset;
+  final VoidCallback onTap;
+  const FantasyPortal({super.key, required this.label,
+    required this.asset, required this.onTap});
+  @override
+  State<FantasyPortal> createState() => _FantasyPortalState();
+}
+class _FantasyPortalState extends State<FantasyPortal> {
+  bool pressed = false;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true, label: widget.label,
+    child: GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => pressed = true),
+      onTapUp: (_) => setState(() => pressed = false),
+      onTapCancel: () => setState(() => pressed = false),
+      child: AnimatedScale(
+        scale: pressed ? .94 : 1,
+        duration: const Duration(milliseconds: 135),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 65, height: 62,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [
+                Color(0xFFFFF8D7), Color(0xFFDFAC5D), Color(0xFFAD774B)]),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFFFE9A3), width: 2),
+              boxShadow: const [BoxShadow(color: Color(0x77523B6A),
+                blurRadius: 9, offset: Offset(0, 5))],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(widget.asset, fit: BoxFit.cover,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.auto_awesome_rounded, color: Color(0xFF66436D))),
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(widget.label, style: const TextStyle(
+            color: Color(0xFF493656), fontWeight: FontWeight.w900,
+            fontSize: 12, shadows: [Shadow(color: Color(0xAAFFFFFF),
+              blurRadius: 4)])),
+        ]),
+      ),
+    ),
+  );
+}
+
 class FantasyHeader extends StatelessWidget {
   final String title;
   final String eyebrow;
