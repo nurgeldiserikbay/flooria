@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'fantasy_ui.dart';
 
 /// Lightweight celebratory result presentation shared by every mini-game.
 enum VictoryAction { nextFloor, tower }
@@ -80,16 +81,8 @@ class _VictoryCardState extends State<_VictoryCard>
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(20),
-    child: Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E9),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFFFFE4A4), width: 3),
-        boxShadow: const [
-          BoxShadow(color: Color(0x773C2A4D), blurRadius: 28, offset: Offset(0, 15)),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(22, 23, 22, 22),
+    child: FantasyPanel(
+      padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         SizedBox(
           height: 128, width: 205,
@@ -133,8 +126,10 @@ class _VictoryCardState extends State<_VictoryCard>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFD7F5E7),
-            borderRadius: BorderRadius.circular(18)),
+            gradient: const LinearGradient(colors: [
+              Color(0xFFD9F4D7), Color(0xFFACE0BB)]),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFF83B89A), width: 2)),
           child: Column(children: [
             const Icon(Icons.lock_open_rounded, color: Color(0xFF328C73), size: 28),
             const SizedBox(height: 6),
@@ -148,19 +143,9 @@ class _VictoryCardState extends State<_VictoryCard>
           ]),
         ),
         const SizedBox(height: 21),
-        SizedBox(
-          width: double.infinity, height: 53,
-          child: FilledButton.icon(
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFFFB251),
-              foregroundColor: const Color(0xFF483558),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
-            onPressed: widget.onNext,
-            icon: const Icon(Icons.arrow_upward_rounded),
-            label: const Text('NEXT FLOOR',
-              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: .5)),
-          ),
-        ),
+        FantasyButton(label: 'NEXT FLOOR',
+          icon: Icons.arrow_upward_rounded,
+          onPressed: widget.onNext),
         const SizedBox(height: 8),
         TextButton(onPressed: widget.onTower,
           child: const Text('Back to tower',
