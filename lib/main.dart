@@ -169,7 +169,18 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       const FloorEngine().challengeFor(floor).gameId, floor: floor);
     return Stack(children: [
       const Positioned.fill(child: ColoredBox(color: Color(0xFFCBEDFA))),
-      Positioned.fill(child: DreamTower()),
+      Positioned.fill(child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 850),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, .14), end: Offset.zero,
+          ).animate(animation),
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: DreamTower(key: ValueKey<int>(floor)),
+      )),
       Positioned(top: 11, left: 22, right: 22, child: Row(children: [
         const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('FLOORIA', style: TextStyle(color: ink, fontSize: 30,
