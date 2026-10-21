@@ -2,8 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../game/floor_engine.dart';
 
-/// An illustrated-looking floor stack built from actual interactive,
-/// scalable geometry rather than a castle image or baked-in floor numbers.
+/// A purely Flutter-rendered, infinitely reusable soft 2.5D tower.
+/// Numbers, game names and progress are never embedded in artwork.
 class FloorTowerScene extends StatelessWidget {
   final int currentFloor;
   final ValueChanged<int> onFloorTap;
@@ -12,234 +12,191 @@ class FloorTowerScene extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final top = currentFloor + 3;
-    final bottom = math.max(1, currentFloor - 2);
-    final floors = [
-      for (int f = top; f >= bottom; f--) f,
-    ];
-    return LayoutBuilder(builder: (context, c) {
-      // Artwork contains a three-dimensional stone ledge and waterfalls.
-      // Layers must overlap vertically, or they look like disconnected cards.
-      final blockHeight = math.min(145.0, c.maxHeight * .34);
-      final step = (c.maxHeight - blockHeight) /
-          math.max(1, floors.length - 1);
-      return Stack(
-        clipBehavior: Clip.none,
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
+    // Keep the current floor near the bottom; enough future floors remain
+    // visible to communicate progression. Near the start, don't invent zero.
+    final bottom = math.max(1, currentFloor - 1);
+    final floors = List<int>.generate(4, (i) => bottom + 3 - i);
+    final gap = math.min(6.0, box.maxHeight * .015);
+    final blockHeight = (box.maxHeight - 3 * gap) / 4;
+    return Center(child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 345),
+      child: Column(
         children: [
-          for (var index = 0; index < floors.length; index++)
-            Positioned(
-              top: index * step,
-              left: 0,
-              right: 0,
-              height: blockHeight,
-              child: _TowerBlock(
-                floor: floors[index],
-                current: currentFloor,
-                onTap: () => onFloorTap(floors[index]),
-              ),
-            ),
+          for (var i = 0; i < floors.length; i++) ...[
+            Expanded(child: _SoftFloorBlock(
+              floor: floors[i], current: currentFloor,
+              onTap: () => onFloorTap(floors[i]),
+              availableHeight: blockHeight,
+            )),
+            if (i != floors.length - 1) SizedBox(height: gap),
+          ],
         ],
-      );
-    });
-  }
+      ),
+    ));
+  });
 }
 
-class _TowerBlock extends StatelessWidget {
+class _SoftFloorBlock extends StatelessWidget {
   final int floor;
   final int current;
+  final double availableHeight;
   final VoidCallback onTap;
-  const _TowerBlock({
-    required this.floor, required this.current, required this.onTap,
+  const _SoftFloorBlock({
+    required this.floor, required this.current,
+    required this.availableHeight, required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final active = floor == current;
-    final passed = floor < current;
-    final name = const FloorEngine().challengeFor(floor).gameId
-      == 'merge2048' ? '2048' : 'Number Trail';
-    final image = name == '2048'
-      ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
-      : 'assets/art/glowing_puzzle_crown_pedestal.webp';
-    return LayoutBuilder(builder: (context, c) {
-      final width = math.min(c.maxWidth * .94, active ? 335.0 : 296.0);
-      final shift = math.sin(floor * .75) * (active ? 0 : 4);
-      final height = c.maxHeight;
-      return Center(child: Transform.translate(
-        offset: Offset(shift, 0),
-        child: SizedBox(
-          width: width, height: height,
-          child: Semantics(
-            label: 'Floor $floor, $name, ${passed ? "completed" : active ? "current" : "locked"}',
-            button: true,
-            child: GestureDetector(
-              onTap: onTap,
-              child: Stack(children: [
-                Positioned.fill(child: Image.asset(
-                  active
-                    ? 'assets/art/floor_current.webp'
-                    : passed
-                      ? 'assets/art/floor_completed.webp'
-                      : 'assets/art/floor_locked.webp',
-                  fit: BoxFit.fill,
-                  filterQuality: FilterQuality.medium,
-                  errorBuilder: (_, __, ___) => CustomPaint(
-                    painter: _FloorBlockPainter(
-                      active: active, passed: passed,
-                    ),
-                  ),
-                )),
-                Positioned(
-                  top: height * .24, left: width * .105,
-                  right: width * .105, bottom: height * .30,
-                  child: Row(children: [
-                    SizedBox(
-                      width: width * .18,
-                      child: Center(child: Text('$floor',
-                        style: TextStyle(
-                          fontSize: active ? 23 : 20,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFFFFEAC0),
-                          shadows: const [Shadow(
-                            color: Color(0xFF493039),
-                            blurRadius: 3,
-                            offset: Offset(1, 2))],
-                        ),
-                      )),
-                    ),
-                    SizedBox(width: width * .025),
-                    Expanded(child: Row(children: [
-                      SizedBox(
-                        width: math.min(33.0, height * .44),
-                        height: math.min(33.0, height * .44),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(7),
-                          child: Image.asset(image, fit: BoxFit.cover),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: const Color(0xFFFFF4D8),
-                          fontSize: active ? 13 : 12,
-                          fontWeight: FontWeight.w900,
-                          shadows: const [Shadow(
-                            color: Color(0xFF382A35), blurRadius: 4)],
-                        ),
-                      )),
-                    ])),
-                    SizedBox(
-                      width: width * .18,
-                      child: Icon(
-                        passed ? Icons.check_circle_rounded
-                          : active ? Icons.play_circle_fill_rounded
-                          : Icons.lock_rounded,
-                        size: active ? 24 : 21,
-                        color: active
-                          ? const Color(0xFFFFE8A0)
-                          : passed
-                            ? const Color(0xFFB8FFD1)
-                            : const Color(0xFFE4DCEB),
-                      ),
-                    ),
-                  ]),
-                ),
-              ]),
+    final complete = floor < current;
+    final gameId = const FloorEngine().challengeFor(floor).gameId;
+    final gameName = gameId == 'merge2048' ? '2048' : 'Number Trail';
+    final foreground = active
+      ? const Color(0xFF714D25)
+      : complete ? const Color(0xFF426551) : const Color(0xFF77728C);
+    final top = active
+      ? const Color(0xFFFFE6A2)
+      : complete ? const Color(0xFFDDF1DF) : const Color(0xFFE8E6F4);
+    final middle = active
+      ? const Color(0xFFFFD77E)
+      : complete ? const Color(0xFFC7E7D1) : const Color(0xFFDCD9ED);
+    final bottom = active
+      ? const Color(0xFFE1B46D)
+      : complete ? const Color(0xFFA5CDBA) : const Color(0xFFC1BDD7);
+
+    return Semantics(
+      label: 'Floor $floor, $gameName, ${active ? 'current' : complete ? 'completed' : 'locked'}',
+      button: true,
+      child: Material(color: Colors.transparent, child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(21),
+        child: LayoutBuilder(builder: (context, box) {
+          final height = box.maxHeight;
+          final depth = math.min(11.0, height * .15);
+          return Stack(clipBehavior: Clip.none, children: [
+            // Continuous soft shadow and bottom extrusion mimic an actual
+            // stack of stone blocks without decorative image fragments.
+            Positioned(top: depth * .5, left: 4, right: 4, bottom: 0,
+              child: DecoratedBox(decoration: BoxDecoration(
+                color: bottom, borderRadius: BorderRadius.circular(20),
+                boxShadow: const [BoxShadow(
+                  color: Color(0x283F4D71), blurRadius: 14,
+                  offset: Offset(0, 7))],
+              )),
             ),
-          ),
-        ),
-      ));
-    });
+            Positioned(top: 0, bottom: depth, left: 0, right: 0,
+              child: DecoratedBox(decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [top, middle]),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: .78),
+                  width: active ? 2.2 : 1.4),
+              )),
+            ),
+            Positioned(left: 13, right: 13, top: 0,
+              child: Container(height: 2,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .45),
+                  borderRadius: BorderRadius.circular(30)))),
+            Positioned(top: 0, bottom: depth, left: 0, right: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(children: [
+                  SizedBox(width: 29, child: Text('$floor',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: foreground,
+                      fontSize: 23, fontWeight: FontWeight.w800))),
+                  const SizedBox(width: 12),
+                  _GameSymbol(gameId: gameId,
+                    active: active, complete: complete),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(gameName, maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: foreground,
+                      fontSize: 16, fontWeight: FontWeight.w800))),
+                  const SizedBox(width: 4),
+                  Icon(complete ? Icons.check_circle_rounded :
+                    active ? Icons.play_circle_fill_rounded :
+                    Icons.lock_outline_rounded,
+                    color: active ? const Color(0xFFBB8739) :
+                      complete ? const Color(0xFF65A884) :
+                      const Color(0xFF9D99B3),
+                    size: 22),
+                ]),
+              ),
+            ),
+          ]);
+        }),
+      )),
+    );
   }
 }
 
-class _FloorBlockPainter extends CustomPainter {
+/// Local, consistent icons that work for any floor without image requests.
+class _GameSymbol extends StatelessWidget {
+  final String gameId;
   final bool active;
-  final bool passed;
-  const _FloorBlockPainter({required this.active, required this.passed});
+  final bool complete;
+  const _GameSymbol({
+    required this.gameId, required this.active, required this.complete,
+  });
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 42, height: 42,
+    padding: const EdgeInsets.all(5),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: .71),
+      borderRadius: BorderRadius.circular(13),
+      boxShadow: const [BoxShadow(color: Color(0x154C4E6E),
+        blurRadius: 5, offset: Offset(0, 3))],
+    ),
+    child: gameId == 'merge2048' ? GridView.count(
+      crossAxisCount: 2, mainAxisSpacing: 2, crossAxisSpacing: 2,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        for (var i = 0; i < 4; i++)
+          DecoratedBox(decoration: BoxDecoration(
+            color: [
+              const Color(0xFFF4BFA5),
+              const Color(0xFFF6D36F),
+              const Color(0xFF9DCFF0),
+              const Color(0xFFABD6AC),
+            ][i],
+            borderRadius: BorderRadius.circular(3),
+          )),
+      ],
+    ) : CustomPaint(painter: _TrailSymbol()),
+  );
+}
 
+class _TrailSymbol extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final shadow = Paint()
-      ..color = const Color(0x553E3867)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9);
-    final body = Path()
-      ..moveTo(w * .04, h * .22)
-      ..lineTo(w * .94, h * .22)
-      ..lineTo(w * .99, h * .37)
-      ..lineTo(w * .99, h * .82)
-      ..lineTo(w * .91, h * .94)
-      ..lineTo(w * .07, h * .94)
-      ..lineTo(w * .01, h * .79)
-      ..lineTo(w * .01, h * .36)
-      ..close();
-    canvas.drawPath(body.shift(const Offset(0, 5)), shadow);
-    canvas.drawPath(body, Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: active
-          ? [const Color(0xFFFFEFAA), const Color(0xFFE9A94D),
-             const Color(0xFFAC633A)]
-          : passed
-          ? [const Color(0xFFDBF0D7), const Color(0xFFAFCCAA),
-             const Color(0xFF7F9B83)]
-          : [const Color(0xFFE9E2D9), const Color(0xFFBEAFB4),
-             const Color(0xFF8F8197)],
-      ).createShader(Rect.fromLTWH(0, 0, w, h)));
-    final side = Path()
-      ..moveTo(w * .07, h * .76)
-      ..lineTo(w * .92, h * .76)
-      ..lineTo(w * .99, h * .82)
-      ..lineTo(w * .91, h * .94)
-      ..lineTo(w * .07, h * .94)
-      ..lineTo(w * .01, h * .79)
-      ..close();
-    canvas.drawPath(side, Paint()
-      ..color = active ? const Color(0xFF95563B)
-        : passed ? const Color(0xFF709382)
-        : const Color(0xFF847D92));
-    final surface = Path()
-      ..moveTo(w * .07, h * .05)
-      ..lineTo(w * .91, h * .05)
-      ..lineTo(w * .98, h * .22)
-      ..lineTo(w * .93, h * .31)
-      ..lineTo(w * .06, h * .31)
-      ..lineTo(w * .015, h * .22)
-      ..close();
-    canvas.drawPath(surface, Paint()
-      ..color = active ? const Color(0xFFFFF0C3)
-        : passed ? const Color(0xFFE5F1D9)
-        : const Color(0xFFF4EDE7));
-    final front = RRect.fromRectAndRadius(
-      Rect.fromLTRB(w * .045, h * .27, w * .955, h * .78),
-      Radius.circular(h * .15));
-    canvas.drawRRect(front, Paint()
-      ..color = active ? const Color(0xFFFFE2A4)
-        : passed ? const Color(0xFFE0EDD3)
-        : const Color(0xFFE2D9DB));
-    canvas.drawRRect(front, Paint()
+    final path = Paint()
+      ..color = const Color(0xFFB4C7B7)
+      ..strokeWidth = 4
       ..style = PaintingStyle.stroke
-      ..strokeWidth = active ? 3 : 2
-      ..color = active ? const Color(0xFFFFC35E)
-        : const Color(0xFFC6AE9E));
-    canvas.drawLine(Offset(w * .085, h * .35),
-      Offset(w * .915, h * .35),
-      Paint()..color = const Color(0x99FFFFFF)..strokeWidth = 1.7);
-    if (active) {
-      final sparkle = Paint()..color = const Color(0xFFFFF8C4);
-      for (final dx in [.07, .93]) {
-        final center = Offset(w * dx, h * .24);
-        canvas.drawCircle(center, 3.4, sparkle);
-      }
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(size.width*.18, size.height*.80),
+      Offset(size.width*.50, size.height*.24), path);
+    canvas.drawLine(Offset(size.width*.50, size.height*.24),
+      Offset(size.width*.83, size.height*.66), path);
+    final dots = [
+      const Color(0xFF89C3F4), const Color(0xFF9ECC9F),
+      const Color(0xFFFFA88A)];
+    final points = [
+      Offset(size.width*.18, size.height*.80),
+      Offset(size.width*.50, size.height*.24),
+      Offset(size.width*.83, size.height*.66),
+    ];
+    for (var i=0;i<points.length;i++) {
+      canvas.drawCircle(points[i], 5.5, Paint()..color=dots[i]);
     }
   }
-
   @override
-  bool shouldRepaint(covariant _FloorBlockPainter oldDelegate) =>
-      oldDelegate.active != active || oldDelegate.passed != passed;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
