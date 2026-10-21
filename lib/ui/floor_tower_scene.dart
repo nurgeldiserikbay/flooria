@@ -69,18 +69,27 @@ class _TowerBlock extends StatelessWidget {
             child: GestureDetector(
               onTap: onTap,
               child: Stack(children: [
-                Positioned.fill(child: CustomPaint(
-                  painter: _FloorBlockPainter(
-                    active: active, passed: passed,
+                Positioned.fill(child: Image.asset(
+                  active
+                    ? 'assets/art/floor_current.webp'
+                    : passed
+                      ? 'assets/art/floor_completed.webp'
+                      : 'assets/art/floor_locked.webp',
+                  fit: BoxFit.fill,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (_, __, ___) => CustomPaint(
+                    painter: _FloorBlockPainter(
+                      active: active, passed: passed,
+                    ),
                   ),
                 )),
                 Positioned(
-                  top: height * .12, left: width * .15,
-                  right: width * .15, bottom: height * .19,
+                  top: height * .24, left: width * .10,
+                  right: width * .11, bottom: height * .22,
                   child: Row(children: [
                     Container(
-                      width: math.min(48.0, height * .56),
-                      height: math.min(48, height * .56),
+                      width: math.min(38.0, height * .48),
+                      height: math.min(38.0, height * .48),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: active
@@ -100,7 +109,7 @@ class _TowerBlock extends StatelessWidget {
                           fit: BoxFit.cover),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 7),
                     Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -108,14 +117,14 @@ class _TowerBlock extends StatelessWidget {
                         Text('FLOOR $floor',
                           maxLines: 1,
                           style: TextStyle(
-                            fontSize: active ? 16 : 13,
+                            fontSize: active ? 15 : 13,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF573951),
                             letterSpacing: .3)),
                         Text(name,
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 11, fontWeight: FontWeight.w700,
+                            fontSize: 10, fontWeight: FontWeight.w700,
                             color: Color(0xFF805E70))),
                       ],
                     )),
