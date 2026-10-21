@@ -87,57 +87,57 @@ class _TowerBlock extends StatelessWidget {
                   top: height * .24, left: width * .10,
                   right: width * .11, bottom: height * .22,
                   child: Row(children: [
-                    Container(
-                      width: math.min(38.0, height * .48),
-                      height: math.min(38.0, height * .48),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: active
-                          ? const Color(0xFFFFEDB6)
-                          : const Color(0xFFFFF4DD),
-                        border: Border.all(
-                          color: const Color(0xFFFFD68A), width: 2),
+                    SizedBox(
+                      width: width * .18,
+                      child: Center(child: Text('$floor',
+                        style: TextStyle(
+                          fontSize: active ? 23 : 20,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFFFFEAC0),
+                          shadows: const [Shadow(
+                            color: Color(0xFF493039),
+                            blurRadius: 3,
+                            offset: Offset(1, 2))],
+                        ),
+                      )),
+                    ),
+                    SizedBox(width: width * .025),
+                    Expanded(child: Row(children: [
+                      SizedBox(
+                        width: math.min(33.0, height * .44),
+                        height: math.min(33.0, height * .44),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(7),
+                          child: Image.asset(image, fit: BoxFit.cover),
+                        ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          passed || active
-                            ? Colors.transparent
-                            : const Color(0xFF78718A),
-                          BlendMode.saturation),
-                        child: Image.asset(image,
-                          fit: BoxFit.cover),
+                      const SizedBox(width: 6),
+                      Expanded(child: Text(name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: const Color(0xFFFFF4D8),
+                          fontSize: active ? 13 : 12,
+                          fontWeight: FontWeight.w900,
+                          shadows: const [Shadow(
+                            color: Color(0xFF382A35), blurRadius: 4)],
+                        ),
+                      )),
+                    ])),
+                    SizedBox(
+                      width: width * .18,
+                      child: Icon(
+                        passed ? Icons.check_circle_rounded
+                          : active ? Icons.play_circle_fill_rounded
+                          : Icons.lock_rounded,
+                        size: active ? 24 : 21,
+                        color: active
+                          ? const Color(0xFFFFE8A0)
+                          : passed
+                            ? const Color(0xFFB8FFD1)
+                            : const Color(0xFFE4DCEB),
                       ),
                     ),
-                    const SizedBox(width: 7),
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('FLOOR $floor',
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: active ? 15 : 13,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF573951),
-                            letterSpacing: .3)),
-                        Text(name,
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 10, fontWeight: FontWeight.w700,
-                            color: Color(0xFF805E70))),
-                      ],
-                    )),
-                    Icon(
-                      passed ? Icons.check_circle_rounded
-                        : active ? Icons.play_circle_fill_rounded
-                        : Icons.lock_rounded,
-                      size: active ? 26 : 20,
-                      color: active
-                        ? const Color(0xFFBD732A)
-                        : passed
-                          ? const Color(0xFF579D7A)
-                          : const Color(0xFF987C85)),
                   ]),
                 ),
               ]),
