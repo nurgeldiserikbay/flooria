@@ -6,9 +6,10 @@ import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
-import 'ui/dream_tower.dart';
+import 'ui/floor_tower_scene.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
+import 'ui/fantasy_ui.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -134,247 +135,300 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ))));
   }
 
-  Widget _portal(String label, IconData icon, Color light, Color dark, VoidCallback onTap) =>
-    InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: onTap,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 55, height: 55,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Colors.white, light, dark]),
-            borderRadius: BorderRadius.circular(19),
-            border: Border.all(color: Colors.white.withValues(alpha: .85), width: 2),
-            boxShadow: [BoxShadow(color: dark.withValues(alpha: .4),
-              blurRadius: 9, offset: const Offset(0, 5))],
-          ),
-          alignment: Alignment.center,
-          child: Image.asset(
-            label == 'Games'
-              ? 'assets/art/glowing_puzzle_crown_pedestal.webp'
-              : label == 'Tower'
-                ? 'assets/art/royal_blue_castle_tower_icon.webp'
-                : 'assets/art/enchanted_brain_altar_emblem.webp',
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(icon, color: ink, size: 27),
+  Widget _home() => LayoutBuilder(builder: (context, bounds) {
+    final short = bounds.maxHeight < 630;
+    final challenge = const FloorEngine().challengeFor(floor);
+    final goal = const ObjectiveCatalog().forGame(challenge.gameId,
+      floor: floor);
+    final gameName = challenge.gameId == 'merge2048'
+      ? '2048' : 'Number Trail';
+    final navHeight = short ? 74.0 : 88.0;
+    final briefingHeight = short ? 116.0 : 132.0;
+    return FantasyScene(child: Stack(children: [
+      Positioned(
+        top: short ? 69 : 76,
+        left: 8, right: 8,
+        bottom: navHeight + briefingHeight - 14,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, .16), end: Offset.zero,
+              ).animate(animation), child: child)),
+          child: FloorTowerScene(
+            key: ValueKey<int>(towerSceneRevision),
+            currentFloor: floor,
+            onFloorTap: (selected) {
+              if (selected == floor) {
+                _open(challenge.gameId, tower: true);
+              } else if (selected < floor) {
+                // Replaying completed floors never awards a tower floor.
+                _open(const FloorEngine().challengeFor(selected).gameId);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Complete Floor $floor to unlock Floor $selected'),
+                  duration: const Duration(seconds: 2),
+                ));
+              }
+            },
           ),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(color: ink, fontWeight: FontWeight.w800, fontSize: 11)),
+      ),
+      Positioned(top: 12, left: 19, right: 19,
+        child: Row(children: [
+          const Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('FLOORIA', style: TextStyle(
+                fontSize: 28, fontWeight: FontWeight.w900,
+                color: Color(0xFF38305C), letterSpacing: .8)),
+              Text('THE ENDLESS TOWER', style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w900,
+                color: Color(0xFF625383), letterSpacing: 1.2)),
+            ],
+          )),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF2C7), Color(0xFFF7C76E)]),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFE5A8), width: 2)),
+            child: Text('★  Floor $floor', style: const TextStyle(
+              fontWeight: FontWeight.w900, color: Color(0xFF634364))),
+          ),
+        ]),
+      ),
+      Positioned(bottom: navHeight + 7, left: 26, right: 26,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('FLOOR $floor  ·  $gameName',
+            style: const TextStyle(
+              fontSize: 12, letterSpacing: .7,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF654D70),
+              shadows: [Shadow(color: Colors.white, blurRadius: 8)])),
+          const SizedBox(height: 5),
+          Text(goal.title, textAlign: TextAlign.center,
+            maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: short ? 18 : 21,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF493453),
+              shadows: const [Shadow(
+                color: Colors.white, blurRadius: 10)])),
+          const SizedBox(height: 9),
+          FantasyButton(
+            label: 'PLAY $gameName',
+            onPressed: () => _open(challenge.gameId, tower: true)),
+        ]),
+      ),
+      Positioned(bottom: 4, left: 18, right: 18,
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            FantasyPortal(label: 'Games',
+              asset: 'assets/art/glowing_puzzle_crown_pedestal.webp',
+              onTap: () => setState(() => tab = 1)),
+            FantasyPortal(label: 'My Mind',
+              asset: 'assets/art/enchanted_brain_altar_emblem.webp',
+              onTap: () => setState(() => tab = 2)),
+          ]),
+      ),
+    ]));
+  });
+
+  Widget _library() => FantasyScene(child: DefaultTabController(
+    length: 3,
+    child: Column(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: Align(alignment: Alignment.centerLeft,
+          child: Material(
+            color: const Color(0xFFFFE8B0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+              side: const BorderSide(color: Color(0xFFDAAA70), width: 2)),
+            child: IconButton(
+              tooltip: 'Back to Tower',
+              onPressed: () => setState(() => tab = 0),
+              icon: const Icon(Icons.arrow_back_rounded,
+                color: Color(0xFF61455C)),
+            ),
+          ),
+        ),
+      ),
+      Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF4DF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEC78D), width: 2)),
+        child: const TabBar(
+          labelColor: Color(0xFF734B55),
+          unselectedLabelColor: Color(0xFF9B8179),
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            color: Color(0xFFFFD17F),
+            borderRadius: BorderRadius.all(Radius.circular(13))),
+          dividerColor: Colors.transparent,
+          tabs: [Tab(text: 'All'), Tab(text: 'Recent'),
+            Tab(text: 'Favorites')],
+        ),
+      ),
+      Expanded(child: TabBarView(children: [
+        _gameGrid(games.map((g) => g.$1).toList()),
+        _gameGrid(recent),
+        _gameGrid(games.map((g) => g.$1)
+          .where(favorites.contains).toList()),
+      ])),
+    ]),
+  ));
+
+  Widget _gameGrid(List<String> ids) {
+    if (ids.isEmpty) {
+      return const Center(child: Text('No games here yet ✨',
+        style: TextStyle(color: Color(0xFF695977),
+          fontWeight: FontWeight.w700)));
+    }
+    return LayoutBuilder(builder: (context, size) => GridView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: size.maxWidth >= 520 ? 4 : 3,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 10,
+        childAspectRatio: .78,
+      ),
+      itemCount: ids.length,
+      itemBuilder: (context, index) {
+        final id = ids[index];
+        final game = games.where((g) => g.$1 == id).first;
+        return _gameIcon(id, game.$2, game.$4);
+      },
+    ));
+  }
+
+  Widget _gameIcon(String id, String name, IconData fallback) =>
+    InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => _open(id),
+      child: Column(children: [
+        Expanded(child: Stack(children: [
+          Positioned.fill(child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [
+                Color(0xFFFFF9DB), Color(0xFFE8B767)]),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFFFEFC0),
+                width: 2),
+              boxShadow: const [BoxShadow(
+                color: Color(0x66503C63), blurRadius: 6,
+                offset: Offset(0, 4))]),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(13),
+              child: Image.asset(
+                id == 'merge2048'
+                  ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
+                  : 'assets/art/glowing_puzzle_crown_pedestal.webp',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(fallback,
+                  color: const Color(0xFF604965)),
+              ),
+            ),
+          )),
+          Positioned(top: 1, right: 1,
+            child: InkResponse(
+              radius: 22,
+              onTap: () => _toggleFavorite(id),
+              child: Container(
+                width: 28, height: 28,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: Color(0xEFFFF5DC), shape: BoxShape.circle),
+                child: Icon(
+                  favorites.contains(id)
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                  size: 17,
+                  color: favorites.contains(id)
+                    ? const Color(0xFFD84979)
+                    : const Color(0xFF97737C)),
+              ),
+            ),
+          ),
+        ])),
+        const SizedBox(height: 7),
+        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12,
+            fontWeight: FontWeight.w900, color: Color(0xFF4B3E5C))),
       ]),
     );
 
-  Widget _backToTower() => TextButton.icon(
-    onPressed: () => setState(() => tab = 0),
-    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 15),
-    label: const Text('Tower'),
-  );
-
-  Widget _heading(String eyebrow, String title) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(eyebrow, style: const TextStyle(fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.w700, color: lavender)),
-    const SizedBox(height: 7),
-    Text(title, style: Theme.of(context).textTheme.headlineMedium),
-  ]);
-
-  Widget _home() => LayoutBuilder(builder: (context, bounds) {
-    final height = bounds.maxHeight;
-    final short = height < 650;
-    final objective = const ObjectiveCatalog().forGame(
-      const FloorEngine().challengeFor(floor).gameId, floor: floor);
-    return Stack(children: [
-      const Positioned.fill(child: ColoredBox(color: Color(0xFFCBEDFA))),
-      Positioned.fill(child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 850),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, .14), end: Offset.zero,
-          ).animate(animation),
-          child: FadeTransition(opacity: animation, child: child),
-        ),
-        child: Stack(
-          key: ValueKey<int>(towerSceneRevision),
-          children: [
-            const Positioned.fill(child: DreamTower()),
-            Positioned.fill(child: LayoutBuilder(builder: (context, scene) {
-              return Center(
-                child: SizedBox(
-                  width: scene.maxWidth * .94,
-                  height: scene.maxHeight * .75,
-                  child: Image.asset(
-                    'assets/art/whimsical_floating_castle_island.webp',
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
-                ),
-              );
-            })),
-          ],
-        ),
-      )),
-      Positioned(top: 11, left: 22, right: 22, child: Row(children: [
-        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('FLOORIA', style: TextStyle(color: ink, fontSize: 30,
-            fontWeight: FontWeight.w900, letterSpacing: .8)),
-          Text('THE ENDLESS TOWER', style: TextStyle(color: Color(0xFF625986),
-            fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.7)),
+  Widget _profile() => FantasyScene(child: Column(children: [
+    FantasyHeader(title: 'My Mind', eyebrow: 'Your adventure',
+      onBack: () => setState(() => tab = 0)),
+    Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
+      children: [
+        FantasyPanel(child: Column(children: [
+          Image.asset('assets/art/enchanted_brain_altar_emblem.webp',
+            height: 170, fit: BoxFit.contain),
+          const SizedBox(height: 4),
+          const Text('YOUR JOURNEY', style: TextStyle(
+            color: Color(0xFF87667A), fontSize: 12,
+            fontWeight: FontWeight.w900, letterSpacing: 1.4)),
+          Text('Floor $floor', style: const TextStyle(
+            color: Color(0xFF4B3E5C), fontSize: 32,
+            fontWeight: FontWeight.w900)),
+          const SizedBox(height: 5),
+          const Text('Keep climbing. Every puzzle makes you stronger.',
+            textAlign: TextAlign.center, style: TextStyle(
+              color: Color(0xFF776472), fontSize: 13)),
         ])),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: const Color(0xFFFFE5A0),
-            borderRadius: BorderRadius.circular(17),
-            boxShadow: const [BoxShadow(color: Color(0x558A6896),
-              blurRadius: 8, offset: Offset(0, 4))]),
-          child: Text('★  Floor $floor',
-            style: const TextStyle(color: ink, fontWeight: FontWeight.w900)),
-        ),
-      ])),
-      Positioned(bottom: short ? 90 : 100, left: 16, right: 16,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(18, short ? 11 : 17, 18, short ? 12 : 17),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [Color(0xFFFFFBEE), Color(0xFFFFEACB)]),
-            borderRadius: BorderRadius.circular(25),
-            border: const Border(bottom: BorderSide(color: Color(0xFFE1B77E), width: 5)),
-            boxShadow: const [BoxShadow(color: Color(0x448A769E),
-              blurRadius: 16, offset: Offset(0, 7))],
-          ),
-          child: Stack(children: [
-            Positioned.fill(child: Image.asset(
-              'assets/art/ornate_garden_quest_panel.webp',
-              fit: BoxFit.fill,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-            )),
-            Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('FLOOR $floor  ·  YOUR MISSION', style: const TextStyle(
-              fontSize: 11, color: Color(0xFF8F6594),
-              fontWeight: FontWeight.w900, letterSpacing: 1)),
-            const SizedBox(height: 5),
-            Text(objective.title, textAlign: TextAlign.center,
-              style: TextStyle(color: ink, fontSize: short ? 19 : 23,
+        const SizedBox(height: 16),
+        Row(children: [
+          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
+            child: Column(children: [
+              const Icon(Icons.emoji_events_rounded,
+                color: Color(0xFFC78735), size: 30),
+              const SizedBox(height: 6),
+              Text('${floor - 1}', style: const TextStyle(
+                color: Color(0xFF4B3E5C), fontSize: 24,
                 fontWeight: FontWeight.w900)),
-            const SizedBox(height: 12),
-            SizedBox(height: 52, width: double.infinity, child: FilledButton.icon(
-              onPressed: () => _open(
-                const FloorEngine().challengeFor(floor).gameId, tower: true),
-              icon: const Icon(Icons.play_arrow_rounded, size: 25),
-              label: const Text('PLAY THIS FLOOR',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFFFAB42), foregroundColor: ink,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17))),
-            )),
-          ]),
-          ]),
-        )),
-      Positioned(bottom: 10, left: 18, right: 18,
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          _portal('Games', Icons.extension_rounded,
-            const Color(0xFFFFD283), const Color(0xFFDC915B),
-            () => setState(() => tab = 1)),
-          _portal('Tower', Icons.castle_rounded,
-            const Color(0xFFCAB8FF), const Color(0xFF8B76CE),
-            () => _open(const FloorEngine().challengeFor(floor).gameId, tower: true)),
-          _portal('My Mind', Icons.psychology_rounded,
-            const Color(0xFF9EE6CC), const Color(0xFF66B9A8),
-            () => setState(() => tab = 2)),
-        ])),
-    ]);
-  });
-
-  Widget _library() => DefaultTabController(length: 3, child: Column(children: [
-    Align(alignment: Alignment.centerLeft, child: _backToTower()),
-    Padding(padding: const EdgeInsets.fromLTRB(24, 26, 24, 16), child: Align(alignment: Alignment.centerLeft, child: _heading('COLLECTION', 'My games'))),
-    const TabBar(labelColor: lavender, unselectedLabelColor: Color(0xFF8B8C9C), indicatorColor: lavender, dividerColor: Colors.transparent, tabs: [Tab(text: 'All'), Tab(text: 'Recent'), Tab(text: 'Favorites')]),
-    Expanded(child: TabBarView(children: [
-      _gameList(games.map((g) => g.$1).toList()),
-      _gameList(recent),
-      _gameList(games.map((g) => g.$1).where(favorites.contains).toList()),
-    ])),
+              const Text('Floors cleared', style: TextStyle(
+                color: Color(0xFF755B68), fontSize: 11)),
+            ]))),
+          const SizedBox(width: 12),
+          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
+            child: Column(children: [
+              const Icon(Icons.favorite_rounded,
+                color: Color(0xFFDA7998), size: 30),
+              const SizedBox(height: 6),
+              Text('${favorites.length}', style: const TextStyle(
+                color: Color(0xFF4B3E5C), fontSize: 24,
+                fontWeight: FontWeight.w900)),
+              const Text('Favorite games', style: TextStyle(
+                color: Color(0xFF755B68), fontSize: 11)),
+            ]))),
+        ]),
+        const SizedBox(height: 16),
+        FantasyPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('YOUR COLLECTION', style: TextStyle(
+              color: Color(0xFF634B66), fontWeight: FontWeight.w900)),
+            const SizedBox(height: 10),
+            Row(children: [
+              const Icon(Icons.history_rounded, color: Color(0xFF8767B2)),
+              const SizedBox(width: 9),
+              const Expanded(child: Text('Recently played')),
+              Text('${recent.length}', style: const TextStyle(
+                fontWeight: FontWeight.w900)),
+            ]),
+          ])),
+      ])),
   ]));
 
-  Widget _gameList(List<String> ids) {
-    if (ids.isEmpty) return const Center(child: Text('No games here yet ✨', style: TextStyle(color: Color(0xFF8B8C9C))));
-    return ListView(padding: const EdgeInsets.all(20), children: [
-      for (final id in ids)
-        for (final g in games)
-          if (g.$1 == id) _gameTile(g.$1, g.$2, g.$3, g.$4, g.$5),
-    ]);
-  }
-
-  Widget _gameTile(String id, String name, String subtitle, IconData icon, Color color) =>
-    Container(
-      margin: const EdgeInsets.only(bottom: 13),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(25),
-        border: Border(bottom: BorderSide(
-          color: Color.lerp(color, const Color(0xFF725586), .32)!, width: 5))),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(25),
-        onTap: () => _open(id),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-              child: SizedBox(width: 76, height: 76,
-                child: Image.asset(
-                  id == 'merge2048'
-                    ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
-                    : 'assets/art/glowing_puzzle_crown_pedestal.webp',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => ColoredBox(
-                    color: Colors.white54,
-                    child: Icon(icon, size: 31, color: ink)),
-                )),
-            ),
-            const SizedBox(width: 13),
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(
-                  fontSize: 19, fontWeight: FontWeight.w900, color: ink)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(fontSize: 12,
-                  color: Color(0xFF675C70))),
-                const SizedBox(height: 7),
-                const Text('▶  PLAY', style: TextStyle(
-                  fontSize: 11, letterSpacing: 1,
-                  fontWeight: FontWeight.w900, color: Color(0xFF655184))),
-              ],
-            )),
-            IconButton(
-              tooltip: favorites.contains(id) ? 'Remove favorite' : 'Add favorite',
-              onPressed: () => _toggleFavorite(id),
-              icon: Icon(
-                favorites.contains(id)
-                  ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: favorites.contains(id)
-                  ? const Color(0xFFD84979) : const Color(0xFF82688D)),
-            ),
-          ]),
-        ),
-      ),
-    );
-
-  Widget _profile() => ListView(padding: const EdgeInsets.all(24), children: [
-    Align(alignment: Alignment.centerLeft, child: _backToTower()),
-    _heading('MY JOURNEY', 'My Mind'),
-    const SizedBox(height: 24),
-    Container(padding: const EdgeInsets.all(28), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(26)), child: Column(children: [
-      const Icon(Icons.psychology_rounded, size: 68, color: lavender),
-      const SizedBox(height: 15),
-      Text('Floor $floor', style: Theme.of(context).textTheme.headlineLarge),
-      const SizedBox(height: 8),
-      const Text('Every puzzle is a new discovery.', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF82849B))),
-      const SizedBox(height: 18),
-      const Divider(),
-      ListTile(leading: const Icon(Icons.favorite_rounded, color: lavender), title: const Text('Favorite games'), trailing: Text('${favorites.length}')),
-      ListTile(leading: const Icon(Icons.history_rounded, color: lavender), title: const Text('Recently played'), trailing: Text('${recent.length}')),
-    ])),
-  ]);
 }
 
 class MergePage extends StatefulWidget {
@@ -435,20 +489,33 @@ class _MergePageState extends State<MergePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Floor ${widget.floor} · 2048'), backgroundColor: paper),
-    body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 470), child: ListView(padding: const EdgeInsets.all(20), children: [
+    appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Floor ${widget.floor} · 2048'), backgroundColor: const Color(0xFFFFE9C2)),
+    body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 470), child: ListView(padding: const EdgeInsets.all(20), children: [
       const SizedBox(height: 12),
-      Text('Merge the tiles', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
-      const SizedBox(height: 8),
-      Text('Swipe to combine matching numbers', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF85869C))),
-      const SizedBox(height: 18),
+      const Text('THE NUMBER FORGE', style: TextStyle(fontSize: 12,
+        fontWeight: FontWeight.w900, color: Color(0xFF664C79),
+        letterSpacing: 2), textAlign: TextAlign.center),
+      const SizedBox(height: 4),
+      Text('2048', style: Theme.of(context).textTheme.headlineLarge,
+        textAlign: TextAlign.center),
+      const SizedBox(height: 5),
+      const Text('Merge equal tiles to climb higher',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Color(0xFF594C70), fontSize: 13)),
+      const SizedBox(height: 13),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('merge2048', floor: widget.floor), progress: game.highest),
       const SizedBox(height: 18),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        _stat('SCORE', '${game.score}'),
-        _stat('BEST TILE', '${game.highest}'),
-      ]),
-      const SizedBox(height: 20),
+      FantasyPanel(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          _stat('SCORE', '${game.score}'),
+          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          _stat('BEST TILE', '${game.highest}'),
+          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          _stat('MOVES', '${game.moves}'),
+        ]),
+      ),
+      const SizedBox(height: 15),
       Focus(
         autofocus: true,
         onKeyEvent: (_, event) {
@@ -502,9 +569,17 @@ class _MergePageState extends State<MergePage> {
       if (finished && widget.floor == null) _notice('Wonderful! You reached 2048.'),
       if (!game.canMove && !finished) _notice('No more moves. Try again!'),
       const SizedBox(height: 14),
-      OutlinedButton.icon(onPressed: () => setState(() { game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch); finished = false; previousBoard = null; previousDirection = null; moveAnimationId++; }), icon: const Icon(Icons.refresh_rounded), label: const Text('New game')),
+      FantasyButton(label: 'RESTART PUZZLE',
+        icon: Icons.refresh_rounded,
+        onPressed: () => setState(() {
+          game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch);
+          finished = false;
+          previousBoard = null;
+          previousDirection = null;
+          moveAnimationId++;
+        })),
 
-    ]))),
+    ])))),
   );
 
   Widget _stat(String label, String value) => Column(children: [Text(label, style: const TextStyle(letterSpacing: 1.2, color: lavender, fontWeight: FontWeight.w700, fontSize: 11)), const SizedBox(height: 4), Text(value, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink))]);
@@ -585,18 +660,25 @@ class _SequencePageState extends State<SequencePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Floor ${widget.floor} · Number Trail'), backgroundColor: paper),
-    body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(padding: const EdgeInsets.all(18), decoration: const BoxDecoration(color: Color(0xFFDFF3E9), shape: BoxShape.circle), child: const Icon(Icons.route_rounded, size: 42, color: Color(0xFF519A89))),
+    appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Floor ${widget.floor} · Number Trail'), backgroundColor: const Color(0xFFFFE9C2)),
+    body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Image.asset('assets/art/glowing_puzzle_crown_pedestal.webp',
+        height: 102, fit: BoxFit.contain),
       const SizedBox(height: 20),
-      Text(done ? 'Challenge finished!' : 'Find the next number', style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
+      Text(done ? 'Challenge finished!' : 'NUMBER TRAIL',
+        style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       const SizedBox(height: 12),
       Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFF8C8DA0))),
       const SizedBox(height: 18),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
       const SizedBox(height: 20),
       if (!done) ...[
-        AnimatedSwitcher(
+        const Text('DISCOVER THE MISSING NUMBER', style: TextStyle(
+          color: Color(0xFF594C70), fontSize: 11,
+          letterSpacing: 1, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        FantasyPanel(padding: const EdgeInsets.all(17),
+          child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 240),
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
@@ -614,8 +696,8 @@ class _SequencePageState extends State<SequencePage> {
               style: const TextStyle(
                 fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
           ),
-        ),
-        const SizedBox(height: 28),
+        )),
+        const SizedBox(height: 19),
         GridView.count(
           crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
           children: [
@@ -630,10 +712,11 @@ class _SequencePageState extends State<SequencePage> {
                     color: answering && selectedAnswer == v
                       ? selectedCorrect
                         ? const Color(0xFF94E2BE) : const Color(0xFFFFBAA6)
-                      : Colors.white,
+                      : const Color(0xFFFFE0A6),
                     borderRadius: BorderRadius.circular(16),
-                    border: const Border(bottom: BorderSide(
-                      color: Color(0xFFD6CEDF), width: 4)),
+                    border: Border.all(color: const Color(0xFFFFF4D7), width: 2),
+                    boxShadow: const [BoxShadow(color: Color(0xFFB98556),
+                      offset: Offset(0, 4))],
                   ),
                   child: TextButton(
                     onPressed: answering ? null : () => answer(v),
@@ -659,6 +742,6 @@ class _SequencePageState extends State<SequencePage> {
           }
         }, child: Text(passed ? 'Back to tower' : 'Try again')),
       ],
-    ])))),
+    ]))))),
   );
 }
