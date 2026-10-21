@@ -19,21 +19,28 @@ class FloorTowerScene extends StatelessWidget {
       for (int f = top; f >= bottom; f--) f,
     ];
     return LayoutBuilder(builder: (context, c) {
-      final blockHeight = math.min(105.0, c.maxHeight / floors.length);
-      return Center(child: Column(
-        mainAxisSize: MainAxisSize.min,
+      // Artwork contains a three-dimensional stone ledge and waterfalls.
+      // Layers must overlap vertically, or they look like disconnected cards.
+      final blockHeight = math.min(145.0, c.maxHeight * .34);
+      final step = (c.maxHeight - blockHeight) /
+          math.max(1, floors.length - 1);
+      return Stack(
+        clipBehavior: Clip.none,
         children: [
-          for (final f in floors)
-            SizedBox(
+          for (var index = 0; index < floors.length; index++)
+            Positioned(
+              top: index * step,
+              left: 0,
+              right: 0,
               height: blockHeight,
               child: _TowerBlock(
-                floor: f,
+                floor: floors[index],
                 current: currentFloor,
-                onTap: () => onFloorTap(f),
+                onTap: () => onFloorTap(floors[index]),
               ),
             ),
         ],
-      ));
+      );
     });
   }
 }
@@ -57,8 +64,8 @@ class _TowerBlock extends StatelessWidget {
       : 'assets/art/glowing_puzzle_crown_pedestal.webp';
     return LayoutBuilder(builder: (context, c) {
       final width = math.min(c.maxWidth * .94, active ? 335.0 : 296.0);
-      final shift = math.sin(floor * 1.7) * (active ? 0 : 11);
-      final height = c.maxHeight * .96;
+      final shift = math.sin(floor * .75) * (active ? 0 : 4);
+      final height = c.maxHeight;
       return Center(child: Transform.translate(
         offset: Offset(shift, 0),
         child: SizedBox(
@@ -84,8 +91,8 @@ class _TowerBlock extends StatelessWidget {
                   ),
                 )),
                 Positioned(
-                  top: height * .24, left: width * .10,
-                  right: width * .11, bottom: height * .22,
+                  top: height * .24, left: width * .105,
+                  right: width * .105, bottom: height * .30,
                   child: Row(children: [
                     SizedBox(
                       width: width * .18,
