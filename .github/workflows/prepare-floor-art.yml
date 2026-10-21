@@ -1,0 +1,35 @@
+name: Prepare Flooria floor artwork
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - tools/prepare_floor_art.py
+      - .github/workflows/prepare-floor-art.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  process-art:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install Pillow==11.3.0
+      - name: Generate transparent state skins from a single blank floor
+        run: python tools/prepare_floor_art.py
+      - name: Commit corrected artwork to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/art/floor_current.webp assets/art/floor_completed.webp assets/art/floor_locked.webp
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(art): transparent reusable stacked floor sprites"
+            git push origin HEAD:main
+          fi
