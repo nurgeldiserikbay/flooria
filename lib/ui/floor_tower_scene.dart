@@ -18,7 +18,6 @@ class FloorTowerScene extends StatelessWidget {
     final bottom = math.max(1, currentFloor - 1);
     final floors = List<int>.generate(4, (i) => bottom + 3 - i);
     final gap = math.min(6.0, box.maxHeight * .015);
-    final blockHeight = (box.maxHeight - 3 * gap) / 4;
     return Center(child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 345),
       child: Column(
@@ -27,7 +26,6 @@ class FloorTowerScene extends StatelessWidget {
             Expanded(child: _SoftFloorBlock(
               floor: floors[i], current: currentFloor,
               onTap: () => onFloorTap(floors[i]),
-              availableHeight: blockHeight,
             )),
             if (i != floors.length - 1) SizedBox(height: gap),
           ],
@@ -40,11 +38,10 @@ class FloorTowerScene extends StatelessWidget {
 class _SoftFloorBlock extends StatelessWidget {
   final int floor;
   final int current;
-  final double availableHeight;
   final VoidCallback onTap;
   const _SoftFloorBlock({
     required this.floor, required this.current,
-    required this.availableHeight, required this.onTap,
+    required this.onTap,
   });
 
   @override
@@ -112,7 +109,7 @@ class _SoftFloorBlock extends StatelessWidget {
                       fontSize: 23, fontWeight: FontWeight.w800))),
                   const SizedBox(width: 12),
                   _GameSymbol(gameId: gameId,
-                    active: active, complete: complete),
+                    ),
                   const SizedBox(width: 12),
                   Expanded(child: Text(gameName, maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -139,10 +136,8 @@ class _SoftFloorBlock extends StatelessWidget {
 /// Local, consistent icons that work for any floor without image requests.
 class _GameSymbol extends StatelessWidget {
   final String gameId;
-  final bool active;
-  final bool complete;
   const _GameSymbol({
-    required this.gameId, required this.active, required this.complete,
+    required this.gameId,
   });
   @override
   Widget build(BuildContext context) => Container(
