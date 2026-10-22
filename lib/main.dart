@@ -136,38 +136,36 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ))));
   }
 
-  Widget _home() => LayoutBuilder(builder: (context, bounds) {
-    final short = bounds.maxHeight < 620;
+  Widget _home() => LayoutBuilder(builder: (context, size) {
     final challenge = const FloorEngine().challengeFor(floor);
     final goal = const ObjectiveCatalog().forGame(challenge.gameId, floor: floor);
     final gameName = challenge.gameId == 'merge2048' ? '2048' : 'Number Trail';
-    final navy = const Color(0xFF425777);
-    final footer = short ? 167.0 : 191.0;
+    final symbol = challenge.gameId == 'merge2048'
+        ? 'assets/2048.svg' : 'assets/number_trail.svg';
+    final compact = size.maxHeight < 640;
+    final navHeight = compact ? 58.0 : 66.0;
+    final playHeight = compact ? 53.0 : 60.0;
+    final challengeHeight = compact ? 126.0 : 147.0;
+    const inkBlue = Color(0xFF263F69);
     return Stack(children: [
       Positioned.fill(child: Image.asset(
         'assets/art/soft_sky.webp',
-        fit: BoxFit.cover, filterQuality: FilterQuality.medium,
-      )),
-      Positioned(top: -55, right: -65, child: Container(
-        width: 235, height: 235,
-        decoration: const BoxDecoration(shape: BoxShape.circle,
-          color: Color(0x44FFFFFF)))),
-      Positioned(top: 75, left: -62, child: Container(
-        width: 170, height: 170,
-        decoration: const BoxDecoration(shape: BoxShape.circle,
-          color: Color(0x33FFFFFF)))),
+        fit: BoxFit.cover, filterQuality: FilterQuality.high)),
+      // Background atmospheric columns sit behind the main tower.
+      Positioned.fill(child: IgnorePointer(child: CustomPaint(
+        painter: _HomeSkyDetails()))),
       Positioned(
-        top: short ? 62 : 82,
-        bottom: footer + 4, left: 10, right: 10,
+        top: compact ? 115 : 139,
+        left: 4, right: 4,
+        bottom: challengeHeight + navHeight + 20,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 520),
+          duration: const Duration(milliseconds: 460),
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0, .08),
-                end: Offset.zero).animate(animation),
-              child: child)),
+                begin: const Offset(0, .12), end: Offset.zero)
+                .animate(animation), child: child)),
           child: FloorTowerScene(
             key: ValueKey<int>(towerSceneRevision),
             currentFloor: floor,
@@ -178,99 +176,168 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 _open(const FloorEngine().challengeFor(selected).gameId);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Complete Floor $floor to unlock this level')));
+                  SnackBar(content: Text(
+                    'Complete Floor $floor to unlock Floor $selected')));
               }
             },
           ),
         ),
       ),
-      Positioned(top: 14, left: 24, right: 24,
-        child: Row(children: [
-          Expanded(child: Align(
-            alignment: Alignment.centerLeft,
-            child: Image.asset(
-              'assets/Glossy FLOORIA Game Logo with Sprout (2).png',
-              height: short ? 48 : 58,
-              fit: BoxFit.contain,
-              alignment: Alignment.centerLeft,
-              filterQuality: FilterQuality.medium,
-              errorBuilder: (_, __, ___) => Text('FLOORIA',
-                style: TextStyle(fontSize: short ? 23 : 27,
-                  fontWeight: FontWeight.w900, color: navy)),
-            ),
-          )),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .77),
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.white),
-              boxShadow: const [BoxShadow(
-                color: Color(0x11536888), blurRadius: 12,
-                offset: Offset(0, 3))]),
-            child: Text('Floor $floor', style: const TextStyle(
-              color: Color(0xFF4A617C), fontWeight: FontWeight.w800,
-              fontSize: 13)),
+      // Centered game identity from the uploaded logo, not a text imitation.
+      Positioned(top: compact ? 7 : 12, left: 24, right: 24,
+        child: Column(children: [
+          Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
+            width: compact ? 215 : 265,
+            height: compact ? 72 : 91,
+            fit: BoxFit.contain, filterQuality: FilterQuality.high),
+          const SizedBox(height: 1),
+          DecoratedBox(decoration: BoxDecoration(
+            color: const Color(0xDDF4FAFF),
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: const Color(0xCFFFFFFF)),
+            boxShadow: const [BoxShadow(color: Color(0x224E6D99),
+              blurRadius: 12, offset: Offset(0, 4))]),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 7),
+              child: Text('Floor $floor', style: const TextStyle(
+                color: inkBlue, fontWeight: FontWeight.w800, fontSize: 15))),
           ),
         ]),
       ),
-      Positioned(bottom: 75, left: 22, right: 22,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(goal.title, textAlign: TextAlign.center,
-            maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: short ? 18 : 22,
-              fontWeight: FontWeight.w800, color: navy)),
-          const SizedBox(height: 12),
-          SizedBox(width: double.infinity, height: 54,
-            child: FilledButton.icon(
-              onPressed: () => _open(challenge.gameId, tower: true),
-              icon: SvgPicture.asset('assets/play.svg', width: 24, height: 24),
-              label: Text('Play $gameName', style: const TextStyle(
-                fontWeight: FontWeight.w800, fontSize: 16)),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFF8CF74),
-                foregroundColor: const Color(0xFF6F562D),
-                elevation: 3,
-                shadowColor: const Color(0x447E704D),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(21))),
-            ),
-          ),
-        ]),
-      ),
-      Positioned(bottom: 10, left: 22, right: 22,
+      // Lower clouds visually hide the end of the tower. The challenge remains
+      // live Flutter content and can change for any future puzzle.
+      Positioned(left: 0, right: 0,
+        bottom: challengeHeight + navHeight - 17,
+        height: compact ? 42 : 65,
+        child: IgnorePointer(child: CustomPaint(
+          painter: _HomeCloudBank()))),
+      Positioned(
+        bottom: navHeight + 17,
+        left: 20, right: 20,
+        height: challengeHeight - 10,
         child: Container(
-          height: 54,
+          padding: EdgeInsets.fromLTRB(17, compact ? 10 : 15, 17, 13),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .79),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFAFFFFFF), Color(0xFFF5F2EF)]),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white),
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x2E6F7891),
+                blurRadius: 21, offset: Offset(0, 10)),
+            ]),
+          child: Column(children: [
+            Expanded(child: Row(children: [
+              SvgPicture.asset(symbol, width: compact ? 51 : 62,
+                height: compact ? 51 : 62),
+              const SizedBox(width: 12),
+              Container(width: 1, height: 45,
+                color: const Color(0xFFD9DCE8)),
+              const SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Current Challenge', style: TextStyle(
+                    color: Color(0xFF9299B3), fontSize: 11,
+                    fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  Text(goal.title, maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: inkBlue, fontWeight: FontWeight.w900,
+                      fontSize: compact ? 15 : 17)),
+                ],
+              )),
+            ])),
+            SizedBox(
+              width: double.infinity, height: playHeight,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _open(challenge.gameId, tower: true),
+                  borderRadius: BorderRadius.circular(35),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFFFEFA9), Color(0xFFFFD472),
+                          Color(0xFFF4B44E)]),
+                      borderRadius: BorderRadius.circular(35),
+                      border: Border.all(color: const Color(0xFFFFF5CA),
+                        width: 2.4),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0xFFD28B3B),
+                          offset: Offset(0, 4)),
+                        BoxShadow(color: Color(0x35AD8458),
+                          blurRadius: 12, offset: Offset(0, 7))]),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset('assets/play.svg',
+                          width: 27, height: 27),
+                        const SizedBox(width: 13),
+                        Flexible(child: Text('PLAY ${gameName.toUpperCase()}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF754A22), fontSize: 19,
+                            fontWeight: FontWeight.w900, letterSpacing: .6))),
+                      ]),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
+      ),
+      Positioned(
+        bottom: 11, left: 20, right: 20, height: navHeight - 5,
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xF9FFFFFF),
+            borderRadius: BorderRadius.circular(40),
+            border: Border.all(color: Colors.white, width: 2),
             boxShadow: const [BoxShadow(
-              color: Color(0x115A6174), blurRadius: 15,
-              offset: Offset(0, 4))]),
+              color: Color(0x276B7189), blurRadius: 18,
+              offset: Offset(0, 7))]),
           child: Row(children: [
-            Expanded(child: TextButton.icon(
-              onPressed: () => setState(() => tab = 1),
-              icon: SvgPicture.asset('assets/games.svg', width: 25, height: 25),
-              label: const Text('Games'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF516788),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700)))),
-            Container(width: 1, height: 25,
-              color: const Color(0xFFE5EAF1)),
-            Expanded(child: TextButton.icon(
-              onPressed: () => setState(() => tab = 2),
-              icon: SvgPicture.asset('assets/my_mind.svg', width: 25, height: 25),
-              label: const Text('My Mind'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF8490A4),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700)))),
+            Expanded(child: _homeNavItem(
+              'Games', 'assets/games.svg', true,
+              () => setState(() => tab = 1))),
+            Container(width: 1, height: 30,
+              color: const Color(0xFFD8DAE4)),
+            Expanded(child: _homeNavItem(
+              'My Mind', 'assets/my_mind.svg', false,
+              () => setState(() => tab = 2))),
           ]),
         ),
       ),
     ]);
   });
+
+  Widget _homeNavItem(
+      String title, String iconPath, bool selected, VoidCallback onTap) {
+    return Material(
+      color: selected ? const Color(0xFFFFF9F2) : Colors.transparent,
+      borderRadius: BorderRadius.circular(36),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(36),
+        onTap: onTap,
+        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          SvgPicture.asset(iconPath, width: 25, height: 25),
+          const SizedBox(width: 7),
+          Flexible(child: Text(title,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: selected ? const Color(0xFF354D76)
+                : const Color(0xFF9D9BB3),
+              fontSize: 13, fontWeight: FontWeight.w800))),
+        ]),
+      ),
+    );
+  }
 
   Widget _library() => FantasyScene(child: DefaultTabController(
     length: 3,
