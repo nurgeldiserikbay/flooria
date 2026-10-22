@@ -143,11 +143,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     final navy = const Color(0xFF425777);
     final footer = short ? 167.0 : 191.0;
     return Stack(children: [
-      const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFFCCE8FA), Color(0xFFE8F2FA), Color(0xFFFFF9F1)]),
-      ))),
+      Positioned.fill(child: Image.asset(
+        'assets/art/soft_sky.webp',
+        fit: BoxFit.cover, filterQuality: FilterQuality.medium,
+      )),
       Positioned(top: -55, right: -65, child: Container(
         width: 235, height: 235,
         decoration: const BoxDecoration(shape: BoxShape.circle,
@@ -157,8 +156,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         decoration: const BoxDecoration(shape: BoxShape.circle,
           color: Color(0x33FFFFFF)))),
       Positioned(
-        top: short ? 67 : 85,
-        bottom: footer + 11, left: 22, right: 22,
+        top: short ? 62 : 82,
+        bottom: footer + 4, left: 10, right: 10,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 520),
           transitionBuilder: (child, animation) => FadeTransition(
@@ -250,7 +249,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           child: Row(children: [
             Expanded(child: TextButton.icon(
               onPressed: () => setState(() => tab = 1),
-              icon: const Icon(Icons.videogame_asset_rounded, size: 21),
+              icon: Image.asset('assets/art/soft_icon_games.webp', width: 25, height: 25),
               label: const Text('Games'),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF516788),
@@ -259,7 +258,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               color: const Color(0xFFE5EAF1)),
             Expanded(child: TextButton.icon(
               onPressed: () => setState(() => tab = 2),
-              icon: const Icon(Icons.psychology_outlined, size: 21),
+              icon: Image.asset('assets/art/soft_icon_mind.webp', width: 25, height: 25),
               label: const Text('My Mind'),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF8490A4),
