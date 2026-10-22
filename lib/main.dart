@@ -22,6 +22,46 @@ const lavender = Color(0xFF7959C9);
 const paper = Color(0xFFFFFAED);
 const mint = Color(0xFFB9E3D5);
 
+class _HomeSkyDetails extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final muted = Paint()..color = const Color(0x34FFFFFF);
+    for (final p in [
+      Offset(size.width * .07, size.height * .29),
+      Offset(size.width * .93, size.height * .42),
+    ]) {
+      canvas.drawOval(Rect.fromCenter(center: p,
+        width: size.width * .36, height: 46), muted);
+      canvas.drawCircle(p.translate(-19, -13), 24, muted);
+      canvas.drawCircle(p.translate(24, -8), 29, muted);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _HomeCloudBank extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter, end: Alignment.bottomCenter,
+        colors: [Color(0x00FFFFFF), Color(0xFFF7F7F7)],
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, glow);
+    final white = Paint()..color = const Color(0xCFFCFBF9);
+    for (var i = -1; i <= 10; i++) {
+      final x = size.width * i / 9;
+      final y = size.height * (.64 + (i % 3) * .08);
+      canvas.drawOval(Rect.fromCenter(
+        center: Offset(x, y),
+        width: size.width * .24, height: size.height * .77), white);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
 class FlooriaApp extends StatelessWidget {
   const FlooriaApp({super.key});
 
