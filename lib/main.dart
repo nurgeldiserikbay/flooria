@@ -228,7 +228,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       Positioned(top: compact ? 7 : 12, left: 24, right: 24,
         child: Column(children: [
           Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
-            width: (size.maxWidth * .82).clamp(240.0, 420.0),
+            width: (size.maxWidth * .82).clamp(240.0, 420.0).toDouble(),
             height: compact ? 108 : 133,
             fit: BoxFit.contain, filterQuality: FilterQuality.high),
           const SizedBox(height: 0),
