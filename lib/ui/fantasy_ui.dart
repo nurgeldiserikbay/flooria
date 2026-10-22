@@ -7,40 +7,12 @@ class FantasyScene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(children: [
-    const Positioned.fill(child: DecoratedBox(
-      decoration: BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0xFF79B9F4), Color(0xFFB9E2F6), Color(0xFFFFF0D4)],
-      )),
+    Positioned.fill(child: Image.asset(
+      'assets/art/soft_sky.webp',
+      fit: BoxFit.cover, filterQuality: FilterQuality.medium,
     )),
-    Positioned.fill(child: IgnorePointer(child: CustomPaint(
-      painter: _SkyPainter(),
-    ))),
     Positioned.fill(child: child),
   ]);
-}
-
-class _SkyPainter extends CustomPainter {
-  const _SkyPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color(0x55FFFFFF);
-    canvas.drawCircle(Offset(size.width * .83, size.height * .16),
-      size.width * .15, p);
-    final cloud = Paint()..color = const Color(0x74FFFFFF);
-    for (final entry in [
-      Offset(size.width * .08, size.height * .30),
-      Offset(size.width * .95, size.height * .45),
-      Offset(size.width * .12, size.height * .81),
-    ]) {
-      canvas.drawOval(Rect.fromCenter(center: entry,
-        width: size.width * .37, height: 39), cloud);
-      canvas.drawCircle(entry.translate(-26, -9), 25, cloud);
-      canvas.drawCircle(entry.translate(18, -16), 30, cloud);
-    }
-  }
-  @override
-  bool shouldRepaint(covariant _SkyPainter oldDelegate) => false;
 }
 
 /// Fantasy parchment surface, with a warm border and restrained depth.
@@ -55,11 +27,11 @@ class FantasyPanel extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: const LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFFFFF6DF), Color(0xFFFFE3B7)]),
-      border: Border.all(color: const Color(0xFFF8C878), width: 2),
+        colors: [Color(0xFFFDFDFB), Color(0xFFF4F7FA)]),
+      border: Border.all(color: const Color(0xEEFFFFFF), width: 2),
       borderRadius: BorderRadius.circular(22),
       boxShadow: const [
-        BoxShadow(color: Color(0x665B4265), blurRadius: 16, offset: Offset(0, 8)),
+        BoxShadow(color: Color(0x22667799), blurRadius: 17, offset: Offset(0, 8)),
         BoxShadow(color: Color(0x44FFFFFF), blurRadius: 2, offset: Offset(-2, -2)),
       ],
     ),
@@ -93,11 +65,11 @@ class _FantasyButtonState extends State<FantasyButton> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFE375), Color(0xFFFFAE33), Color(0xFFFF901F)]),
+          colors: [Color(0xFFFFE5A0), Color(0xFFF5C869), Color(0xFFF0BA5A)]),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFFFEEAF), width: 2),
         boxShadow: [
-          BoxShadow(color: const Color(0xFFC46B27),
+          BoxShadow(color: const Color(0xFFD3A25B),
             offset: Offset(0, pressed ? 1 : 5), blurRadius: 0),
         ],
       ),
