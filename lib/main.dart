@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
@@ -185,16 +186,18 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       ),
       Positioned(top: 14, left: 24, right: 24,
         child: Row(children: [
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('FLOORIA', style: TextStyle(
-                fontSize: short ? 23 : 27, letterSpacing: 1.7,
-                fontWeight: FontWeight.w800, color: navy)),
-              const Text('THE ENDLESS TOWER', style: TextStyle(
-                color: Color(0xFF8495AB), letterSpacing: 2.1,
-                fontSize: 8.5, fontWeight: FontWeight.w700)),
-            ],
+          Expanded(child: Align(
+            alignment: Alignment.centerLeft,
+            child: Image.asset(
+              'assets/Glossy FLOORIA Game Logo with Sprout (2).png',
+              height: short ? 48 : 58,
+              fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (_, __, ___) => Text('FLOORIA',
+                style: TextStyle(fontSize: short ? 23 : 27,
+                  fontWeight: FontWeight.w900, color: navy)),
+            ),
           )),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
@@ -222,7 +225,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           SizedBox(width: double.infinity, height: 54,
             child: FilledButton.icon(
               onPressed: () => _open(challenge.gameId, tower: true),
-              icon: const Icon(Icons.play_arrow_rounded, size: 25),
+              icon: SvgPicture.asset('assets/play.svg', width: 24, height: 24),
               label: Text('Play $gameName', style: const TextStyle(
                 fontWeight: FontWeight.w800, fontSize: 16)),
               style: FilledButton.styleFrom(
@@ -249,7 +252,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           child: Row(children: [
             Expanded(child: TextButton.icon(
               onPressed: () => setState(() => tab = 1),
-              icon: Image.asset('assets/art/soft_icon_games.webp', width: 25, height: 25),
+              icon: SvgPicture.asset('assets/games.svg', width: 25, height: 25),
               label: const Text('Games'),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF516788),
@@ -258,7 +261,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               color: const Color(0xFFE5EAF1)),
             Expanded(child: TextButton.icon(
               onPressed: () => setState(() => tab = 2),
-              icon: Image.asset('assets/art/soft_icon_mind.webp', width: 25, height: 25),
+              icon: SvgPicture.asset('assets/my_mind.svg', width: 25, height: 25),
               label: const Text('My Mind'),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFF8490A4),
@@ -358,13 +361,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 offset: Offset(0, 4))]),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(13),
-              child: Image.asset(
+              child: SvgPicture.asset(
                 id == 'merge2048'
-                  ? 'assets/art/soft_icon_2048.webp'
-                  : 'assets/art/soft_icon_trail.webp',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(fallback,
-                  color: const Color(0xFF604965)),
+                  ? 'assets/2048.svg' : 'assets/number_trail.svg',
+                fit: BoxFit.contain,
               ),
             ),
           )),
@@ -403,8 +403,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
       children: [
         FantasyPanel(child: Column(children: [
-          Image.asset('assets/art/soft_icon_mind.webp',
-            height: 120, fit: BoxFit.contain),
+          SvgPicture.asset('assets/my_mind.svg',
+            height: 116, fit: BoxFit.contain),
           const SizedBox(height: 4),
           const Text('YOUR JOURNEY', style: TextStyle(
             color: Color(0xFF87667A), fontSize: 12,
