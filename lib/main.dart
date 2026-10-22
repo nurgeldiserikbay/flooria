@@ -8,6 +8,7 @@ import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/floor_tower_scene.dart';
+import 'ui/flooria_home_buttons.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
@@ -183,9 +184,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     final symbol = challenge.gameId == 'merge2048'
         ? 'assets/2048.svg' : 'assets/number_trail.svg';
     final compact = size.maxHeight < 640;
-    final navHeight = compact ? 58.0 : 66.0;
+    final navHeight = compact ? 69.0 : 81.0;
     final playHeight = compact ? 53.0 : 60.0;
-    final challengeHeight = compact ? 126.0 : 147.0;
+    final challengeHeight = compact ? 134.0 : 153.0;
     const inkBlue = Color(0xFF263F69);
     return Stack(children: [
       Positioned.fill(child: Image.asset(
@@ -195,7 +196,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       Positioned.fill(child: IgnorePointer(child: CustomPaint(
         painter: _HomeSkyDetails()))),
       Positioned(
-        top: compact ? 115 : 139,
+        top: compact ? 158 : 187,
         left: 4, right: 4,
         bottom: challengeHeight + navHeight + 20,
         child: AnimatedSwitcher(
@@ -227,10 +228,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       Positioned(top: compact ? 7 : 12, left: 24, right: 24,
         child: Column(children: [
           Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
-            width: compact ? 215 : 265,
-            height: compact ? 72 : 91,
+            width: (size.maxWidth * .82).clamp(240.0, 420.0),
+            height: compact ? 108 : 133,
             fit: BoxFit.contain, filterQuality: FilterQuality.high),
-          const SizedBox(height: 1),
+          const SizedBox(height: 0),
           DecoratedBox(decoration: BoxDecoration(
             color: const Color(0xDDF4FAFF),
             borderRadius: BorderRadius.circular(50),
@@ -291,93 +292,24 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 ],
               )),
             ])),
-            SizedBox(
-              width: double.infinity, height: playHeight,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => _open(challenge.gameId, tower: true),
-                  borderRadius: BorderRadius.circular(35),
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFFFEFA9), Color(0xFFFFD472),
-                          Color(0xFFF4B44E)]),
-                      borderRadius: BorderRadius.circular(35),
-                      border: Border.all(color: const Color(0xFFFFF5CA),
-                        width: 2.4),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0xFFD28B3B),
-                          offset: Offset(0, 4)),
-                        BoxShadow(color: Color(0x35AD8458),
-                          blurRadius: 12, offset: Offset(0, 7))]),
-                    child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset('assets/play.svg',
-                          width: 27, height: 27),
-                        const SizedBox(width: 13),
-                        Flexible(child: Text('PLAY ${gameName.toUpperCase()}',
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFF754A22), fontSize: 19,
-                            fontWeight: FontWeight.w900, letterSpacing: .6))),
-                      ]),
-                  ),
-                ),
-              ),
+            FlooriaPlayButton(
+              label: 'PLAY ${gameName.toUpperCase()}',
+              height: playHeight,
+              onPressed: () => _open(challenge.gameId, tower: true),
             ),
           ]),
         ),
       ),
       Positioned(
-        bottom: 11, left: 20, right: 20, height: navHeight - 5,
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: const Color(0xF9FFFFFF),
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(color: Colors.white, width: 2),
-            boxShadow: const [BoxShadow(
-              color: Color(0x276B7189), blurRadius: 18,
-              offset: Offset(0, 7))]),
-          child: Row(children: [
-            Expanded(child: _homeNavItem(
-              'Games', 'assets/games.svg', true,
-              () => setState(() => tab = 1))),
-            Container(width: 1, height: 30,
-              color: const Color(0xFFD8DAE4)),
-            Expanded(child: _homeNavItem(
-              'My Mind', 'assets/my_mind.svg', false,
-              () => setState(() => tab = 2))),
-          ]),
+        bottom: 10, left: 18, right: 18,
+        child: FlooriaBottomNav(
+          height: navHeight - 5,
+          onGames: () => setState(() => tab = 1),
+          onMind: () => setState(() => tab = 2),
         ),
       ),
     ]);
   });
-
-  Widget _homeNavItem(
-      String title, String iconPath, bool selected, VoidCallback onTap) {
-    return Material(
-      color: selected ? const Color(0xFFFFF9F2) : Colors.transparent,
-      borderRadius: BorderRadius.circular(36),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(36),
-        onTap: onTap,
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          SvgPicture.asset(iconPath, width: 25, height: 25),
-          const SizedBox(width: 7),
-          Flexible(child: Text(title,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: selected ? const Color(0xFF354D76)
-                : const Color(0xFF9D9BB3),
-              fontSize: 13, fontWeight: FontWeight.w800))),
-        ]),
-      ),
-    );
-  }
 
   Widget _library() => FantasyScene(child: DefaultTabController(
     length: 3,
