@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../game/floor_engine.dart';
 
 /// A viewport into a much taller, reusable tower. Every storey uses one
@@ -47,7 +48,7 @@ class _ArchitecturalFloor extends StatelessWidget {
     final completed = floor < current;
     final game = const FloorEngine().challengeFor(floor).gameId;
     final name = game == 'merge2048' ? '2048' : 'Number Trail';
-    final symbol = game == 'merge2048' ? '2048' : 'trail';
+    final symbol = game == 'merge2048' ? '2048' : 'number_trail';
     final sprite = active ? 'current' : completed ? 'completed' : 'locked';
     const dark = Color(0xFF455779);
     return Semantics(
@@ -73,21 +74,17 @@ class _ArchitecturalFloor extends StatelessWidget {
                   fontWeight: FontWeight.w900, color: dark,
                 )),
                 const SizedBox(width: 7),
-                Image.asset('assets/art/soft_icon_$symbol.webp',
+                SvgPicture.asset('assets/$symbol.svg',
                   height: 37, width: 37, fit: BoxFit.contain),
                 const SizedBox(width: 6),
                 Expanded(child: Text(name,
                   maxLines: 1, overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: dark,
                     fontSize: 13, fontWeight: FontWeight.w800))),
-                Icon(
-                  active ? Icons.play_circle_fill_rounded :
-                    completed ? Icons.check_circle_rounded :
-                    Icons.lock_rounded,
-                  size: 18,
-                  color: active ? const Color(0xFFD29539)
-                    : completed ? const Color(0xFF60A783)
-                    : const Color(0xFFADA9C2),
+                SvgPicture.asset(
+                  active ? 'assets/play.svg' :
+                    completed ? 'assets/completed.svg' : 'assets/locked.svg',
+                  height: 22, width: 22,
                 ),
               ]),
             ),
