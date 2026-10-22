@@ -276,7 +276,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: Align(alignment: Alignment.centerLeft,
           child: Material(
-            color: const Color(0xFFFFE8B0),
+            color: const Color(0xFFF7FAFF),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
               side: const BorderSide(color: Color(0xFFDAAA70), width: 2)),
@@ -292,16 +292,16 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF4DF),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEEC78D), width: 2)),
+          color: const Color(0xEFFFFFFF),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white, width: 2)),
         child: const TabBar(
           labelColor: Color(0xFF734B55),
           unselectedLabelColor: Color(0xFF9B8179),
           indicatorSize: TabBarIndicatorSize.tab,
           indicator: BoxDecoration(
-            color: Color(0xFFFFD17F),
-            borderRadius: BorderRadius.all(Radius.circular(13))),
+            color: Color(0xFFE1EDF9),
+            borderRadius: BorderRadius.all(Radius.circular(18))),
           dividerColor: Colors.transparent,
           tabs: [Tab(text: 'All'), Tab(text: 'Recent'),
             Tab(text: 'Favorites')],
@@ -349,9 +349,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [
-                Color(0xFFFFF9DB), Color(0xFFE8B767)]),
+                Color(0xFFFFFFFF), Color(0xFFF1F4FA)]),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: const Color(0xFFFFEFC0),
+              border: Border.all(color: const Color(0xFFFFFFFF),
                 width: 2),
               boxShadow: const [BoxShadow(
                 color: Color(0x66503C63), blurRadius: 6,
@@ -360,8 +360,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               borderRadius: BorderRadius.circular(13),
               child: Image.asset(
                 id == 'merge2048'
-                  ? 'assets/art/fantasy_garden_puzzle_game_ui.webp'
-                  : 'assets/art/glowing_puzzle_crown_pedestal.webp',
+                  ? 'assets/art/soft_icon_2048.webp'
+                  : 'assets/art/soft_icon_trail.webp',
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Icon(fallback,
                   color: const Color(0xFF604965)),
@@ -403,8 +403,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
       children: [
         FantasyPanel(child: Column(children: [
-          Image.asset('assets/art/enchanted_brain_altar_emblem.webp',
-            height: 170, fit: BoxFit.contain),
+          Image.asset('assets/art/soft_icon_mind.webp',
+            height: 120, fit: BoxFit.contain),
           const SizedBox(height: 4),
           const Text('YOUR JOURNEY', style: TextStyle(
             color: Color(0xFF87667A), fontSize: 12,
