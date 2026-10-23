@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
@@ -7,8 +6,6 @@ import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
-import 'ui/floor_tower_scene.dart';
-import 'ui/flooria_home_buttons.dart';
 import 'ui/flooria_pages.dart';
 import 'ui/flooria_extras.dart';
 import 'ui/floor_victory.dart';
@@ -24,46 +21,6 @@ const ink = Color(0xFF343855);
 const lavender = Color(0xFF7959C9);
 const paper = Color(0xFFFFFAED);
 const mint = Color(0xFFB9E3D5);
-
-class _HomeSkyDetails extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final muted = Paint()..color = const Color(0x34FFFFFF);
-    for (final p in [
-      Offset(size.width * .07, size.height * .29),
-      Offset(size.width * .93, size.height * .42),
-    ]) {
-      canvas.drawOval(Rect.fromCenter(center: p,
-        width: size.width * .36, height: 46), muted);
-      canvas.drawCircle(p.translate(-19, -13), 24, muted);
-      canvas.drawCircle(p.translate(24, -8), 29, muted);
-    }
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _HomeCloudBank extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
-        colors: [Color(0x00FFFFFF), Color(0xFFF7F7F7)],
-      ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, glow);
-    final white = Paint()..color = const Color(0xCFFCFBF9);
-    for (var i = -1; i <= 10; i++) {
-      final x = size.width * i / 9;
-      final y = size.height * (.64 + (i % 3) * .08);
-      canvas.drawOval(Rect.fromCenter(
-        center: Offset(x, y),
-        width: size.width * .24, height: size.height * .77), white);
-    }
-  }
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 class FlooriaApp extends StatelessWidget {
   const FlooriaApp({super.key});
@@ -103,10 +60,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   bool motionEnabled = true;
   bool hapticsEnabled = true;
   bool openingGame = false;
-  static const games = [
-    ('merge2048', '2048', 'Merge the numbers', Icons.grid_view_rounded, Color(0xFFFFC367)),
-    ('numberSequence', 'Number Trail', 'Find the next number', Icons.route_rounded, Color(0xFF86E9D0)),
-  ];
 
   @override
   void initState() {
