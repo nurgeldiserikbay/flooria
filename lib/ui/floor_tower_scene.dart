@@ -19,7 +19,7 @@ class FloorTowerScene extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
     // A window onto an endless tower: show four readable storeys, with the
     // current level at the bottom and upcoming levels extending into clouds.
-    final first = math.max(1, currentFloor - 1);
+    final first = math.max(1, currentFloor - 2);
     final floors = List<int>.generate(4, (i) => first + 3 - i);
     final step = box.maxHeight / 3.72;
     final moduleWidth = math.min(math.min(box.maxWidth, 420.0),
@@ -138,14 +138,20 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                             fontSize: active ? 23 : 20,
                             fontWeight: FontWeight.w900)))),
                     const SizedBox(width: 8),
-                    SvgPicture.asset('assets/$icon.svg',
-                      height: 37, width: 37),
+                    if (!active && !completed)
+                      SvgPicture.asset('assets/locked.svg',
+                        height: 37, width: 37)
+                    else
+                      SvgPicture.asset('assets/$icon.svg',
+                        height: 37, width: 37),
                     const SizedBox(width: 7),
-                    Expanded(child: Text(name,
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: textColor,
-                        fontSize: active ? 14 : 13,
-                        fontWeight: FontWeight.w800))),
+                    if (active)
+                      Expanded(child: Text(name,
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: textColor,
+                          fontSize: 14, fontWeight: FontWeight.w800)))
+                    else
+                      const Spacer(),
                     SvgPicture.asset(
                       active ? 'assets/play.svg'
                       : completed ? 'assets/completed.svg'
