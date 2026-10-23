@@ -347,8 +347,8 @@ class FlooriaMindView extends StatelessWidget {
         Expanded(child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 98),
           children: [
-            SizedBox(height: 204,
-              child: Image.asset('assets/art/enchanted_brain_altar_emblem.webp',
+            SizedBox(height: 218,
+              child: Image.asset('assets/design/mind-garden.webp',
                 fit: BoxFit.contain, filterQuality: FilterQuality.high)),
             const SizedBox(height: 8),
             FlooriaSurface(child: Column(children: [
