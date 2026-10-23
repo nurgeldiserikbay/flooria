@@ -19,8 +19,8 @@ class FloorTowerScene extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
     final first = math.max(1, currentFloor - 2);
     final floors = List<int>.generate(4, (i) => first + 3 - i);
-    final step = box.maxHeight / 3.65;
-    final width = math.min(box.maxWidth, math.min(412.0, step * 3.0));
+    final step = box.maxHeight / 4.2;
+    final width = math.min(box.maxWidth * .91, math.min(380.0, step * 3.27));
     final segmentHeight = step * 1.15;
     final offset = -segmentHeight * .18;
 
@@ -40,7 +40,7 @@ class FloorTowerScene extends StatelessWidget {
       if (currentFloor <= 2)
         Positioned(
           left: (box.maxWidth - width) / 2 - 6,
-          width: width + 12, bottom: -70, height: 122,
+          width: width + 12, bottom: -62, height: 99,
           child: IgnorePointer(child: Image.asset(
             'assets/design/tower-base.webp',
             fit: BoxFit.fill, filterQuality: FilterQuality.high,
@@ -48,7 +48,7 @@ class FloorTowerScene extends StatelessWidget {
         ),
       // The sky is clear. Only the farthest architecture dissolves at the top.
       Positioned(
-        left: 0, right: 0, top: 0, height: step * .27,
+        left: 0, right: 0, top: 0, height: step * .21,
         child: const IgnorePointer(child: DecoratedBox(
           decoration: BoxDecoration(gradient: LinearGradient(
             begin: Alignment.topCenter, end: Alignment.bottomCenter,
