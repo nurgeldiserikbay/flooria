@@ -407,10 +407,11 @@ class FlooriaMindView extends StatelessWidget {
     ]);
 
   Widget _link(String title, String subtitle, IconData icon,
-    Color color, VoidCallback action) => Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: action, borderRadius: BorderRadius.circular(25),
+    Color color, VoidCallback action) => Semantics(
+      button: true, label: title,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: action,
         child: FlooriaSurface(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           child: Row(children: [
