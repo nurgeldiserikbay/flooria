@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../game/floor_engine.dart';
 import '../game/game_objective.dart';
+import '../game/player_stats.dart';
 import 'floor_tower_scene.dart';
 import 'flooria_backdrop.dart';
 import 'flooria_home_buttons.dart';
+import 'skill_radar.dart';
 
 const _navy = Color(0xFF344B82);
 const _muted = Color(0xFF7F8BAA);
@@ -323,15 +325,18 @@ class FlooriaMindView extends StatelessWidget {
     required this.floor,
     required this.favorites,
     required this.recent,
+    required this.gameStats,
     required this.onTower,
     required this.onGames,
     required this.onAchievements,
     required this.onSettings,
     required this.motionEnabled,
   });
+
   final int floor;
   final int favorites;
   final int recent;
+  final PlayerGameStats gameStats;
   final VoidCallback onTower;
   final VoidCallback onGames;
   final VoidCallback onAchievements;
@@ -340,51 +345,99 @@ class FlooriaMindView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FlooriaBackdrop(
-    motionEnabled: motionEnabled,
+    motionEnabled: motionEnabled, quiet: true,
     child: Stack(children: [
       Column(children: [
         FlooriaPageHeader(title: 'My Mind', onBack: onTower),
         Expanded(child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 98),
+          padding: const EdgeInsets.fromLTRB(19, 0, 19, 99),
           children: [
-            SizedBox(height: 218,
-              child: Image.asset('assets/design/mind-garden.webp',
-                fit: BoxFit.contain, filterQuality: FilterQuality.high)),
-            const SizedBox(height: 8),
-            FlooriaSurface(child: Column(children: [
-              Row(children: [
-                SvgPicture.asset('assets/sprout.svg', width: 47, height: 47),
-                const SizedBox(width: 16),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('YOUR JOURNEY', style: TextStyle(
-                      color: _muted, fontSize: 11, letterSpacing: 1.1,
-                      fontWeight: FontWeight.w700)),
-                    Text('Floor $floor', style: const TextStyle(
-                      color: _navy, fontSize: 27, fontWeight: FontWeight.w900)),
-                  ]),
-                ),
+            FlooriaSurface(
+              padding: const EdgeInsets.fromLTRB(13, 16, 13, 13),
+              child: Column(children: [
+                const Text('SKILL PROFILE', style: TextStyle(
+                  color: _navy, letterSpacing: 1.1,
+                  fontSize: 13, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 1),
+                SkillRadarChart(ratings: gameStats.skillRatings),
+                Text(
+                  gameStats.mergeRuns + gameStats.sequenceRuns == 0
+                    ? 'Finish a puzzle to reveal your game skills.'
+                    : 'Based on your game results.  —  means not measured.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _muted, fontSize: 11, height: 1.4)),
               ]),
-              const Divider(height: 25, color: Color(0xFFE0E5EB)),
-              Row(children: [
-                Expanded(child: _metric(Icons.emoji_events_rounded,
-                  '${math.max(0, floor - 1)}', 'Floors cleared',
-                  const Color(0xFFE6B251))),
-                Expanded(child: _metric(Icons.gamepad_rounded,
-                  '$recent', 'Games tried',
-                  const Color(0xFF659AD3))),
-                Expanded(child: _metric(Icons.favorite_rounded,
-                  '$favorites', 'Favorites',
-                  const Color(0xFFD987A3))),
+            ),
+            const SizedBox(height: 14),
+            FlooriaSurface(
+              padding: const EdgeInsets.fromLTRB(15, 14, 15, 16),
+              child: Column(children: [
+                Row(children: [
+                  SvgPicture.asset('assets/sprout.svg',
+                    height: 34, width: 34),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Floor $floor',
+                    style: const TextStyle(color: _navy,
+                      fontSize: 24, fontWeight: FontWeight.w900))),
+                ]),
+                const Divider(height: 23, color: Color(0xFFE0E5EB)),
+                Row(children: [
+                  Expanded(child: _metric(
+                    Icons.emoji_events_rounded,
+                    '${math.max(0, floor - 1)}', 'Floors cleared',
+                    const Color(0xFFDEA950))),
+                  Expanded(child: _metric(Icons.gamepad_rounded,
+                    '$recent', 'Games tried',
+                    const Color(0xFF6998D2))),
+                  Expanded(child: _metric(Icons.favorite_rounded,
+                    '$favorites', 'Favorites',
+                    const Color(0xFFD68CA8))),
+                ]),
               ]),
-            ])),
+            ),
+            const SizedBox(height: 14),
+            FlooriaSurface(
+              padding: const EdgeInsets.fromLTRB(15, 17, 15, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('BEST GAME RESULTS', style: TextStyle(
+                    color: _navy, fontWeight: FontWeight.w900,
+                    fontSize: 14, letterSpacing: .4)),
+                  const SizedBox(height: 12),
+                  if (gameStats.mergeRuns == 0 &&
+                      gameStats.sequenceRuns == 0)
+                    const Text('Play 2048 or Number Trail to set a record.',
+                      style: TextStyle(color: _muted,
+                        fontSize: 12, height: 1.3)),
+                  if (gameStats.mergeRuns > 0)
+                    _bestResult(
+                      'assets/2048.svg', '2048',
+                      'Best tile ${gameStats.best2048Tile}',
+                      'Score ${gameStats.best2048Score}'),
+                  if (gameStats.sequenceRuns > 0) ...[
+                    if (gameStats.mergeRuns > 0)
+                      const Divider(height: 17,
+                        color: Color(0xFFE4E5EC)),
+                    _bestResult(
+                      'assets/number_trail.svg', 'Number Trail',
+                      'Best ${gameStats.sequenceBestCorrect} / 3',
+                      '${(gameStats.sequenceCorrect /
+                        math.max(1, gameStats.sequenceQuestions) *
+                        100).round()}% correct'),
+                  ],
+                ],
+              ),
+            ),
             const SizedBox(height: 15),
-            _link('Achievements', 'See earned milestones',
-              Icons.emoji_events_rounded, const Color(0xFFE6AD51),
-              onAchievements),
+            _link('Achievements', 'Your earned milestones',
+              Icons.emoji_events_rounded,
+              const Color(0xFFE6AD51), onAchievements),
             const SizedBox(height: 11),
             _link('Settings', 'Motion, haptics and information',
-              Icons.settings_rounded, const Color(0xFF8F9CB8), onSettings),
+              Icons.settings_rounded,
+              const Color(0xFF8F9CB8), onSettings),
           ],
         )),
       ]),
@@ -396,42 +449,64 @@ class FlooriaMindView extends StatelessWidget {
     ]),
   );
 
-  Widget _metric(IconData icon, String value, String label, Color color) =>
-    Column(children: [
-      Icon(icon, color: color, size: 26),
-      const SizedBox(height: 4),
-      Text(value, style: const TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w900, color: _navy)),
-      Text(label, textAlign: TextAlign.center,
-        maxLines: 2, style: const TextStyle(fontSize: 10, color: _muted)),
-    ]);
+  Widget _bestResult(String icon, String name,
+      String primary, String secondary) => Row(children: [
+    SvgPicture.asset(icon, height: 39, width: 39),
+    const SizedBox(width: 10),
+    Expanded(child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(name, style: const TextStyle(
+          color: _navy, fontSize: 13,
+          fontWeight: FontWeight.w900)),
+        Text(primary, style: const TextStyle(
+          color: _muted, fontSize: 11)),
+      ],
+    )),
+    Text(secondary, textAlign: TextAlign.end,
+      style: const TextStyle(color: _navy,
+        fontSize: 12, fontWeight: FontWeight.w800)),
+  ]);
+
+  Widget _metric(IconData icon, String value, String label,
+      Color color) => Column(children: [
+    Icon(icon, color: color, size: 25),
+    const SizedBox(height: 5),
+    Text(value, style: const TextStyle(
+      fontSize: 21, fontWeight: FontWeight.w900, color: _navy)),
+    Text(label, textAlign: TextAlign.center, maxLines: 2,
+      style: const TextStyle(fontSize: 10, color: _muted)),
+  ]);
 
   Widget _link(String title, String subtitle, IconData icon,
-    Color color, VoidCallback action) => Semantics(
-      button: true, label: title,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: action,
-        child: FlooriaSurface(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-          child: Row(children: [
-            Container(width: 48, height: 48,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: .18),
-                borderRadius: BorderRadius.circular(15)),
-              child: Icon(icon, color: color, size: 27)),
-            const SizedBox(width: 13),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(
-                  color: _navy, fontSize: 17, fontWeight: FontWeight.w900)),
-                Text(subtitle, style: const TextStyle(
-                  color: _muted, fontSize: 11)),
-              ])),
-            const Icon(Icons.chevron_right_rounded,
-              color: _muted, size: 28),
-          ]),
-        ),
+      Color color, VoidCallback action) => Semantics(
+    button: true, label: title,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: action,
+      child: FlooriaSurface(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        child: Row(children: [
+          Container(width: 48, height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .18),
+              borderRadius: BorderRadius.circular(15)),
+            child: Icon(icon, color: color, size: 27)),
+          const SizedBox(width: 13),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(
+                color: _navy, fontSize: 17,
+                fontWeight: FontWeight.w900)),
+              Text(subtitle, style: const TextStyle(
+                color: _muted, fontSize: 11)),
+            ],
+          )),
+          const Icon(Icons.chevron_right_rounded,
+            color: _muted, size: 28),
+        ]),
       ),
-    );
+    ),
+  );
 }
