@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
@@ -7,6 +8,7 @@ import 'game/game_objective.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/floor_tower_scene.dart';
+import 'ui/flooria_home_buttons.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
@@ -20,6 +22,46 @@ const ink = Color(0xFF343855);
 const lavender = Color(0xFF7959C9);
 const paper = Color(0xFFFFFAED);
 const mint = Color(0xFFB9E3D5);
+
+class _HomeSkyDetails extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final muted = Paint()..color = const Color(0x34FFFFFF);
+    for (final p in [
+      Offset(size.width * .07, size.height * .29),
+      Offset(size.width * .93, size.height * .42),
+    ]) {
+      canvas.drawOval(Rect.fromCenter(center: p,
+        width: size.width * .36, height: 46), muted);
+      canvas.drawCircle(p.translate(-19, -13), 24, muted);
+      canvas.drawCircle(p.translate(24, -8), 29, muted);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _HomeCloudBank extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter, end: Alignment.bottomCenter,
+        colors: [Color(0x00FFFFFF), Color(0xFFF7F7F7)],
+      ).createShader(Offset.zero & size);
+    canvas.drawRect(Offset.zero & size, glow);
+    final white = Paint()..color = const Color(0xCFFCFBF9);
+    for (var i = -1; i <= 10; i++) {
+      final x = size.width * i / 9;
+      final y = size.height * (.64 + (i % 3) * .08);
+      canvas.drawOval(Rect.fromCenter(
+        center: Offset(x, y),
+        width: size.width * .24, height: size.height * .77), white);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 class FlooriaApp extends StatelessWidget {
   const FlooriaApp({super.key});
@@ -135,38 +177,36 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ))));
   }
 
-  Widget _home() => LayoutBuilder(builder: (context, bounds) {
-    final short = bounds.maxHeight < 620;
+  Widget _home() => LayoutBuilder(builder: (context, size) {
     final challenge = const FloorEngine().challengeFor(floor);
     final goal = const ObjectiveCatalog().forGame(challenge.gameId, floor: floor);
     final gameName = challenge.gameId == 'merge2048' ? '2048' : 'Number Trail';
-    final navy = const Color(0xFF425777);
-    final footer = short ? 167.0 : 191.0;
+    final symbol = challenge.gameId == 'merge2048'
+        ? 'assets/2048.svg' : 'assets/number_trail.svg';
+    final compact = size.maxHeight < 640;
+    final navHeight = compact ? 69.0 : 81.0;
+    final playHeight = compact ? 53.0 : 60.0;
+    final challengeHeight = compact ? 134.0 : 153.0;
+    const inkBlue = Color(0xFF263F69);
     return Stack(children: [
       Positioned.fill(child: Image.asset(
         'assets/art/soft_sky.webp',
-        fit: BoxFit.cover, filterQuality: FilterQuality.medium,
-      )),
-      Positioned(top: -55, right: -65, child: Container(
-        width: 235, height: 235,
-        decoration: const BoxDecoration(shape: BoxShape.circle,
-          color: Color(0x44FFFFFF)))),
-      Positioned(top: 75, left: -62, child: Container(
-        width: 170, height: 170,
-        decoration: const BoxDecoration(shape: BoxShape.circle,
-          color: Color(0x33FFFFFF)))),
+        fit: BoxFit.cover, filterQuality: FilterQuality.high)),
+      // Background atmospheric columns sit behind the main tower.
+      Positioned.fill(child: IgnorePointer(child: CustomPaint(
+        painter: _HomeSkyDetails()))),
       Positioned(
-        top: short ? 62 : 82,
-        bottom: footer + 4, left: 10, right: 10,
+        top: compact ? 158 : 187,
+        left: 4, right: 4,
+        bottom: challengeHeight + navHeight + 20,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 520),
+          duration: const Duration(milliseconds: 460),
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0, .08),
-                end: Offset.zero).animate(animation),
-              child: child)),
+                begin: const Offset(0, .12), end: Offset.zero)
+                .animate(animation), child: child)),
           child: FloorTowerScene(
             key: ValueKey<int>(towerSceneRevision),
             currentFloor: floor,
@@ -177,93 +217,95 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 _open(const FloorEngine().challengeFor(selected).gameId);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Complete Floor $floor to unlock this level')));
+                  SnackBar(content: Text(
+                    'Complete Floor $floor to unlock Floor $selected')));
               }
             },
           ),
         ),
       ),
-      Positioned(top: 14, left: 24, right: 24,
-        child: Row(children: [
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('FLOORIA', style: TextStyle(
-                fontSize: short ? 23 : 27, letterSpacing: 1.7,
-                fontWeight: FontWeight.w800, color: navy)),
-              const Text('THE ENDLESS TOWER', style: TextStyle(
-                color: Color(0xFF8495AB), letterSpacing: 2.1,
-                fontSize: 8.5, fontWeight: FontWeight.w700)),
-            ],
-          )),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .77),
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: Colors.white),
-              boxShadow: const [BoxShadow(
-                color: Color(0x11536888), blurRadius: 12,
-                offset: Offset(0, 3))]),
-            child: Text('Floor $floor', style: const TextStyle(
-              color: Color(0xFF4A617C), fontWeight: FontWeight.w800,
-              fontSize: 13)),
+      // Centered game identity from the uploaded logo, not a text imitation.
+      Positioned(top: compact ? 7 : 12, left: 24, right: 24,
+        child: Column(children: [
+          Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
+            width: (size.maxWidth * .82).clamp(240.0, 420.0).toDouble(),
+            height: compact ? 108 : 133,
+            fit: BoxFit.contain, filterQuality: FilterQuality.high),
+          const SizedBox(height: 0),
+          DecoratedBox(decoration: BoxDecoration(
+            color: const Color(0xDDF4FAFF),
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(color: const Color(0xCFFFFFFF)),
+            boxShadow: const [BoxShadow(color: Color(0x224E6D99),
+              blurRadius: 12, offset: Offset(0, 4))]),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 7),
+              child: Text('Floor $floor', style: const TextStyle(
+                color: inkBlue, fontWeight: FontWeight.w800, fontSize: 15))),
           ),
         ]),
       ),
-      Positioned(bottom: 75, left: 22, right: 22,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(goal.title, textAlign: TextAlign.center,
-            maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: short ? 18 : 22,
-              fontWeight: FontWeight.w800, color: navy)),
-          const SizedBox(height: 12),
-          SizedBox(width: double.infinity, height: 54,
-            child: FilledButton.icon(
-              onPressed: () => _open(challenge.gameId, tower: true),
-              icon: const Icon(Icons.play_arrow_rounded, size: 25),
-              label: Text('Play $gameName', style: const TextStyle(
-                fontWeight: FontWeight.w800, fontSize: 16)),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFF8CF74),
-                foregroundColor: const Color(0xFF6F562D),
-                elevation: 3,
-                shadowColor: const Color(0x447E704D),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(21))),
-            ),
-          ),
-        ]),
-      ),
-      Positioned(bottom: 10, left: 22, right: 22,
+      // Lower clouds visually hide the end of the tower. The challenge remains
+      // live Flutter content and can change for any future puzzle.
+      Positioned(left: 0, right: 0,
+        bottom: challengeHeight + navHeight - 17,
+        height: compact ? 42 : 65,
+        child: IgnorePointer(child: CustomPaint(
+          painter: _HomeCloudBank()))),
+      Positioned(
+        bottom: navHeight + 17,
+        left: 20, right: 20,
+        height: challengeHeight - 10,
         child: Container(
-          height: 54,
+          padding: EdgeInsets.fromLTRB(17, compact ? 10 : 15, 17, 13),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .79),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFAFFFFFF), Color(0xFFF5F2EF)]),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white),
-            boxShadow: const [BoxShadow(
-              color: Color(0x115A6174), blurRadius: 15,
-              offset: Offset(0, 4))]),
-          child: Row(children: [
-            Expanded(child: TextButton.icon(
-              onPressed: () => setState(() => tab = 1),
-              icon: Image.asset('assets/art/soft_icon_games.webp', width: 25, height: 25),
-              label: const Text('Games'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF516788),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700)))),
-            Container(width: 1, height: 25,
-              color: const Color(0xFFE5EAF1)),
-            Expanded(child: TextButton.icon(
-              onPressed: () => setState(() => tab = 2),
-              icon: Image.asset('assets/art/soft_icon_mind.webp', width: 25, height: 25),
-              label: const Text('My Mind'),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF8490A4),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700)))),
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(color: Color(0x2E6F7891),
+                blurRadius: 21, offset: Offset(0, 10)),
+            ]),
+          child: Column(children: [
+            Expanded(child: Row(children: [
+              SvgPicture.asset(symbol, width: compact ? 51 : 62,
+                height: compact ? 51 : 62),
+              const SizedBox(width: 12),
+              Container(width: 1, height: 45,
+                color: const Color(0xFFD9DCE8)),
+              const SizedBox(width: 12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Current Challenge', style: TextStyle(
+                    color: Color(0xFF9299B3), fontSize: 11,
+                    fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  Text(goal.title, maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: inkBlue, fontWeight: FontWeight.w900,
+                      fontSize: compact ? 15 : 17)),
+                ],
+              )),
+            ])),
+            FlooriaPlayButton(
+              label: 'PLAY ${gameName.toUpperCase()}',
+              height: playHeight,
+              onPressed: () => _open(challenge.gameId, tower: true),
+            ),
           ]),
+        ),
+      ),
+      Positioned(
+        bottom: 10, left: 18, right: 18,
+        child: FlooriaBottomNav(
+          height: navHeight - 5,
+          onGames: () => setState(() => tab = 1),
+          onMind: () => setState(() => tab = 2),
         ),
       ),
     ]);
@@ -358,13 +400,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 offset: Offset(0, 4))]),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(13),
-              child: Image.asset(
+              child: SvgPicture.asset(
                 id == 'merge2048'
-                  ? 'assets/art/soft_icon_2048.webp'
-                  : 'assets/art/soft_icon_trail.webp',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(fallback,
-                  color: const Color(0xFF604965)),
+                  ? 'assets/2048.svg' : 'assets/number_trail.svg',
+                fit: BoxFit.contain,
               ),
             ),
           )),
@@ -403,8 +442,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
       children: [
         FantasyPanel(child: Column(children: [
-          Image.asset('assets/art/soft_icon_mind.webp',
-            height: 120, fit: BoxFit.contain),
+          SvgPicture.asset('assets/my_mind.svg',
+            height: 116, fit: BoxFit.contain),
           const SizedBox(height: 4),
           const Text('YOUR JOURNEY', style: TextStyle(
             color: Color(0xFF87667A), fontSize: 12,
