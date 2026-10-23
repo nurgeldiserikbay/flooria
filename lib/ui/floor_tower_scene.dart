@@ -52,6 +52,28 @@ class FloorTowerScene extends StatelessWidget {
             ),
           )),
         ),
+      if (currentFloor <= 2)
+        Positioned(
+          left: 0, right: 0, bottom: -24,
+          height: math.min(100, box.maxHeight * .29),
+          child: IgnorePointer(child: SvgPicture.asset(
+            'assets/tower/tower_base.svg',
+            fit: BoxFit.fill,
+          )),
+        ),
+      // Small foreground cloud veil merges the stairway into the sky,
+      // so the end of the tower does not look abruptly cropped.
+      Positioned(
+        left: 0, right: 0, bottom: -4,
+        height: math.min(38, box.maxHeight * .11),
+        child: const IgnorePointer(child: DecoratedBox(
+          decoration: BoxDecoration(gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x00FFFDFC), Color(0xD9FFFDFC)],
+          )),
+        )),
+      ),
       // The uppermost storey disappears into distance rather than terminating.
       Positioned(
         left: 0, right: 0, top: 0, height: step * .4,
@@ -144,19 +166,23 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                     else
                       SvgPicture.asset('assets/$icon.svg',
                         height: 37, width: 37),
-                    const SizedBox(width: 7),
+                    const SizedBox(width: 8),
                     if (active)
                       Expanded(child: Text(name,
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: textColor,
                           fontSize: 14, fontWeight: FontWeight.w800)))
+                    else if (!completed)
+                      const Expanded(child: Text('Coming Soon',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Color(0xFF83819A),
+                          fontSize: 12, fontWeight: FontWeight.w700)))
                     else
                       const Spacer(),
-                    SvgPicture.asset(
-                      active ? 'assets/play.svg'
-                      : completed ? 'assets/completed.svg'
-                      : 'assets/locked.svg',
-                      height: 21, width: 21),
+                    if (active || completed)
+                      SvgPicture.asset(active ? 'assets/play.svg'
+                        : 'assets/completed.svg',
+                        height: 21, width: 21),
                   ]),
                 ),
               )),
