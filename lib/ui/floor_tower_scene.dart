@@ -22,7 +22,8 @@ class FloorTowerScene extends StatelessWidget {
     final first = math.max(1, currentFloor - 1);
     final floors = List<int>.generate(4, (i) => first + 3 - i);
     final step = box.maxHeight / 3.72;
-    final moduleWidth = math.min(box.maxWidth, 420.0);
+    final moduleWidth = math.min(math.min(box.maxWidth, 420.0),
+      step * (900 / 305) * 1.18);
     final moduleHeight = moduleWidth * (305 / 900);
     final shaftWidth = moduleWidth * .77;
 
@@ -119,9 +120,11 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                 )),
               ),
             Positioned(
-              left: 68, right: 68,
+              left: 0, right: 0,
               top: 0, bottom: 0,
-              child: Align(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 48),
+                child: Align(
                 alignment: const Alignment(0, .23),
                 child: FractionallySizedBox(
                   heightFactor: .41,
@@ -149,7 +152,7 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                       height: 21, width: 21),
                   ]),
                 ),
-              ),
+              )),
             ),
           ]),
         ),
