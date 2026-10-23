@@ -280,10 +280,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Current Challenge', style: TextStyle(
-                    color: Color(0xFF9299B3), fontSize: 11,
-                    fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 3),
                   Text(goal.title, maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -314,23 +310,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Widget _library() => FantasyScene(child: DefaultTabController(
     length: 3,
     child: Column(children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Align(alignment: Alignment.centerLeft,
-          child: Material(
-            color: const Color(0xFFF7FAFF),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-              side: const BorderSide(color: Color(0xFFDAAA70), width: 2)),
-            child: IconButton(
-              tooltip: 'Back to Tower',
-              onPressed: () => setState(() => tab = 0),
-              icon: const Icon(Icons.arrow_back_rounded,
-                color: Color(0xFF61455C)),
-            ),
-          ),
-        ),
-      ),
+      FantasyHeader(title: 'Games', eyebrow: '',
+        onBack: () => setState(() => tab = 0)),
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
@@ -338,11 +319,11 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: Colors.white, width: 2)),
         child: const TabBar(
-          labelColor: Color(0xFF734B55),
-          unselectedLabelColor: Color(0xFF9B8179),
+          labelColor: Color(0xFF334F78),
+          unselectedLabelColor: Color(0xFF8995B1),
           indicatorSize: TabBarIndicatorSize.tab,
           indicator: BoxDecoration(
-            color: Color(0xFFE1EDF9),
+            color: Color(0xFFFFFAF1),
             borderRadius: BorderRadius.all(Radius.circular(18))),
           dividerColor: Colors.transparent,
           tabs: [Tab(text: 'All'), Tab(text: 'Recent'),
@@ -361,16 +342,16 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Widget _gameGrid(List<String> ids) {
     if (ids.isEmpty) {
       return const Center(child: Text('No games here yet ✨',
-        style: TextStyle(color: Color(0xFF695977),
+        style: TextStyle(color: Color(0xFF8995B1),
           fontWeight: FontWeight.w700)));
     }
     return LayoutBuilder(builder: (context, size) => GridView.builder(
       padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: size.maxWidth >= 520 ? 4 : 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 10,
-        childAspectRatio: .78,
+        mainAxisSpacing: 18,
+        crossAxisSpacing: 14,
+        childAspectRatio: .77,
       ),
       itemCount: ids.length,
       itemBuilder: (context, index) {
@@ -388,18 +369,18 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       child: Column(children: [
         Expanded(child: Stack(children: [
           Positioned.fill(child: Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [
-                Color(0xFFFFFFFF), Color(0xFFF1F4FA)]),
-              borderRadius: BorderRadius.circular(18),
+                Color(0xFFFFFFFF), Color(0xFFFFFAF1)]),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(color: const Color(0xFFFFFFFF),
                 width: 2),
               boxShadow: const [BoxShadow(
-                color: Color(0x66503C63), blurRadius: 6,
-                offset: Offset(0, 4))]),
+                color: Color(0x22667799), blurRadius: 14,
+                offset: Offset(0, 6))]),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(13),
+              borderRadius: BorderRadius.circular(16),
               child: SvgPicture.asset(
                 id == 'merge2048'
                   ? 'assets/2048.svg' : 'assets/number_trail.svg',
@@ -432,12 +413,12 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 12,
-            fontWeight: FontWeight.w900, color: Color(0xFF4B3E5C))),
+            fontWeight: FontWeight.w800, color: Color(0xFF334F78))),
       ]),
     );
 
   Widget _profile() => FantasyScene(child: Column(children: [
-    FantasyHeader(title: 'My Mind', eyebrow: 'Your adventure',
+    FantasyHeader(title: 'My Mind', eyebrow: '',
       onBack: () => setState(() => tab = 0)),
     Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
       children: [
@@ -445,16 +426,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           SvgPicture.asset('assets/my_mind.svg',
             height: 116, fit: BoxFit.contain),
           const SizedBox(height: 4),
-          const Text('YOUR JOURNEY', style: TextStyle(
-            color: Color(0xFF87667A), fontSize: 12,
-            fontWeight: FontWeight.w900, letterSpacing: 1.4)),
           Text('Floor $floor', style: const TextStyle(
-            color: Color(0xFF4B3E5C), fontSize: 32,
+            color: Color(0xFF334F78), fontSize: 32,
             fontWeight: FontWeight.w900)),
           const SizedBox(height: 5),
-          const Text('Keep climbing. Every puzzle makes you stronger.',
-            textAlign: TextAlign.center, style: TextStyle(
-              color: Color(0xFF776472), fontSize: 13)),
         ])),
         const SizedBox(height: 16),
         Row(children: [
