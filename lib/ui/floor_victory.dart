@@ -15,7 +15,7 @@ Future<VictoryAction> showFloorVictory(
     context: context,
     barrierDismissible: false,
     barrierLabel: 'Floor complete',
-    barrierColor: const Color(0xFF211D3B).withValues(alpha: .64),
+    barrierColor: const Color(0xFF263A62).withValues(alpha: .43),
     transitionDuration: const Duration(milliseconds: 420),
     pageBuilder: (context, animation, secondary) => Center(
       child: ConstrainedBox(
@@ -82,78 +82,78 @@ class _VictoryCardState extends State<_VictoryCard>
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(20),
     child: FantasyPanel(
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 16),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 18),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        SizedBox(
-          height: 128, width: 205,
+        SizedBox(height: 108, width: 195,
           child: AnimatedBuilder(
             animation: sparkle,
             builder: (context, _) => CustomPaint(
               painter: _VictorySparkles(sparkle.value),
-              child: Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: Image.asset(
-                    'assets/art/royal_fantasy_victory_panel.webp',
-                    width: 195,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                    filterQuality: FilterQuality.medium,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.emoji_events_rounded,
-                      color: Color(0xFFFFAC40),
-                      size: 82,
-                    ),
-                  ),
+              child: Center(child: Container(
+                width: 93, height: 93,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFF3C1), Color(0xFFFFD77F)]),
+                  border: Border.all(color: Colors.white, width: 4),
+                  shape: BoxShape.circle,
+                  boxShadow: const [BoxShadow(
+                    color: Color(0x44D5A04B), blurRadius: 18,
+                    offset: Offset(0, 8))],
                 ),
-              ),
+                child: const Icon(Icons.emoji_events_rounded,
+                  color: Color(0xFFC18B39), size: 51),
+              )),
             ),
           ),
         ),
-        const SizedBox(height: 5),
-        const Text('FLOOR COMPLETE!',
+        const SizedBox(height: 8),
+        const Text('Floor complete!',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF43345B), fontSize: 25,
-            fontWeight: FontWeight.w900, letterSpacing: .4)),
-        const SizedBox(height: 10),
+          style: TextStyle(color: Color(0xFF314778),
+            fontSize: 27, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 9),
         Text(widget.achievement,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Color(0xFF705C83),
-            fontSize: 15, fontWeight: FontWeight.w700)),
+          style: const TextStyle(color: Color(0xFF7786A5),
+            fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 20),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(colors: [
-              Color(0xFFD9F4D7), Color(0xFFACE0BB)]),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFF83B89A), width: 2)),
-          child: Column(children: [
-            const Icon(Icons.lock_open_rounded, color: Color(0xFF328C73), size: 28),
-            const SizedBox(height: 6),
-            Text('FLOOR ${widget.completedFloor + 1} UNLOCKED',
+            color: const Color(0xFFEDF6E9),
+            borderRadius: BorderRadius.circular(19),
+            border: Border.all(color: const Color(0xFFFFFFFF), width: 2)),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            const Icon(Icons.lock_open_rounded,
+              color: Color(0xFF6A9D71), size: 24),
+            const SizedBox(width: 10),
+            Flexible(child: Text('Floor ${widget.completedFloor + 1} unlocked',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF326B5D),
-                fontSize: 16, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 6),
-            Text(widget.detail, textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF5A8378), fontSize: 12)),
+              style: const TextStyle(
+                color: Color(0xFF507C5E), fontWeight: FontWeight.w900,
+                fontSize: 15))),
           ]),
         ),
-        const SizedBox(height: 21),
-        FantasyButton(label: 'NEXT FLOOR',
-          icon: Icons.arrow_upward_rounded,
-          onPressed: widget.onNext),
         const SizedBox(height: 8),
+        Text(widget.detail, textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF8490A5), fontSize: 12)),
+        const SizedBox(height: 22),
+        FantasyButton(
+          label: 'NEXT FLOOR',
+          icon: Icons.arrow_upward_rounded,
+          onPressed: widget.onNext,
+        ),
+        const SizedBox(height: 11),
         TextButton(onPressed: widget.onTower,
           child: const Text('Back to tower',
-            style: TextStyle(color: Color(0xFF736483),
-              fontWeight: FontWeight.w700))),
+            style: TextStyle(color: Color(0xFF63769B),
+              fontWeight: FontWeight.w800))),
       ]),
     ),
   );
+
 }
 
 class _VictorySparkles extends CustomPainter {
