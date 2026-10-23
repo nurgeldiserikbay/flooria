@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - tools/build_soft_assets.py
+      - tools/build_reference_tower.py
       - .github/workflows/build-soft-assets.yml
   workflow_dispatch:
 permissions:
@@ -19,11 +20,13 @@ jobs:
       - run: python -m pip install Pillow==11.3.0
       - name: Render reusable transparent floor and game sprites
         run: python tools/build_soft_assets.py
+      - name: Render reference-matched reusable 2.5D tower floors
+        run: python tools/build_reference_tower.py
       - name: Commit generated artwork
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/art/soft_floor_*.webp assets/art/soft_icon_*.webp assets/art/soft_sky.webp
+          git add assets/art/soft_floor_*.webp assets/art/soft_icon_*.webp assets/art/soft_sky.webp assets/art/ref_floor_*.webp
           if ! git diff --cached --quiet; then
             git commit -m "feat(art): add generated soft 2.5D floor and game sprites"
             git push origin HEAD:main
