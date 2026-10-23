@@ -41,7 +41,9 @@ jobs:
       # Actual browser captures of the compiled Flutter application.
       # Screenshots are attached to every run for design-vs-reference review.
       - name: Install browser for visual review
-        run: npx --yes playwright@1.58.0 install --with-deps chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit playwright@1.58.0
+          npx playwright install --with-deps chromium
       - name: Capture real Flutter screenshots
         shell: bash
         run: |
@@ -53,15 +55,13 @@ jobs:
             if curl --fail --silent http://127.0.0.1:8765/flooria/ > /dev/null; then break; fi
             sleep 1
           done
-          npx --yes playwright@1.58.0 screenshot --browser chromium --viewport-size "360,800" --wait-for-timeout 4500 http://127.0.0.1:8765/flooria/ screenshots/home-360x800.png
-          npx --yes playwright@1.58.0 screenshot --browser chromium --viewport-size "390,844" --wait-for-timeout 4500 http://127.0.0.1:8765/flooria/ screenshots/home-390x844.png
-          npx --yes playwright@1.58.0 screenshot --browser chromium --viewport-size "430,932" --wait-for-timeout 4500 http://127.0.0.1:8765/flooria/ screenshots/home-430x932.png
+          node tools/capture_ui.cjs
       - name: Upload visual QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: flooria-ui-screenshots
-          path: screenshots/*.png
+          path: screenshots/
           if-no-files-found: warn
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
