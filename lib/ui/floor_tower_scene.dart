@@ -83,6 +83,18 @@ class _ArtworkFloorState extends State<_ArtworkFloor> {
     final icon = gameId == 'merge2048'
         ? 'assets/2048.svg' : 'assets/number_trail.svg';
     final skin = active ? 'current' : completed ? 'completed' : 'locked';
+    // Palette shifts gently with altitude; gold always marks the active game.
+    const visitedTints = [
+      Color(0xFFFFFFFF), Color(0xFFF3FFF6), Color(0xFFF1FFF9),
+      Color(0xFFFFFCF1), Color(0xFFF7F9FF),
+    ];
+    const futureTints = [
+      Color(0xFFFFFFFF), Color(0xFFF9F5FF), Color(0xFFF5FAFF),
+      Color(0xFFFFF9FD), Color(0xFFF9F7FF),
+    ];
+    final tint = active
+      ? const Color(0xFFFFFFFF)
+      : (completed ? visitedTints : futureTints)[widget.floor % 5];
 
     return Semantics(
       button: true,
@@ -99,9 +111,12 @@ class _ArtworkFloorState extends State<_ArtworkFloor> {
           child: LayoutBuilder(builder: (context, box) {
             final w = box.maxWidth;
             return Stack(children: [
-              Positioned.fill(child: Image.asset(
-                'assets/design/tower-$skin.webp',
-                fit: BoxFit.fill, filterQuality: FilterQuality.high,
+              Positioned.fill(child: ColorFiltered(
+                colorFilter: ColorFilter.mode(tint, BlendMode.modulate),
+                child: Image.asset(
+                  'assets/design/tower-$skin.webp',
+                  fit: BoxFit.fill, filterQuality: FilterQuality.high,
+                ),
               )),
               Positioned(
                 left: w * .25, right: w * .115,
