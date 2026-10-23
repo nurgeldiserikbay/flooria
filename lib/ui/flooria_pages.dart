@@ -52,6 +52,7 @@ class FlooriaTowerHomeView extends StatelessWidget {
 
     return FlooriaBackdrop(
       motionEnabled: motionEnabled,
+      ascentFloor: floor,
       child: Stack(children: [
         Positioned(
           left: 5, right: 5, top: stageTop,
