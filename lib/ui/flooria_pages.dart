@@ -246,7 +246,7 @@ class FlooriaGamesView extends StatelessWidget {
               style: TextStyle(color: _muted, fontSize: 12)),
           ]),
         )),
-      ));
+      );
     }
     return LayoutBuilder(builder: (context, box) => GridView.builder(
       padding: const EdgeInsets.fromLTRB(15, 12, 15, 24),
@@ -363,7 +363,7 @@ class FlooriaMindView extends StatelessWidget {
                     Text('Floor $floor', style: const TextStyle(
                       color: _navy, fontSize: 27, fontWeight: FontWeight.w900)),
                   ]),
-                )),
+                ),
               ]),
               const Divider(height: 25, color: Color(0xFFE0E5EB)),
               Row(children: [
