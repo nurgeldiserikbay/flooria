@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flooria/main.dart';
 import 'package:flooria/ui/flooria_pages.dart';
 import 'package:flooria/ui/flooria_extras.dart';
+import 'package:flooria/ui/skill_radar.dart';
 
 void main() {
   setUp(() {
@@ -46,8 +47,8 @@ void main() {
     await tester.tap(find.text('My Mind'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Floors cleared'), findsOneWidget);
-    await tester.ensureVisible(find.text('Settings'));
-    await tester.tap(find.text('Settings'));
+    expect(find.byType(SkillRadarChart), findsOneWidget);
+    await tester.tap(find.byTooltip('Open settings'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.byType(FlooriaSettingsPage), findsOneWidget);
