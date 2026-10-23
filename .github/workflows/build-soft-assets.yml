@@ -32,5 +32,6 @@ jobs:
           git add assets/art/soft_floor_*.webp assets/art/soft_icon_*.webp assets/art/soft_sky.webp assets/art/ref_floor_*.webp assets/design/*.webp
           if ! git diff --cached --quiet; then
             git commit -m "feat(art): add generated soft 2.5D floor and game sprites"
+            git pull --rebase origin main
             git push origin HEAD:main
           fi
