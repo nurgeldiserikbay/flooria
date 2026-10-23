@@ -71,6 +71,7 @@ class _ArchitecturalFloor extends StatefulWidget {
   final int current;
   final VoidCallback onTap;
   const _ArchitecturalFloor({
+    super.key,
     required this.floor, required this.current, required this.onTap,
   });
   @override
