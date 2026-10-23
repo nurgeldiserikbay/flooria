@@ -17,53 +17,47 @@ class FloorTowerScene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
-    final first = math.max(1, currentFloor - 2);
-    final highest = first + 4;
-    final floors = List<int>.generate(5, (i) => highest - i);
-    final stageHeight = box.maxHeight;
-    final step = stageHeight / 5.05;
-    // All levels retain the original sprite's width/height relationship.
-    // Their cornices overlap, but the actual image is never stretched.
-    final spriteWidth = math.min(box.maxWidth, 385.0);
-    final spriteHeight = math.min(spriteWidth / 2.77, step * 1.48);
-    final towerWidth = math.min(spriteWidth * .76, box.maxWidth * .77);
+    // A window onto an endless tower: show four readable storeys, with the
+    // current level at the bottom and upcoming levels extending into clouds.
+    final first = math.max(1, currentFloor - 1);
+    final floors = List<int>.generate(4, (i) => first + 3 - i);
+    final step = box.maxHeight / 3.72;
+    final moduleWidth = math.min(box.maxWidth, 420.0);
+    final moduleHeight = moduleWidth * (305 / 900);
+    final shaftWidth = moduleWidth * .77;
 
     return ClipRect(child: Stack(children: [
-      // Continuous stone walls underneath every ledge. This is essential
-      // to avoid the disjointed floating-card appearance.
+      // Connected interior masonry is visible through the small gaps between
+      // overlapping sculpted cornices.
       Positioned(
-        top: -12, bottom: -18,
-        left: (box.maxWidth - towerWidth) / 2,
-        width: towerWidth,
+        top: -20, bottom: -30,
+        left: (box.maxWidth - shaftWidth) / 2,
+        width: shaftWidth,
         child: const CustomPaint(painter: _TowerShaftPainter()),
       ),
       for (var i = 0; i < floors.length; i++)
         Positioned(
-          top: i * step - spriteHeight * .18,
+          top: i * step - moduleHeight * .22,
           left: 0, right: 0,
-          height: spriteHeight,
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: SizedBox(
-              // Distant floors are subtly narrower: architectural depth,
-              // not a dramatic skew that makes their labels unreadable.
-              width: spriteWidth * (1 - i * .018),
-              height: spriteHeight,
-              child: _ArchitecturalFloor(
-                floor: floors[i],
-                current: currentFloor,
-                onTap: () => onFloorTap(floors[i]),
-              ),
+          height: moduleHeight,
+          child: Center(child: SizedBox(
+            width: moduleWidth * (1 - i * .012),
+            height: moduleHeight,
+            child: _ArchitecturalFloor(
+              key: ValueKey<int>(floors[i]),
+              floor: floors[i],
+              current: currentFloor,
+              onTap: () => onFloorTap(floors[i]),
             ),
-          ),
+          )),
         ),
-      // Atmospheric fade makes the tower visibly extend beyond the frame.
+      // The uppermost storey disappears into distance rather than terminating.
       Positioned(
-        left: 0, right: 0, top: 0, height: step * .52,
+        left: 0, right: 0, top: 0, height: step * .4,
         child: const IgnorePointer(child: DecoratedBox(
           decoration: BoxDecoration(gradient: LinearGradient(
             begin: Alignment.topCenter, end: Alignment.bottomCenter,
-            colors: [Color(0xBFE5F3FF), Color(0x00E5F3FF)],
+            colors: [Color(0xB7DCEFFE), Color(0x00DCEFFE)],
           )),
         )),
       ),
@@ -105,9 +99,9 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
           scale: pressed ? .978 : 1,
           duration: const Duration(milliseconds: 110),
           child: Stack(children: [
-            Positioned.fill(child: Image.asset(
-              'assets/art/soft_floor_$skin.webp',
-              fit: BoxFit.contain, filterQuality: FilterQuality.high,
+            Positioned.fill(child: SvgPicture.asset(
+              'assets/tower/floor_$skin.svg',
+              fit: BoxFit.fill,
             )),
             // A highlighted floor looks illuminated from within the masonry,
             // not covered by a yellow UI rectangle.
@@ -125,36 +119,37 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                 )),
               ),
             Positioned(
-              left: 52, right: 51, top: 0, bottom: 0,
-              child: LayoutBuilder(builder: (context, box) => Align(
-                alignment: const Alignment(0, .08),
-                child: SizedBox(
-                  height: math.min(48.0, box.maxHeight * .53),
+              left: 68, right: 68,
+              top: 0, bottom: 0,
+              child: Align(
+                alignment: const Alignment(0, .23),
+                child: FractionallySizedBox(
+                  heightFactor: .41,
                   child: Row(children: [
-                    SizedBox(width: 27, child: Text('${widget.floor}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: active ? 22 : 19,
-                        fontWeight: FontWeight.w900))),
+                    SizedBox(width: 30,
+                      child: FittedBox(fit: BoxFit.scaleDown,
+                        child: Text('${widget.floor}',
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: active ? 23 : 20,
+                            fontWeight: FontWeight.w900)))),
                     const SizedBox(width: 8),
                     SvgPicture.asset('assets/$icon.svg',
                       height: 37, width: 37),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 7),
                     Expanded(child: Text(name,
-                      maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: textColor,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: textColor,
                         fontSize: active ? 14 : 13,
                         fontWeight: FontWeight.w800))),
-                    const SizedBox(width: 2),
-                    SvgPicture.asset(active ? 'assets/play.svg'
+                    SvgPicture.asset(
+                      active ? 'assets/play.svg'
                       : completed ? 'assets/completed.svg'
                       : 'assets/locked.svg',
-                      height: 20, width: 20),
+                      height: 21, width: 21),
                   ]),
                 ),
-              )),
+              ),
             ),
           ]),
         ),
