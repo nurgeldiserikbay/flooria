@@ -81,7 +81,7 @@ class FlooriaTowerHomeView extends StatelessWidget {
           left: 20, right: 20, top: compact ? 4 : 9,
           child: Column(children: [
             Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
-              width: math.min(box.maxWidth * .83, 350),
+              width: math.min(box.maxWidth * .83, 350.0),
               height: compact ? 94 : 119,
               fit: BoxFit.contain,
               filterQuality: FilterQuality.high),
@@ -221,11 +221,11 @@ class FlooriaGamesView extends StatelessWidget {
           const SizedBox(height: 87),
         ]),
         Positioned(bottom: 9, left: 22, right: 22,
-          child: FlooriaBottomNav(
+          child: Builder(builder: (innerContext) => FlooriaBottomNav(
             height: 70, selectedIndex: 0,
-            onGames: () => DefaultTabController.of(context).animateTo(0),
+            onGames: () => DefaultTabController.of(innerContext).animateTo(0),
             onMind: onMind,
-          )),
+          ))),
       ]),
     ),
   );
