@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
+import 'game/player_stats.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/flooria_pages.dart';
@@ -60,6 +62,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   bool motionEnabled = true;
   bool hapticsEnabled = true;
   bool openingGame = false;
+  PlayerGameStats playerStats = PlayerGameStats();
 
   @override
   void initState() {
@@ -72,6 +75,15 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     if (!mounted) return;
     setState(() {
       floor = prefs.getInt('floor') ?? 1;
+      try {
+        final saved = prefs.getString('player_stats_v1');
+        if (saved != null) {
+          playerStats = PlayerGameStats.fromJson(
+            Map<String, dynamic>.from(jsonDecode(saved) as Map));
+        }
+      } catch (_) {
+        playerStats = PlayerGameStats(); // Invalid old data should never block launch.
+      }
       motionEnabled = prefs.getBool('ambient_motion') ?? true;
       hapticsEnabled = prefs.getBool('haptic_feedback') ?? true;
       favorites.addAll(prefs.getStringList('favorites') ?? []);
@@ -83,6 +95,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('floor', floor);
+    await prefs.setString('player_stats_v1', jsonEncode(playerStats.toJson()));
     await prefs.setBool('ambient_motion', motionEnabled);
     await prefs.setBool('haptic_feedback', hapticsEnabled);
     await prefs.setStringList('favorites', favorites.toList());
@@ -106,10 +119,12 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           ? MergePage(
               floor: startingFloor,
               onComplete: () => _completeFloor(),
+              onSessionEnd: _record2048,
             )
           : SequencePage(
               floor: startingFloor,
               onComplete: () => _completeFloor(),
+              onSessionEnd: _recordSequence,
             ),
       ));
       if (!mounted) return;
@@ -174,6 +189,18 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ));
   }
 
+  void _record2048(int score, int tile, int moves) {
+    setState(() => playerStats.record2048(
+      score: score, tile: tile, moves: moves));
+    _save();
+  }
+
+  void _recordSequence(int correct, int questions) {
+    setState(() => playerStats.recordSequence(
+      correct: correct, questions: questions));
+    _save();
+  }
+
   void _completeFloor() {
     setState(() => floor++);
     _save();
@@ -232,6 +259,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     floor: floor,
     favorites: favorites.length,
     recent: recent.length,
+    gameStats: playerStats,
     motionEnabled: motionEnabled,
     onTower: () => setState(() => tab = 0),
     onGames: () => setState(() => tab = 1),
@@ -244,7 +272,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 class MergePage extends StatefulWidget {
   final int? floor;
   final VoidCallback onComplete;
-  const MergePage({super.key, this.floor, required this.onComplete});
+  final void Function(int score, int tile, int moves) onSessionEnd;
+  const MergePage({super.key, this.floor, required this.onComplete,
+    required this.onSessionEnd});
   @override
   State<MergePage> createState() => _MergePageState();
 }
@@ -257,6 +287,13 @@ class _MergePageState extends State<MergePage> {
   List<int>? previousBoard;
   MoveDirection? previousDirection;
   bool victoryPresented = false;
+  bool resultReported = false;
+
+  void _reportResult() {
+    if (resultReported) return;
+    resultReported = true;
+    widget.onSessionEnd(game.score, game.highest, game.moves);
+  }
 
   @override
   void initState() {
@@ -280,12 +317,17 @@ class _MergePageState extends State<MergePage> {
         won = true;
       }
     });
-    if (won) _onVictory();
+    if (won) {
+      _onVictory();
+    } else if (!game.canMove) {
+      _reportResult();
+    }
   }
 
   Future<void> _onVictory() async {
     if (victoryPresented || !mounted) return;
     victoryPresented = true;
+    _reportResult();
     if (widget.floor == null) return; // Library mode has no tower unlock.
     widget.onComplete(); // Award this floor exactly once.
     final action = await showFloorVictory(context,
@@ -384,6 +426,8 @@ class _MergePageState extends State<MergePage> {
         onPressed: () => setState(() {
           game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch);
           finished = false;
+          resultReported = false;
+          victoryPresented = false;
           previousBoard = null;
           previousDirection = null;
           moveAnimationId++;
@@ -399,7 +443,9 @@ class _MergePageState extends State<MergePage> {
 class SequencePage extends StatefulWidget {
   final int? floor;
   final VoidCallback onComplete;
-  const SequencePage({super.key, this.floor, required this.onComplete});
+  final void Function(int correct, int questions) onSessionEnd;
+  const SequencePage({super.key, this.floor, required this.onComplete,
+    required this.onSessionEnd});
   @override
   State<SequencePage> createState() => _SequencePageState();
 }
@@ -452,6 +498,7 @@ class _SequencePageState extends State<SequencePage> {
         _buildChoices();
       }
     });
+    if (done) widget.onSessionEnd(correct, 3);
     if (done && passed && widget.floor != null) _onVictory();
   }
 
