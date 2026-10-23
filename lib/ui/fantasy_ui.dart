@@ -27,11 +27,11 @@ class FantasyPanel extends StatelessWidget {
     decoration: BoxDecoration(
       gradient: const LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFFFDFDFB), Color(0xFFF4F7FA)]),
+        colors: [Color(0xFFFFFFFF), Color(0xFFFFFAF2)]),
       border: Border.all(color: const Color(0xEEFFFFFF), width: 2),
       borderRadius: BorderRadius.circular(22),
       boxShadow: const [
-        BoxShadow(color: Color(0x22667799), blurRadius: 17, offset: Offset(0, 8)),
+        BoxShadow(color: Color(0x22667799), blurRadius: 20, offset: Offset(0, 8)),
         BoxShadow(color: Color(0x44FFFFFF), blurRadius: 2, offset: Offset(-2, -2)),
       ],
     ),
@@ -148,25 +148,34 @@ class FantasyHeader extends StatelessWidget {
     required this.eyebrow, required this.onBack});
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+    padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
     child: Row(children: [
-      Material(color: const Color(0xFFFFE8B0),
+      Material(
+        color: const Color(0xF5FFFFFF),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(color: Color(0xFFDAAA70), width: 2)),
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Colors.white, width: 2)),
         child: IconButton(
-          tooltip: 'Back to Tower', onPressed: onBack,
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF61455C)),
+          tooltip: 'Back to Tower',
+          onPressed: onBack,
+          icon: const Icon(Icons.arrow_back_rounded,
+            color: Color(0xFF334F78), size: 23),
         ),
       ),
-      const SizedBox(width: 13),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(eyebrow.toUpperCase(), style: const TextStyle(
-          fontSize: 10, fontWeight: FontWeight.w900,
-          letterSpacing: 1.7, color: Color(0xFF675177))),
-        Text(title, style: const TextStyle(
-          fontSize: 26, color: Color(0xFF433753), fontWeight: FontWeight.w900)),
-      ])),
+      const SizedBox(width: 16),
+      Expanded(child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (eyebrow.isNotEmpty)
+            Text(eyebrow.toUpperCase(), style: const TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w700,
+              letterSpacing: 1.5, color: Color(0xFF8995B1))),
+          Text(title, style: const TextStyle(
+            fontSize: 26, height: 1.12, color: Color(0xFF334F78),
+            fontWeight: FontWeight.w800)),
+        ],
+      )),
     ]),
   );
 }
