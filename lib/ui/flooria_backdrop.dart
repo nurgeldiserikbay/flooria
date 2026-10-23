@@ -11,12 +11,14 @@ class FlooriaBackdrop extends StatefulWidget {
     this.foregroundClouds = false,
     this.quiet = false,
     this.motionEnabled = true,
+    this.ascentFloor = 1,
   });
 
   final Widget child;
   final bool foregroundClouds;
   final bool quiet;
   final bool motionEnabled;
+  final int ascentFloor;
 
   @override
   State<FlooriaBackdrop> createState() => _FlooriaBackdropState();
@@ -70,6 +72,15 @@ class _FlooriaBackdropState extends State<FlooriaBackdrop>
         fit: BoxFit.cover,
         filterQuality: FilterQuality.medium,
       )),
+      // Changing altitude subtly changes the daylight, not the art style.
+      // The tint is intentionally restrained so all backgrounds stay legible.
+      Positioned.fill(child: IgnorePointer(child: AnimatedContainer(
+        duration: const Duration(milliseconds: 650),
+        color: const [
+          Color(0xFFDAF1FF), Color(0xFFFFF0DB),
+          Color(0xFFE6E7FF), Color(0xFFE4FBF4),
+        ][(widget.ascentFloor ~/ 8) % 4].withValues(alpha: .085),
+      ))),
       AnimatedBuilder(
         animation: drift,
         builder: (context, _) {
