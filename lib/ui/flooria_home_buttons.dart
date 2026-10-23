@@ -81,9 +81,10 @@ class FlooriaBottomNav extends StatelessWidget {
   final VoidCallback onGames;
   final VoidCallback onMind;
   final double height;
+  final int selectedIndex;
   const FlooriaBottomNav({
     super.key, required this.onGames, required this.onMind,
-    this.height = 72,
+    this.height = 72, this.selectedIndex = 0,
   });
 
   @override
@@ -103,10 +104,10 @@ class FlooriaBottomNav extends StatelessWidget {
       ],
     ),
     child: Row(children: [
-      Expanded(child: _item('Games', 'assets/games.svg', true, onGames)),
+      Expanded(child: _item('Games', 'assets/games.svg', selectedIndex == 0, onGames)),
       Container(width: 1, height: height * .47,
         color: const Color(0xFFDCDAE5)),
-      Expanded(child: _item('My Mind', 'assets/my_mind.svg', false, onMind)),
+      Expanded(child: _item('My Mind', 'assets/my_mind.svg', selectedIndex == 1, onMind)),
     ]),
   );
 
