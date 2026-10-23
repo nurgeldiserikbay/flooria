@@ -23,6 +23,7 @@ class FlooriaTowerHomeView extends StatelessWidget {
     required this.onPlay,
     required this.onGames,
     required this.onMind,
+    required this.onSettings,
     required this.motionEnabled,
   });
   final int floor;
@@ -31,6 +32,7 @@ class FlooriaTowerHomeView extends StatelessWidget {
   final VoidCallback onPlay;
   final VoidCallback onGames;
   final VoidCallback onMind;
+  final VoidCallback onSettings;
   final bool motionEnabled;
 
   @override
@@ -105,6 +107,19 @@ class FlooriaTowerHomeView extends StatelessWidget {
               ),
             ),
           ]),
+        ),
+        Positioned(
+          right: 15, top: 12,
+          child: Material(
+            color: const Color(0xEFFFFFFF),
+            shape: const CircleBorder(),
+            child: IconButton(
+              tooltip: 'Open settings',
+              icon: const Icon(Icons.settings_rounded,
+                color: Color(0xFF7A8BB0), size: 24),
+              onPressed: onSettings,
+            ),
+          ),
         ),
         Positioned(
           left: 24, right: 24, bottom: questBottom,
@@ -349,7 +364,20 @@ class FlooriaMindView extends StatelessWidget {
     motionEnabled: motionEnabled, quiet: true,
     child: Stack(children: [
       Column(children: [
-        FlooriaPageHeader(title: 'My Mind', onBack: onTower),
+        FlooriaPageHeader(
+          title: 'My Mind',
+          onBack: onTower,
+          trailing: Material(
+            color: const Color(0xEFFFFFFF),
+            shape: const CircleBorder(),
+            child: IconButton(
+              tooltip: 'Open settings',
+              icon: const Icon(Icons.settings_rounded,
+                color: Color(0xFF7A8BB0), size: 24),
+              onPressed: onSettings,
+            ),
+          ),
+        ),
         Expanded(child: ListView(
           padding: const EdgeInsets.fromLTRB(19, 0, 19, 99),
           children: [
