@@ -243,6 +243,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       tower: true),
     onGames: () => setState(() => tab = 1),
     onMind: () => setState(() => tab = 2),
+    onSettings: _showSettings,
   );
 
   Widget _library() => FlooriaGamesView(
