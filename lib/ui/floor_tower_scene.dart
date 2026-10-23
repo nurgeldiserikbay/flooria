@@ -23,8 +23,8 @@ class FloorTowerScene extends StatelessWidget {
     final floors = List<int>.generate(4, (i) => first + 3 - i);
     final step = box.maxHeight / 3.72;
     final moduleWidth = math.min(math.min(box.maxWidth, 420.0),
-      step * (900 / 305) * 1.18);
-    final moduleHeight = moduleWidth * (305 / 900);
+      step * (900 / 318) * 1.18);
+    final moduleHeight = moduleWidth * (318 / 900);
     final shaftWidth = moduleWidth * .77;
 
     return ClipRect(child: Stack(children: [
@@ -55,7 +55,7 @@ class FloorTowerScene extends StatelessWidget {
       if (currentFloor <= 2)
         Positioned(
           left: 0, right: 0, bottom: -24,
-          height: math.min(100, box.maxHeight * .29),
+          height: math.min(58, box.maxHeight * .19),
           child: IgnorePointer(child: SvgPicture.asset(
             'assets/tower/tower_base.svg',
             fit: BoxFit.fill,
@@ -123,9 +123,10 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
           scale: pressed ? .978 : 1,
           duration: const Duration(milliseconds: 110),
           child: Stack(children: [
-            Positioned.fill(child: SvgPicture.asset(
-              'assets/tower/floor_$skin.svg',
+            Positioned.fill(child: Image.asset(
+              'assets/art/ref_floor_$skin.webp',
               fit: BoxFit.fill,
+              filterQuality: FilterQuality.high,
             )),
             // A highlighted floor looks illuminated from within the masonry,
             // not covered by a yellow UI rectangle.
@@ -172,16 +173,10 @@ class _ArchitecturalFloorState extends State<_ArchitecturalFloor> {
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: textColor,
                           fontSize: 14, fontWeight: FontWeight.w800)))
-                    else if (!completed)
-                      const Expanded(child: Text('Coming Soon',
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: Color(0xFF83819A),
-                          fontSize: 12, fontWeight: FontWeight.w700)))
                     else
                       const Spacer(),
-                    if (active || completed)
-                      SvgPicture.asset(active ? 'assets/play.svg'
-                        : 'assets/completed.svg',
+                    if (completed)
+                      SvgPicture.asset('assets/completed.svg',
                         height: 21, width: 21),
                   ]),
                 ),
