@@ -155,9 +155,11 @@ class FlooriaPageHeader extends StatelessWidget {
     super.key,
     required this.title,
     required this.onBack,
+    this.trailing,
   });
   final String title;
   final VoidCallback onBack;
+  final Widget? trailing;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(19, 17, 20, 14),
@@ -176,6 +178,7 @@ class FlooriaPageHeader extends StatelessWidget {
         fontSize: 31, fontWeight: FontWeight.w900,
         color: Color(0xFF344B88), letterSpacing: -.55,
       ))),
+      if (trailing != null) trailing!,
     ]),
   );
 }
