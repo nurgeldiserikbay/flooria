@@ -74,7 +74,7 @@ class FlooriaGameDetailPage extends StatelessWidget {
         ])),
       ),
     ),
-  )));
+  ));
 }
 
 /// Only settings with working behavior are exposed.
@@ -249,6 +249,9 @@ class FlooriaAchievementsPage extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(color: _ink,
                             fontSize: 11, fontWeight: FontWeight.w800)),
+                        if (!a.earned)
+                          Text('Target ${a.target}', style: const TextStyle(
+                            color: _subtle, fontSize: 9)),
                       ],
                     ),
                   ),
