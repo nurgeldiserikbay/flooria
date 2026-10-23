@@ -31,7 +31,27 @@ class _FlooriaBackdropState extends State<FlooriaBackdrop>
     super.initState();
     drift = AnimationController(
       vsync: this, duration: const Duration(seconds: 17),
-    )..repeat(reverse: true);
+    );
+    if (widget.motionEnabled) drift.repeat(reverse: true);
+  }
+
+  void _syncTicker() {
+    final animate = widget.motionEnabled &&
+      !(MediaQuery.maybeOf(context)?.disableAnimations ?? false);
+    if (animate && !drift.isAnimating) drift.repeat(reverse: true);
+    if (!animate && drift.isAnimating) drift.stop();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(covariant FlooriaBackdrop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncTicker();
   }
 
   @override
