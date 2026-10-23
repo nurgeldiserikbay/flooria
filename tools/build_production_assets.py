@@ -76,6 +76,19 @@ def main() -> None:
         part = part.resize((856, part.height * 4), Image.Resampling.LANCZOS)
         export_webp(part, "tower-" + state, quality=91)
 
+    # My Mind hero comes from the same approved scene artwork as the tower.
+    # Feather the card edges so the garden grows naturally out of the sky.
+    garden = image.crop((1035, 115, 1262, 305)).convert("RGBA")
+    pixels = np.asarray(garden).copy()
+    height, width = pixels.shape[:2]
+    ys = np.minimum(np.arange(height), height - 1 - np.arange(height))
+    xs = np.minimum(np.arange(width), width - 1 - np.arange(width))
+    edge = np.minimum(ys[:, None], xs[None, :])
+    pixels[:, :, 3] = np.uint8(np.minimum(1.0, edge / 17.0) * 255)
+    garden = Image.fromarray(pixels, "RGBA")
+    garden = garden.resize((681, 570), Image.Resampling.LANCZOS)
+    export_webp(garden, "mind-garden", quality=89)
+
     for name, filename in BACKGROUNDS.items():
         source = Image.open(ROOT / "assets" / filename).convert("RGBA")
         source.thumbnail((720, 1280), Image.Resampling.LANCZOS)
