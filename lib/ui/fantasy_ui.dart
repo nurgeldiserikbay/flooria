@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'flooria_backdrop.dart';
 
 /// Shared environment and controls used across all Flooria screens.
 class FantasyScene extends StatelessWidget {
@@ -6,13 +7,11 @@ class FantasyScene extends StatelessWidget {
   const FantasyScene({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) => Stack(children: [
-    Positioned.fill(child: Image.asset(
-      'assets/art/soft_sky.webp',
-      fit: BoxFit.cover, filterQuality: FilterQuality.medium,
-    )),
-    Positioned.fill(child: child),
-  ]);
+  Widget build(BuildContext context) => FlooriaBackdrop(
+    motionEnabled: false,
+    quiet: true,
+    child: child,
+  );
 }
 
 /// Fantasy parchment surface, with a warm border and restrained depth.
@@ -65,9 +64,9 @@ class _FantasyButtonState extends State<FantasyButton> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFE5A0), Color(0xFFF5C869), Color(0xFFF0BA5A)]),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFFEEAF), width: 2),
+          colors: [Color(0xFFFFF3B5), Color(0xFFFFD879), Color(0xFFF0B758)]),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFFFF3C5), width: 2),
         boxShadow: [
           BoxShadow(color: const Color(0xFFD3A25B),
             offset: Offset(0, pressed ? 1 : 5), blurRadius: 0),
