@@ -67,7 +67,7 @@ class PlayerGameStats {
     if (questions <= 0) return;
     sequenceRuns++;
     sequenceQuestions += questions;
-    sequenceCorrect += correct.clamp(0, questions);
+    sequenceCorrect += correct.clamp(0, questions).toInt();
     sequenceBestCorrect = math.max(sequenceBestCorrect, correct);
   }
 
@@ -83,13 +83,13 @@ class PlayerGameStats {
     int? scorePercent;
     if (has2048) {
       tilePercent = ((math.log(math.max(2, best2048Tile)) / math.ln2 - 1)
-        / 10 * 100).round().clamp(0, 100);
+        / 10 * 100).round().clamp(0, 100).toInt();
       scorePercent = ((best2048Score / 2500) * 100)
-        .round().clamp(0, 100);
+        .round().clamp(0, 100).toInt();
     }
     return [
       GameSkillRating('Logic', hasSequence
-        ? (sequenceBestCorrect / 3 * 100).round().clamp(0, 100) : null,
+        ? (sequenceBestCorrect / 3 * 100).round().clamp(0, 100).toInt() : null,
         'Number Trail best run'),
       GameSkillRating('Numbers', tilePercent, '2048 best tile'),
       GameSkillRating('Strategy', scorePercent, '2048 best score'),
