@@ -9,6 +9,8 @@ import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
 import 'ui/floor_tower_scene.dart';
 import 'ui/flooria_home_buttons.dart';
+import 'ui/flooria_pages.dart';
+import 'ui/flooria_extras.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
@@ -98,6 +100,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   final Set<String> favorites = {};
   final List<String> recent = [];
   bool loaded = false;
+  bool motionEnabled = true;
+  bool hapticsEnabled = true;
+  bool openingGame = false;
   static const games = [
     ('merge2048', '2048', 'Merge the numbers', Icons.grid_view_rounded, Color(0xFFFFC367)),
     ('numberSequence', 'Number Trail', 'Find the next number', Icons.route_rounded, Color(0xFF86E9D0)),
@@ -114,6 +119,8 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     if (!mounted) return;
     setState(() {
       floor = prefs.getInt('floor') ?? 1;
+      motionEnabled = prefs.getBool('ambient_motion') ?? true;
+      hapticsEnabled = prefs.getBool('haptic_feedback') ?? true;
       favorites.addAll(prefs.getStringList('favorites') ?? []);
       recent.addAll(prefs.getStringList('recent') ?? []);
       loaded = true;
@@ -123,39 +130,95 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('floor', floor);
+    await prefs.setBool('ambient_motion', motionEnabled);
+    await prefs.setBool('haptic_feedback', hapticsEnabled);
     await prefs.setStringList('favorites', favorites.toList());
     await prefs.setStringList('recent', recent);
   }
 
   Future<void> _open(String gameId, {bool tower = false}) async {
-    setState(() {
-      recent.remove(gameId);
-      recent.insert(0, gameId);
-    });
-    _save();
-    final startingFloor = tower ? floor : null;
-    final next = await Navigator.push<bool>(context, MaterialPageRoute<bool>(
-      builder: (_) => gameId == 'merge2048'
-        ? MergePage(
-            floor: startingFloor,
-            onComplete: () => _completeFloor(),
-          )
-        : SequencePage(
-            floor: startingFloor,
-            onComplete: () => _completeFloor(),
-          ),
-    ));
-    if (!mounted) return;
-    if (startingFloor != null && floor > startingFloor) {
-      // The floor was awarded behind the dialog. Start the camera animation
-      // only once the player returns to the visible home scene.
-      setState(() => towerSceneRevision++);
-      if (next == true) {
-        await Future<void>.delayed(const Duration(milliseconds: 620));
-        if (!mounted) return;
-        _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
+    if (openingGame) return; // avoid duplicate route pushes on quick taps
+    openingGame = true;
+    bool openNext = false;
+    try {
+      if (hapticsEnabled) HapticFeedback.selectionClick();
+      setState(() {
+        recent.remove(gameId);
+        recent.insert(0, gameId);
+      });
+      _save();
+      final startingFloor = tower ? floor : null;
+      final next = await Navigator.push<bool>(context, MaterialPageRoute<bool>(
+        builder: (_) => gameId == 'merge2048'
+          ? MergePage(
+              floor: startingFloor,
+              onComplete: () => _completeFloor(),
+            )
+          : SequencePage(
+              floor: startingFloor,
+              onComplete: () => _completeFloor(),
+            ),
+      ));
+      if (!mounted) return;
+      if (startingFloor != null && floor > startingFloor) {
+        setState(() => towerSceneRevision++);
+        openNext = next == true;
+      }
+    } finally {
+      openingGame = false;
+    }
+    if (openNext && mounted) {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        await _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
       }
     }
+  }
+
+  Future<void> _showGameDetail(String gameId) async {
+    if (openingGame) return;
+    await Navigator.of(context).push<void>(MaterialPageRoute<void>(
+      builder: (screenContext) => FlooriaGameDetailPage(
+        gameId: gameId,
+        onPlay: () {
+          Navigator.of(screenContext).pop();
+          _open(gameId);
+        },
+      ),
+    ));
+  }
+
+  void _showSettings() {
+    Navigator.of(context).push<void>(MaterialPageRoute<void>(
+      builder: (_) => StatefulBuilder(
+        builder: (routeContext, updateRoute) => FlooriaSettingsPage(
+          motionEnabled: motionEnabled,
+          hapticsEnabled: hapticsEnabled,
+          onMotionChanged: (v) {
+            setState(() => motionEnabled = v);
+            updateRoute(() {});
+            _save();
+          },
+          onHapticsChanged: (v) {
+            setState(() => hapticsEnabled = v);
+            updateRoute(() {});
+            _save();
+            if (v) HapticFeedback.selectionClick();
+          },
+        ),
+      ),
+    ));
+  }
+
+  void _showAchievements() {
+    Navigator.of(context).push<void>(MaterialPageRoute<void>(
+      builder: (_) => FlooriaAchievementsPage(
+        floorsCleared: (floor - 1).clamp(0, 1000000),
+        favoriteCount: favorites.length,
+        gamesTried: recent.length,
+        motionEnabled: motionEnabled,
+      ),
+    ));
   }
 
   void _completeFloor() {
@@ -164,6 +227,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   }
 
   void _toggleFavorite(String id) {
+    if (hapticsEnabled) HapticFeedback.selectionClick();
     setState(() => favorites.contains(id) ? favorites.remove(id) : favorites.add(id));
     _save();
   }
@@ -173,306 +237,54 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     if (!loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     return Scaffold(body: SafeArea(child: Center(child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
-      child: IndexedStack(index: tab, children: [_home(), _library(), _profile()]),
+      child: IndexedStack(index: tab, children: [
+        TickerMode(enabled: tab == 0, child: _home()),
+        TickerMode(enabled: tab == 1, child: _library()),
+        TickerMode(enabled: tab == 2, child: _profile()),
+      ]),
     ))));
   }
 
-  Widget _home() => LayoutBuilder(builder: (context, size) {
-    final challenge = const FloorEngine().challengeFor(floor);
-    final goal = const ObjectiveCatalog().forGame(challenge.gameId, floor: floor);
-    final gameName = challenge.gameId == 'merge2048' ? '2048' : 'Number Trail';
-    final symbol = challenge.gameId == 'merge2048'
-        ? 'assets/2048.svg' : 'assets/number_trail.svg';
-    final compact = size.maxHeight < 640;
-    final navHeight = compact ? 69.0 : 81.0;
-    final playHeight = compact ? 53.0 : 60.0;
-    final challengeHeight = compact ? 134.0 : 153.0;
-    const inkBlue = Color(0xFF263F69);
-    return Stack(children: [
-      Positioned.fill(child: Image.asset(
-        'assets/art/soft_sky.webp',
-        fit: BoxFit.cover, filterQuality: FilterQuality.high)),
-      // Background atmospheric columns sit behind the main tower.
-      Positioned.fill(child: IgnorePointer(child: CustomPaint(
-        painter: _HomeSkyDetails()))),
-      Positioned(
-        top: compact ? 158 : 187,
-        left: 4, right: 4,
-        bottom: challengeHeight + navHeight + 20,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 460),
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, .12), end: Offset.zero)
-                .animate(animation), child: child)),
-          child: FloorTowerScene(
-            key: ValueKey<int>(towerSceneRevision),
-            currentFloor: floor,
-            onFloorTap: (selected) {
-              if (selected == floor) {
-                _open(challenge.gameId, tower: true);
-              } else if (selected < floor) {
-                _open(const FloorEngine().challengeFor(selected).gameId);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(
-                    'Complete Floor $floor to unlock Floor $selected')));
-              }
-            },
-          ),
-        ),
-      ),
-      // Centered game identity from the uploaded logo, not a text imitation.
-      Positioned(top: compact ? 7 : 12, left: 24, right: 24,
-        child: Column(children: [
-          Image.asset('assets/Glossy FLOORIA Game Logo with Sprout (2).png',
-            width: (size.maxWidth * .82).clamp(240.0, 420.0).toDouble(),
-            height: compact ? 108 : 133,
-            fit: BoxFit.contain, filterQuality: FilterQuality.high),
-          const SizedBox(height: 0),
-          DecoratedBox(decoration: BoxDecoration(
-            color: const Color(0xDDF4FAFF),
-            borderRadius: BorderRadius.circular(50),
-            border: Border.all(color: const Color(0xCFFFFFFF)),
-            boxShadow: const [BoxShadow(color: Color(0x224E6D99),
-              blurRadius: 12, offset: Offset(0, 4))]),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 7),
-              child: Text('Floor $floor', style: const TextStyle(
-                color: inkBlue, fontWeight: FontWeight.w800, fontSize: 15))),
-          ),
-        ]),
-      ),
-      // Lower clouds visually hide the end of the tower. The challenge remains
-      // live Flutter content and can change for any future puzzle.
-      Positioned(left: 0, right: 0,
-        bottom: challengeHeight + navHeight - 17,
-        height: compact ? 42 : 65,
-        child: IgnorePointer(child: CustomPaint(
-          painter: _HomeCloudBank()))),
-      Positioned(
-        bottom: navHeight + 17,
-        left: 20, right: 20,
-        height: challengeHeight - 10,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(17, compact ? 10 : 15, 17, 13),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft, end: Alignment.bottomRight,
-              colors: [Color(0xFAFFFFFF), Color(0xFFF5F2EF)]),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white, width: 2),
-            boxShadow: const [
-              BoxShadow(color: Color(0x2E6F7891),
-                blurRadius: 21, offset: Offset(0, 10)),
-            ]),
-          child: Column(children: [
-            Expanded(child: Row(children: [
-              SvgPicture.asset(symbol, width: compact ? 51 : 62,
-                height: compact ? 51 : 62),
-              const SizedBox(width: 12),
-              Container(width: 1, height: 45,
-                color: const Color(0xFFD9DCE8)),
-              const SizedBox(width: 12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(goal.title, maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: inkBlue, fontWeight: FontWeight.w900,
-                      fontSize: compact ? 15 : 17)),
-                ],
-              )),
-            ])),
-            FlooriaPlayButton(
-              label: 'PLAY ${gameName.toUpperCase()}',
-              height: playHeight,
-              onPressed: () => _open(challenge.gameId, tower: true),
-            ),
-          ]),
-        ),
-      ),
-      Positioned(
-        bottom: 10, left: 18, right: 18,
-        child: FlooriaBottomNav(
-          height: navHeight - 5,
-          onGames: () => setState(() => tab = 1),
-          onMind: () => setState(() => tab = 2),
-        ),
-      ),
-    ]);
-  });
+  Widget _home() => FlooriaTowerHomeView(
+    floor: floor,
+    sceneRevision: towerSceneRevision,
+    motionEnabled: motionEnabled,
+    onFloorTap: (selected) {
+      if (selected == floor) {
+        _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
+      } else if (selected < floor) {
+        _open(const FloorEngine().challengeFor(selected).gameId);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Complete Floor $floor to unlock Floor $selected')));
+      }
+    },
+    onPlay: () => _open(const FloorEngine().challengeFor(floor).gameId,
+      tower: true),
+    onGames: () => setState(() => tab = 1),
+    onMind: () => setState(() => tab = 2),
+  );
 
-  Widget _library() => FantasyScene(child: DefaultTabController(
-    length: 3,
-    child: Column(children: [
-      FantasyHeader(title: 'Games', eyebrow: '',
-        onBack: () => setState(() => tab = 0)),
-      Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xEFFFFFFF),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: Colors.white, width: 2)),
-        child: const TabBar(
-          labelColor: Color(0xFF334F78),
-          unselectedLabelColor: Color(0xFF8995B1),
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: BoxDecoration(
-            color: Color(0xFFFFFAF1),
-            borderRadius: BorderRadius.all(Radius.circular(18))),
-          dividerColor: Colors.transparent,
-          tabs: [Tab(text: 'All'), Tab(text: 'Recent'),
-            Tab(text: 'Favorites')],
-        ),
-      ),
-      Expanded(child: TabBarView(children: [
-        _gameGrid(games.map((g) => g.$1).toList()),
-        _gameGrid(recent),
-        _gameGrid(games.map((g) => g.$1)
-          .where(favorites.contains).toList()),
-      ])),
-    ]),
-  ));
+  Widget _library() => FlooriaGamesView(
+    favorites: favorites,
+    recent: recent,
+    motionEnabled: motionEnabled,
+    onOpen: _showGameDetail,
+    onToggleFavorite: _toggleFavorite,
+    onTower: () => setState(() => tab = 0),
+    onMind: () => setState(() => tab = 2),
+  );
 
-  Widget _gameGrid(List<String> ids) {
-    if (ids.isEmpty) {
-      return const Center(child: Text('No games here yet ✨',
-        style: TextStyle(color: Color(0xFF8995B1),
-          fontWeight: FontWeight.w700)));
-    }
-    return LayoutBuilder(builder: (context, size) => GridView.builder(
-      padding: const EdgeInsets.fromLTRB(12, 18, 12, 24),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: size.maxWidth >= 520 ? 4 : 3,
-        mainAxisSpacing: 18,
-        crossAxisSpacing: 14,
-        childAspectRatio: .77,
-      ),
-      itemCount: ids.length,
-      itemBuilder: (context, index) {
-        final id = ids[index];
-        final game = games.where((g) => g.$1 == id).first;
-        return _gameIcon(id, game.$2, game.$4);
-      },
-    ));
-  }
-
-  Widget _gameIcon(String id, String name, IconData fallback) =>
-    InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: () => _open(id),
-      child: Column(children: [
-        Expanded(child: Stack(children: [
-          Positioned.fill(child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [
-                Color(0xFFFFFFFF), Color(0xFFFFFAF1)]),
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFFFFFFF),
-                width: 2),
-              boxShadow: const [BoxShadow(
-                color: Color(0x22667799), blurRadius: 14,
-                offset: Offset(0, 6))]),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: SvgPicture.asset(
-                id == 'merge2048'
-                  ? 'assets/2048.svg' : 'assets/number_trail.svg',
-                fit: BoxFit.contain,
-              ),
-            ),
-          )),
-          Positioned(top: 1, right: 1,
-            child: InkResponse(
-              radius: 22,
-              onTap: () => _toggleFavorite(id),
-              child: Container(
-                width: 28, height: 28,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Color(0xEFFFF5DC), shape: BoxShape.circle),
-                child: Icon(
-                  favorites.contains(id)
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                  size: 17,
-                  color: favorites.contains(id)
-                    ? const Color(0xFFD84979)
-                    : const Color(0xFF97737C)),
-              ),
-            ),
-          ),
-        ])),
-        const SizedBox(height: 7),
-        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12,
-            fontWeight: FontWeight.w800, color: Color(0xFF334F78))),
-      ]),
-    );
-
-  Widget _profile() => FantasyScene(child: Column(children: [
-    FantasyHeader(title: 'My Mind', eyebrow: '',
-      onBack: () => setState(() => tab = 0)),
-    Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
-      children: [
-        FantasyPanel(child: Column(children: [
-          SvgPicture.asset('assets/my_mind.svg',
-            height: 116, fit: BoxFit.contain),
-          const SizedBox(height: 4),
-          Text('Floor $floor', style: const TextStyle(
-            color: Color(0xFF334F78), fontSize: 32,
-            fontWeight: FontWeight.w900)),
-          const SizedBox(height: 5),
-        ])),
-        const SizedBox(height: 16),
-        Row(children: [
-          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
-            child: Column(children: [
-              const Icon(Icons.emoji_events_rounded,
-                color: Color(0xFFC78735), size: 30),
-              const SizedBox(height: 6),
-              Text('${floor - 1}', style: const TextStyle(
-                color: Color(0xFF4B3E5C), fontSize: 24,
-                fontWeight: FontWeight.w900)),
-              const Text('Floors cleared', style: TextStyle(
-                color: Color(0xFF755B68), fontSize: 11)),
-            ]))),
-          const SizedBox(width: 12),
-          Expanded(child: FantasyPanel(padding: const EdgeInsets.all(15),
-            child: Column(children: [
-              const Icon(Icons.favorite_rounded,
-                color: Color(0xFFDA7998), size: 30),
-              const SizedBox(height: 6),
-              Text('${favorites.length}', style: const TextStyle(
-                color: Color(0xFF4B3E5C), fontSize: 24,
-                fontWeight: FontWeight.w900)),
-              const Text('Favorite games', style: TextStyle(
-                color: Color(0xFF755B68), fontSize: 11)),
-            ]))),
-        ]),
-        const SizedBox(height: 16),
-        FantasyPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('YOUR COLLECTION', style: TextStyle(
-              color: Color(0xFF634B66), fontWeight: FontWeight.w900)),
-            const SizedBox(height: 10),
-            Row(children: [
-              const Icon(Icons.history_rounded, color: Color(0xFF8767B2)),
-              const SizedBox(width: 9),
-              const Expanded(child: Text('Recently played')),
-              Text('${recent.length}', style: const TextStyle(
-                fontWeight: FontWeight.w900)),
-            ]),
-          ])),
-      ])),
-  ]));
+  Widget _profile() => FlooriaMindView(
+    floor: floor,
+    favorites: favorites.length,
+    recent: recent.length,
+    motionEnabled: motionEnabled,
+    onTower: () => setState(() => tab = 0),
+    onGames: () => setState(() => tab = 1),
+    onAchievements: _showAchievements,
+    onSettings: _showSettings,
+  );
 
 }
 
