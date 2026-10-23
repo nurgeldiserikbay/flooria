@@ -75,6 +75,7 @@ class FlooriaGameDetailPage extends StatelessWidget {
       ),
     ),
   ));
+  }
 }
 
 /// Only settings with working behavior are exposed.
