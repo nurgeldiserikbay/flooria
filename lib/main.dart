@@ -14,6 +14,7 @@ import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
 import 'ui/neuro_map.dart';
+import 'ui/neuro_hub_pages.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +32,7 @@ class FlooriaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
-    title: 'Flooria',
+    title: 'Neuro Playground',
     theme: ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: paper,
@@ -222,6 +223,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         TickerMode(enabled: tab == 0, child: _home()),
         TickerMode(enabled: tab == 1, child: _library()),
         TickerMode(enabled: tab == 2, child: _profile()),
+        TickerMode(enabled: tab == 3, child: _records()),
       ]),
     ))));
   }
@@ -238,28 +240,25 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     onGames: () => setState(() => tab = 1),
     onAnalytics: () => setState(() => tab = 2),
     onSettings: _showSettings,
+    onRecords: () => setState(() => tab = 3),
   );
 
-  Widget _library() => FlooriaGamesView(
+  Widget _library() => NeuroGamesPage(
     favorites: favorites,
-    recent: recent,
-    motionEnabled: motionEnabled,
-    onOpen: _showGameDetail,
-    onToggleFavorite: _toggleFavorite,
-    onTower: () => setState(() => tab = 0),
-    onMind: () => setState(() => tab = 2),
+    onFavorite: _toggleFavorite,
+    onPlay: _showGameDetail,
+    onTab: (index) => setState(() => tab = index),
   );
 
-  Widget _profile() => FlooriaMindView(
+  Widget _profile() => NeuroSkillsPage(
     floor: floor,
-    favorites: favorites.length,
-    recent: recent.length,
-    gameStats: playerStats,
-    motionEnabled: motionEnabled,
-    onTower: () => setState(() => tab = 0),
-    onGames: () => setState(() => tab = 1),
-    onAchievements: _showAchievements,
-    onSettings: _showSettings,
+    stats: playerStats,
+    onTab: (index) => setState(() => tab = index),
+  );
+
+  Widget _records() => NeuroRecordsPage(
+    stats: playerStats,
+    onTab: (index) => setState(() => tab = index),
   );
 
 }
