@@ -70,10 +70,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
         });
       }
       return Stack(children: [
-        const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF193778), Color(0xFF202E70), Color(0xFF171E52)])))),
+        const Positioned.fill(child: NeuroAtmosphere(child: SizedBox.expand())),
         Positioned.fill(child: InteractiveViewer(
           transformationController: _transform,
           constrained: false,
@@ -103,7 +100,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                           'assets/design/${i + 1 < widget.floor ? "neuro-node-active" : i + 1 == widget.floor ? "neuro-node-current" : "neuro-node-locked"}.svg',
                           height: 67, width: 67),
                         Text('${i + 1}', style: TextStyle(
-                          color: i + 1 <= widget.floor ? Colors.white : const Color(0xFF8EA1CE),
+                          color: i + 1 <= widget.floor ? const Color(0xFF263F75) : const Color(0xFF7786AA),
                           fontWeight: FontWeight.bold, fontSize: 13)),
                       ]),
                     ),
@@ -130,21 +127,21 @@ class _NeuroMapViewState extends State<NeuroMapView> {
               ])),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-              decoration: BoxDecoration(color: const Color(0xBB2B448B),
+              decoration: BoxDecoration(color: const Color(0xDFFFFFFF),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF678BE4))),
+                border: Border.all(color: const Color(0xFFA0B6E5))),
               child: Text('LEVEL ${widget.floor}', style: const TextStyle(
                 color: Color(0xFFFFE39D), fontWeight: FontWeight.w900))),
             IconButton(tooltip: 'Settings', onPressed: widget.onSettings,
-              icon: const Icon(Icons.settings_rounded, color: Colors.white)),
+              icon: const Icon(Icons.settings_rounded, color: Color(0xFF334A88))),
           ])),
         Positioned(left: 17, right: 17, bottom: 96,
           child: Container(padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xEF354CA0), Color(0xF0202F6B)]),
+              gradient: const LinearGradient(colors: [Color(0xFFFDFEFF), Color(0xFFE3EDFF)]),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF7391F9)),
-              boxShadow: const [BoxShadow(color: Color(0x883B61D8), blurRadius: 25, offset: Offset(0, 6))]),
+              border: Border.all(color: const Color(0xFFACC2F2)),
+              boxShadow: const [BoxShadow(color: Color(0x446B86CC), blurRadius: 25, offset: Offset(0, 6))]),
             child: Row(children: [
               SvgPicture.asset('assets/design/neuro-icon-${widget.floor.isOdd ? "2048" : "trail"}.svg',
                 width: 45, height: 45),
@@ -155,7 +152,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                     color: Color(0xFFA9C2FC), fontSize: 10,
                     fontWeight: FontWeight.w800, letterSpacing: 1)),
                   Text(widget.floor.isOdd ? '2048' : 'Number Trail',
-                    style: const TextStyle(color: Colors.white,
+                    style: const TextStyle(color: Color(0xFF273F78),
                       fontSize: 17, fontWeight: FontWeight.w900)),
                 ])),
               FilledButton.icon(
@@ -202,9 +199,9 @@ class _Connections extends CustomPainter {
       canvas.drawPath(Path()..moveTo(p.dx, p.dy)
         ..quadraticBezierTo(p.dx + side * 65, p.dy - 9, end.dx, end.dy),
         Paint()..style = PaintingStyle.stroke
-          ..strokeWidth = 1.6..color = const Color(0x66577FC2));
-      canvas.drawCircle(end, 7, Paint()..color = const Color(0x444F85D1));
-      canvas.drawCircle(end, 3, Paint()..color = const Color(0xFF6A9ADE));
+          ..strokeWidth = 1.6..color = const Color(0x887692CA));
+      canvas.drawCircle(end, 7, Paint()..color = const Color(0x886A9BD7));
+      canvas.drawCircle(end, 3, Paint()..color = const Color(0xFF527AC1));
       if (i == 0) continue;
       final start = nodes[i - 1] + const Offset(0, 78);
       final path = Path()..moveTo(start.dx, start.dy)
@@ -213,10 +210,10 @@ class _Connections extends CustomPainter {
       final passed = i < floor;
       canvas.drawPath(path, Paint()..style = PaintingStyle.stroke
         ..strokeWidth = passed ? 10 : 6
-        ..color = passed ? const Color(0x4452E4F8) : const Color(0x223F76B2));
+        ..color = passed ? const Color(0x9970D3E8) : const Color(0x556E87BE));
       canvas.drawPath(path, Paint()..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round..strokeWidth = passed ? 3.6 : 2.3
-        ..color = passed ? const Color(0xFF8FEAFF) : const Color(0xFF5471A9));
+        ..color = passed ? const Color(0xFF29B7CF) : const Color(0xFF819ACA));
     }
   }
 
