@@ -31,10 +31,10 @@ class _SkillRadarPainter extends CustomPainter {
   const _SkillRadarPainter(this.ratings);
   final List<GameSkillRating> ratings;
 
-  static const ink = Color(0xFF3C5886);
-  static const line = Color(0xFFD9E1EF);
-  static const fill = Color(0x55468AD9);
-  static const outline = Color(0xFF4C91D8);
+  static const ink = Color(0xFFE1EBFF);
+  static const line = Color(0xFF3F568E);
+  static const fill = Color(0x665E75FE);
+  static const outline = Color(0xFF8CE9FF);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -61,7 +61,7 @@ class _SkillRadarPainter extends CustomPainter {
       }
       polygon.close();
       canvas.drawPath(polygon, Paint()
-        ..color = ring == 4 ? const Color(0xFFB7C9E3) : line
+        ..color = ring == 4 ? const Color(0xFF7A88C7) : line
         ..strokeWidth = ring == 4 ? 1.7 : 1.0
         ..style = PaintingStyle.stroke);
     }
@@ -121,7 +121,7 @@ class _SkillRadarPainter extends CustomPainter {
           TextSpan(text: value,
             style: TextStyle(fontSize: 12.5, height: 1.15,
               color: rating.value == null
-                ? const Color(0xFFA5B0C3) : outline,
+                ? const Color(0xFF99A8D0) : outline,
               fontWeight: FontWeight.w900)),
         ]),
       )..layout(maxWidth: 90);
