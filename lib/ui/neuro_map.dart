@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'neuro_hub_pages.dart';
 
 /// Lightweight neuron network: pure Flutter painting + existing SVG assets.
 /// Nodes reuse the persisted floor number, so no saved games are lost.
@@ -11,6 +12,7 @@ class NeuroMapView extends StatefulWidget {
     required this.onNodeTap,
     required this.onGames,
     required this.onAnalytics,
+    required this.onRecords,
     required this.onSettings,
     this.motionEnabled = true,
   });
@@ -18,6 +20,7 @@ class NeuroMapView extends StatefulWidget {
   final ValueChanged<int> onNodeTap;
   final VoidCallback onGames;
   final VoidCallback onAnalytics;
+  final VoidCallback onRecords;
   final VoidCallback onSettings;
   final bool motionEnabled;
 
@@ -28,6 +31,7 @@ class NeuroMapView extends StatefulWidget {
 class _NeuroMapViewState extends State<NeuroMapView> {
   late final TransformationController _transform = TransformationController();
   int? selected;
+  bool _positioned = false;
 
   // A repeatable organic path, with slight horizontal branching.
   List<Offset> get _points {
@@ -36,6 +40,12 @@ class _NeuroMapViewState extends State<NeuroMapView> {
       85.0 + ((i * 113 + 61) % 220).toDouble(),
       65.0 + i * 132.0,
     ));
+  }
+
+  @override
+  void didUpdateWidget(covariant NeuroMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.floor != widget.floor) _positioned = false;
   }
 
   @override
@@ -50,6 +60,16 @@ class _NeuroMapViewState extends State<NeuroMapView> {
     final visible = math.min(points.length, math.max(6, widget.floor + 4));
     final current = (widget.floor - 1).clamp(0, points.length - 1);
     return LayoutBuilder(builder: (context, constraints) {
+      if (!_positioned) {
+        _positioned = true;
+        final target = points[current];
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _transform.value = Matrix4.identity()
+            ..translate(constraints.maxWidth / 2 - target.dx,
+              constraints.maxHeight * .45 - target.dy - 80);
+        });
+      }
       return Stack(children: [
         const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
           gradient: LinearGradient(begin: Alignment.topCenter,
@@ -135,30 +155,21 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                 onPressed: () => widget.onNodeTap(widget.floor),
                 child: const Text('PLAY')),
             ]))),
-        Positioned(left: 18, right: 18, bottom: 12,
-          child: Container(height: 64,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: const Color(0xF01B295A),
-              border: Border.all(color: const Color(0x776583D6))),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _nav('neuro-nav-map.svg', 'Map', () {}),
-                _nav('neuro-nav-games.svg', 'Games', widget.onGames),
-                _nav('neuro-nav-analytics.svg', 'Skills', widget.onAnalytics),
-              ]))),
+        Positioned(left: 0, right: 0, bottom: 0,
+          child: NeuroNavigation(selected: 0, onTab: (tab) {
+            switch (tab) {
+              case 1: widget.onGames();
+              case 2: widget.onAnalytics();
+              case 3: widget.onRecords();
+              default: break;
+            }
+          })),
+
       ]);
     });
   }
 
-  Widget _nav(String icon, String label, VoidCallback callback) =>
-      InkWell(onTap: callback, borderRadius: BorderRadius.circular(15),
-        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 8),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            SvgPicture.asset('assets/design/$icon', width: 25, height: 25),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 11)),
-          ])));
+
 }
 
 class _Connections extends CustomPainter {
