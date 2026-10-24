@@ -25,10 +25,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 450));
   }
 
-  Future<void> goTo(WidgetTester tester, String destination) async {
-    await tester.tap(find.text('EXPLORE'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(destination).last);
+  Future<void> goTo(WidgetTester tester, int index) async {
+    await tester.tap(find.byKey(ValueKey('neuro-nav-$index')).last);
     await tester.pumpAndSettle();
   }
 
@@ -42,23 +40,22 @@ void main() {
     expect(find.byType(InteractiveViewer), findsOneWidget);
   });
 
-  testWidgets('Four game tabs and settings remain navigable',
+  testWidgets('Three visible game portals, combined profile and settings work',
       (tester) async {
     await boot(tester);
 
-    await goTo(tester, 'Games');
+    await goTo(tester, 1);
     expect(find.byType(NeuroGamesPage), findsOneWidget);
     expect(find.text('Mini games'), findsOneWidget);
 
-    await goTo(tester, 'Skills');
+    await goTo(tester, 2);
     expect(find.byType(NeuroSkillsPage), findsOneWidget);
     expect(find.byType(SkillRadarChart), findsOneWidget);
 
-    await goTo(tester, 'Records');
-    expect(find.byType(NeuroRecordsPage), findsOneWidget);
+    expect(find.text('PERSONAL RECORDS'), findsOneWidget);
     expect(find.text('No record yet'), findsNWidgets(2));
 
-    await goTo(tester, 'Map');
+    await goTo(tester, 0);
     expect(find.byType(NeuroMapView), findsOneWidget);
     await tester.tap(find.byTooltip('Settings'));
     await tester.pump();
