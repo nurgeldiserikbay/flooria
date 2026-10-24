@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'flooria_backdrop.dart';
 
 /// Shared environment and controls used across all Flooria screens.
 class FantasyScene extends StatelessWidget {
