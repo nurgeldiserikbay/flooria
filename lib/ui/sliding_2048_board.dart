@@ -60,9 +60,9 @@ class Sliding2048Board extends StatelessWidget {
   });
 
   static const shades = [
-    Color(0xFFF5E9D2), Color(0xFFFFE6AC), Color(0xFFFFD08C),
-    Color(0xFFFFB889), Color(0xFFF6A08E), Color(0xFFC4ACE9),
-    Color(0xFF9CCDEB), Color(0xFF8BDEBF), Color(0xFFFFCE68),
+    Color(0xFF52C9F1), Color(0xFF8577FA), Color(0xFFFFBD55),
+    Color(0xFFFF7DA8), Color(0xFF57D8B6), Color(0xFFA998FC),
+    Color(0xFF66B5FF), Color(0xFF7EE5DC), Color(0xFFFFCF68),
     Color(0xFFFBA7C1), Color(0xFFB29EEB), Color(0xFFFFA765),
   ];
 
@@ -74,14 +74,14 @@ class Sliding2048Board extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color.lerp(color, Colors.white, .24)!, color],
+          colors: [Color.lerp(color, Colors.white, .16)!, color],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border(bottom: BorderSide(
-          color: Color.lerp(color, const Color(0xFF755069), .28)!,
+          color: Color.lerp(color, const Color(0xFF233365), .28)!,
           width: 4)),
         boxShadow: const [BoxShadow(
-          color: Color(0x1D614566), blurRadius: 4, offset: Offset(0, 3))],
+          color: Color(0x66212961), blurRadius: 4, offset: Offset(0, 3))],
       ),
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -89,7 +89,7 @@ class Sliding2048Board extends StatelessWidget {
           padding: const EdgeInsets.all(3),
           child: Text('$value', style: TextStyle(
             fontSize: value >= 1024 ? 22 : 27,
-            color: const Color(0xFF413753),
+            color: const Color(0xFF172653),
             fontWeight: FontWeight.w900)),
         ),
       ),
@@ -111,10 +111,10 @@ class Sliding2048Board extends StatelessWidget {
       );
       return Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFD6BFAF),
+          color: const Color(0xFF20366F),
           borderRadius: BorderRadius.circular(22),
           border: const Border(bottom: BorderSide(
-            color: Color(0xFFB69BA6), width: 5)),
+            color: Color(0xFF101F4B), width: 5)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(22),
@@ -130,7 +130,7 @@ class Sliding2048Board extends StatelessWidget {
                   width: tileSize, height: tileSize,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0x6EFFFFFF),
+                      color: const Color(0x446F8CCD),
                       borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
