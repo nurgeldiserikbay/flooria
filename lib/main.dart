@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
@@ -39,7 +40,7 @@ class FlooriaApp extends StatelessWidget {
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: ink),
         headlineMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: ink),
-        titleLarge: TextStyle(fontWeight: FontWeight.w700, color: ink),
+        titleLarge: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
         bodyLarge: TextStyle(color: ink),
       ),
     ),
@@ -315,7 +316,7 @@ class _MergePageState extends State<MergePage> {
     final action = await showFloorVictory(context,
       completedFloor: widget.floor!,
       achievement: 'You created the ${game.highest} tile!',
-      detail: 'Your adventure continues above the clouds.',
+      detail: 'The next neuron is ready to explore.',
     );
     if (!mounted) return;
     Navigator.of(context).pop(action == VictoryAction.nextFloor);
@@ -323,19 +324,19 @@ class _MergePageState extends State<MergePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Floor ${widget.floor} · 2048'), backgroundColor: const Color(0xFFFFE9C2)),
+    appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Challenge ${widget.floor} · 2048'), backgroundColor: const Color(0xFF172A61), foregroundColor: Colors.white),
     body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 470), child: ListView(padding: const EdgeInsets.all(20), children: [
       const SizedBox(height: 12),
-      const Text('THE NUMBER FORGE', style: TextStyle(fontSize: 12,
-        fontWeight: FontWeight.w900, color: Color(0xFF664C79),
+      const Text('NEURON PUZZLE', style: TextStyle(fontSize: 12,
+        fontWeight: FontWeight.w900, color: Color(0xFF9DEAFF),
         letterSpacing: 2), textAlign: TextAlign.center),
       const SizedBox(height: 4),
-      Text('2048', style: Theme.of(context).textTheme.headlineLarge,
+      const Text('2048', style: TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.w900),
         textAlign: TextAlign.center),
       const SizedBox(height: 5),
-      const Text('Merge equal tiles to climb higher',
+      const Text('Merge matching tiles to activate your neuron',
         textAlign: TextAlign.center,
-        style: TextStyle(color: Color(0xFF594C70), fontSize: 13)),
+        style: TextStyle(color: Color(0xFFC5D8FF), fontSize: 13)),
       const SizedBox(height: 13),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('merge2048', floor: widget.floor), progress: game.highest),
       const SizedBox(height: 18),
@@ -343,9 +344,9 @@ class _MergePageState extends State<MergePage> {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
           _stat('SCORE', '${game.score}'),
-          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          Container(width: 2, height: 34, color: const Color(0xFF6D82C7)),
           _stat('BEST TILE', '${game.highest}'),
-          Container(width: 2, height: 34, color: const Color(0xFFDAB783)),
+          Container(width: 2, height: 34, color: const Color(0xFF6D82C7)),
           _stat('MOVES', '${game.moves}'),
         ]),
       ),
@@ -418,8 +419,8 @@ class _MergePageState extends State<MergePage> {
     ])))),
   );
 
-  Widget _stat(String label, String value) => Column(children: [Text(label, style: const TextStyle(letterSpacing: 1.2, color: lavender, fontWeight: FontWeight.w700, fontSize: 11)), const SizedBox(height: 4), Text(value, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: ink))]);
-  Widget _notice(String text) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: mint, borderRadius: BorderRadius.circular(16)), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700, color: ink)));
+  Widget _stat(String label, String value) => Column(children: [Text(label, style: const TextStyle(letterSpacing: 1.2, color: const Color(0xFFA7E8F9), fontWeight: FontWeight.w700, fontSize: 11)), const SizedBox(height: 4), Text(value, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Colors.white))]);
+  Widget _notice(String text) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF2D6191), borderRadius: BorderRadius.circular(16)), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700, color: ink)));
 }
 
 class SequencePage extends StatefulWidget {
@@ -491,7 +492,7 @@ class _SequencePageState extends State<SequencePage> {
     final action = await showFloorVictory(context,
       completedFloor: widget.floor!,
       achievement: '$correct of 3 patterns solved!',
-      detail: 'A fresh puzzle is waiting on the next floor.',
+      detail: 'Another neuron is waiting in the network.',
     );
     if (!mounted) return;
     Navigator.of(context).pop(action == VictoryAction.nextFloor);
@@ -499,21 +500,21 @@ class _SequencePageState extends State<SequencePage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Floor ${widget.floor} · Number Trail'), backgroundColor: const Color(0xFFFFE9C2)),
+    appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Challenge ${widget.floor} · Number Trail'), backgroundColor: const Color(0xFF172A61), foregroundColor: Colors.white),
     body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Image.asset('assets/art/glowing_puzzle_crown_pedestal.webp',
-        height: 102, fit: BoxFit.contain),
+      SvgPicture.asset('assets/design/neuro-icon-trail.svg',
+        height: 96, width: 96),
       const SizedBox(height: 20),
       Text(done ? 'Challenge finished!' : 'NUMBER TRAIL',
-        style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
+        style: const TextStyle(fontSize: 29, color: Colors.white, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
       const SizedBox(height: 12),
-      Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFF8C8DA0))),
+      Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFFB7CCF2))),
       const SizedBox(height: 18),
       ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
       const SizedBox(height: 20),
       if (!done) ...[
         const Text('DISCOVER THE MISSING NUMBER', style: TextStyle(
-          color: Color(0xFF594C70), fontSize: 11,
+          color: Color(0xFFC5D8FF), fontSize: 11,
           letterSpacing: 1, fontWeight: FontWeight.w900)),
         const SizedBox(height: 8),
         FantasyPanel(padding: const EdgeInsets.all(17),
@@ -533,7 +534,7 @@ class _SequencePageState extends State<SequencePage> {
             fit: BoxFit.scaleDown,
             child: Text('${puzzle.numbers.join('   ')}   ?',
               style: const TextStyle(
-                fontSize: 27, fontWeight: FontWeight.w800, color: ink)),
+                fontSize: 27, fontWeight: FontWeight.w800, color: Colors.white)),
           ),
         )),
         const SizedBox(height: 19),
@@ -550,17 +551,17 @@ class _SequencePageState extends State<SequencePage> {
                   decoration: BoxDecoration(
                     color: answering && selectedAnswer == v
                       ? selectedCorrect
-                        ? const Color(0xFF94E2BE) : const Color(0xFFFFBAA6)
-                      : const Color(0xFFFFE0A6),
+                        ? const Color(0xFF57D3AF) : const Color(0xFFFF7396)
+                      : const Color(0xFF627ADF),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFFF4D7), width: 2),
-                    boxShadow: const [BoxShadow(color: Color(0xFFB98556),
+                    border: Border.all(color: const Color(0xFFB3C6FF), width: 2),
+                    boxShadow: const [BoxShadow(color: Color(0xFF25376D),
                       offset: Offset(0, 4))],
                   ),
                   child: TextButton(
                     onPressed: answering ? null : () => answer(v),
                     style: TextButton.styleFrom(
-                      foregroundColor: ink,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16))),
                     child: Text('$v', style: const TextStyle(
@@ -571,7 +572,7 @@ class _SequencePageState extends State<SequencePage> {
           ],
         ),
       ] else if (widget.floor == null || !passed) ...[
-        Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: lavender),
+        Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: const Color(0xFF9FE8FA)),
         const SizedBox(height: 20),
         FilledButton(onPressed: () {
           if (passed) {
@@ -579,7 +580,7 @@ class _SequencePageState extends State<SequencePage> {
           } else {
             setState(() { round = 0; correct = 0; done = false; passed = false; resultPresented = false; answering = false; selectedAnswer = null; _buildChoices(); });
           }
-        }, child: Text(passed ? 'Back to tower' : 'Try again')),
+        }, child: Text(passed ? 'Back to map' : 'Try again')),
       ],
     ]))))),
   );
