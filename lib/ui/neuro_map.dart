@@ -163,7 +163,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                 style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFD15E),
                   foregroundColor: const Color(0xFF1C285D)),
                 onPressed: () => widget.onNodeTap(widget.floor),
-                child: const Text('PLAY')),
+                label: const Text('PLAY')),
             ]))),
         Positioned(left: 0, right: 0, bottom: 0,
           child: NeuroNavigation(selected: 0, onTab: (tab) {
