@@ -66,8 +66,8 @@ class _NeuroMapViewState extends State<NeuroMapView> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _transform.value = Matrix4.identity()
-            ..translate(constraints.maxWidth / 2 - target.dx,
-              constraints.maxHeight * .45 - target.dy - 80);
+            ..translateByDouble(constraints.maxWidth / 2 - target.dx,
+              constraints.maxHeight * .45 - target.dy - 80, 0, 1);
         });
       }
       return Stack(children: [
