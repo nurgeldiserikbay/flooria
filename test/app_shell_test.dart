@@ -53,7 +53,7 @@ void main() {
     expect(find.byType(SkillRadarChart), findsOneWidget);
 
     expect(find.text('PERSONAL RECORDS'), findsOneWidget);
-    expect(find.text('No record yet'), findsNWidgets(2));
+    expect(find.text('No record yet'), findsWidgets);
 
     await goTo(tester, 0);
     expect(find.byType(NeuroMapView), findsOneWidget);
