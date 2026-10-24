@@ -238,3 +238,66 @@ Widget _panel(Widget child) => Container(
     border: Border.all(color: const Color(0xFF41538C))),
   child: child,
 );
+
+class NeuroGameDetailPage extends StatelessWidget {
+  const NeuroGameDetailPage({super.key, required this.gameId, required this.onPlay});
+  final String gameId;
+  final VoidCallback onPlay;
+  @override
+  Widget build(BuildContext context) {
+    final merge = gameId == 'merge2048';
+    final title = merge ? '2048' : 'Number Trail';
+    final icon = merge ? '2048' : 'trail';
+    return Scaffold(
+      backgroundColor: neuroBg,
+      body: SafeArea(child: Center(child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(children: [
+          Row(children: [
+            IconButton(onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white)),
+            const Expanded(child: Text('MINI GAME',
+              style: TextStyle(color: neuroMuted, fontWeight: FontWeight.w800))),
+          ]),
+          Expanded(child: Center(child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              SvgPicture.asset('assets/design/neuro-icon-$icon.svg',
+                width: 144, height: 144),
+              const SizedBox(height: 25),
+              Text(title, style: const TextStyle(color: Colors.white,
+                fontWeight: FontWeight.w900, fontSize: 33)),
+              const SizedBox(height: 14),
+              Text(merge
+                ? 'Merge matching tiles and reach the highest number.'
+                : 'Find the number pattern and pick the missing value.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: neuroMuted,
+                  fontSize: 15, height: 1.45)),
+              const SizedBox(height: 24),
+              Text('PRACTICE MODE', style: const TextStyle(
+                color: Color(0xFF89E2EF), fontWeight: FontWeight.w800,
+                letterSpacing: 1.5)),
+              const SizedBox(height: 8),
+              const Text('Practice freely, or complete nodes on the map to unlock your route.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: neuroMuted, fontSize: 12)),
+            ]),
+          ))),
+          Padding(padding: const EdgeInsets.fromLTRB(25, 0, 25, 28),
+            child: SizedBox(width: double.infinity, height: 58,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: neuroAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(19))),
+                onPressed: onPlay,
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: const Text('PLAY', style: TextStyle(
+                  fontWeight: FontWeight.w900, fontSize: 19)),
+              ))),
+        ]),
+      ))),
+    );
+  }
+}
