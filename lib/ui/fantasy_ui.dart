@@ -5,16 +5,15 @@ import 'flooria_backdrop.dart';
 class FantasyScene extends StatelessWidget {
   final Widget child;
   const FantasyScene({super.key, required this.child});
-
   @override
-  Widget build(BuildContext context) => FlooriaBackdrop(
-    motionEnabled: false,
-    quiet: true,
+  Widget build(BuildContext context) => Container(
+    decoration: const BoxDecoration(gradient: LinearGradient(
+      begin: Alignment.topLeft, end: Alignment.bottomRight,
+      colors: [Color(0xFF203B81), Color(0xFF15265A), Color(0xFF131C44)])),
     child: child,
   );
 }
 
-/// Fantasy parchment surface, with a warm border and restrained depth.
 class FantasyPanel extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -24,21 +23,16 @@ class FantasyPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: padding,
     decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [Color(0xFFFFFFFF), Color(0xFFFFFAF2)]),
-      border: Border.all(color: const Color(0xEEFFFFFF), width: 2),
+      gradient: const LinearGradient(colors: [
+        Color(0xFF354F9A), Color(0xFF283C7B)]),
+      border: Border.all(color: const Color(0xFF6382D1), width: 1.5),
       borderRadius: BorderRadius.circular(22),
-      boxShadow: const [
-        BoxShadow(color: Color(0x22667799), blurRadius: 20, offset: Offset(0, 8)),
-        BoxShadow(color: Color(0x44FFFFFF), blurRadius: 2, offset: Offset(-2, -2)),
-      ],
-    ),
+      boxShadow: const [BoxShadow(color: Color(0x4420449A),
+        blurRadius: 16, offset: Offset(0, 6))]),
     child: child,
   );
 }
 
-/// A button with a pressed material face and accessible tap target.
 class FantasyButton extends StatefulWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -60,25 +54,21 @@ class _FantasyButtonState extends State<FantasyButton> {
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 110),
       transform: Matrix4.translationValues(0, pressed ? 3 : 0, 0),
-      height: 54,
+      height: 56,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFF3B5), Color(0xFFFFD879), Color(0xFFF0B758)]),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFFFF3C5), width: 2),
-        boxShadow: [
-          BoxShadow(color: const Color(0xFFD3A25B),
-            offset: Offset(0, pressed ? 1 : 5), blurRadius: 0),
-        ],
-      ),
+        gradient: const LinearGradient(colors: [
+          Color(0xFFFFE590), Color(0xFFFFC14C)]),
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(color: const Color(0xFFFFE8AB), width: 2),
+        boxShadow: [BoxShadow(color: const Color(0xFF9D732F),
+          offset: Offset(0, pressed ? 1 : 4), blurRadius: 0)]),
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(widget.icon, color: const Color(0xFF623B3B), size: 24),
+        Icon(widget.icon, color: const Color(0xFF1B2758), size: 24),
         const SizedBox(width: 8),
         Flexible(child: Text(widget.label,
           maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Color(0xFF623B3B),
-            fontWeight: FontWeight.w900, letterSpacing: .3, fontSize: 15))),
+          style: const TextStyle(color: Color(0xFF1B2758),
+            fontWeight: FontWeight.w900, letterSpacing: .5, fontSize: 15))),
       ]),
     ),
   );
