@@ -148,7 +148,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _showGameDetail(String gameId) async {
     if (openingGame) return;
     await Navigator.of(context).push<void>(MaterialPageRoute<void>(
-      builder: (screenContext) => FlooriaGameDetailPage(
+      builder: (screenContext) => NeuroGameDetailPage(
         gameId: gameId,
         onPlay: () {
           Navigator.of(screenContext).pop();
