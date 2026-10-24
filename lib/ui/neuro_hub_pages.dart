@@ -134,7 +134,7 @@ class NeuroGamesPage extends StatelessWidget {
                       fontWeight: FontWeight.w800, fontSize: 12)),
                   if (!playable) const Text('SOON', style: TextStyle(
                     fontSize: 9, color: neuroMuted)),
-                ]))),
+                ])),
             ),
           );
         },
@@ -166,7 +166,7 @@ class NeuroSkillsPage extends StatelessWidget {
         ])),
         const SizedBox(height: 15),
         _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Neuron ${floor}', style: const TextStyle(color: Colors.white,
+          Text('Neuron $floor', style: const TextStyle(color: Colors.white,
             fontSize: 21, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           Text('${floor - 1} completed challenges', style: const TextStyle(
