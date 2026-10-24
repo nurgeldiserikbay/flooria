@@ -8,7 +8,6 @@ import 'game/game_objective.dart';
 import 'game/player_stats.dart';
 import 'game/sequence_generator.dart';
 import 'ui/objective_banner.dart';
-import 'ui/flooria_pages.dart';
 import 'ui/flooria_extras.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
@@ -176,17 +175,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
             if (v) HapticFeedback.selectionClick();
           },
         ),
-      ),
-    ));
-  }
-
-  void _showAchievements() {
-    Navigator.of(context).push<void>(MaterialPageRoute<void>(
-      builder: (_) => FlooriaAchievementsPage(
-        floorsCleared: (floor - 1).clamp(0, 1000000),
-        favoriteCount: favorites.length,
-        gamesTried: recent.length,
-        motionEnabled: motionEnabled,
       ),
     ));
   }
