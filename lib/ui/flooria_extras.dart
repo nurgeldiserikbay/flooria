@@ -217,11 +217,12 @@ class FlooriaSettingsPage extends StatelessWidget {
     required String subtitle,
     required bool value,
     required ValueChanged<bool> onChanged,
-  }) => Container(
-    decoration: BoxDecoration(
-      color: const Color(0xFF283A77),
+  }) => Material(
+    color: const Color(0xFF283A77),
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(21),
-      border: Border.all(color: const Color(0xFF485FA2))),
+      side: const BorderSide(color: Color(0xFF485FA2))),
+    clipBehavior: Clip.antiAlias,
     child: SwitchListTile(
       contentPadding: const EdgeInsets.fromLTRB(14, 7, 9, 7),
       secondary: Container(
