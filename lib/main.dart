@@ -13,6 +13,7 @@ import 'ui/flooria_extras.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
+import 'ui/neuro_map.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -225,24 +226,17 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     ))));
   }
 
-  Widget _home() => FlooriaTowerHomeView(
+  Widget _home() => NeuroMapView(
     floor: floor,
-    sceneRevision: towerSceneRevision,
     motionEnabled: motionEnabled,
-    onFloorTap: (selected) {
-      if (selected == floor) {
-        _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
-      } else if (selected < floor) {
-        _open(const FloorEngine().challengeFor(selected).gameId);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Complete Floor $floor to unlock Floor $selected')));
+    onNodeTap: (selected) {
+      if (selected <= floor) {
+        _open(const FloorEngine().challengeFor(selected).gameId,
+          tower: selected == floor);
       }
     },
-    onPlay: () => _open(const FloorEngine().challengeFor(floor).gameId,
-      tower: true),
     onGames: () => setState(() => tab = 1),
-    onMind: () => setState(() => tab = 2),
+    onAnalytics: () => setState(() => tab = 2),
     onSettings: _showSettings,
   );
 
