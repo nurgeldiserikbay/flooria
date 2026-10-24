@@ -36,8 +36,8 @@ class _NeuroMapViewState extends State<NeuroMapView> {
   List<Offset> get _points {
     final count = math.max(12, widget.floor + 5);
     return List<Offset>.generate(count, (i) => Offset(
-      85.0 + ((i * 113 + 61) % 220).toDouble(),
-      65.0 + i * 132.0,
+      <double>[190, 95, 270, 315, 145, 70, 225, 310][i % 8],
+      130.0 + i * 134.0,
     ));
   }
 
@@ -121,23 +121,32 @@ class _NeuroMapViewState extends State<NeuroMapView> {
           child: Row(children: [
             SvgPicture.asset('assets/design/neuro-brand-symbol.svg', width: 38),
             const SizedBox(width: 8),
-            const Expanded(child: Text('NEURO', style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.w900,
-              letterSpacing: 3, fontSize: 22))),
-            Text('LEVEL ${widget.floor}', style: const TextStyle(
-              color: Color(0xFFD4E4FF), fontWeight: FontWeight.w800)),
+            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('NEURO', style: TextStyle(color: Colors.white,
+                  fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 22)),
+                Text('EXPLORE THE NETWORK', style: TextStyle(color: Color(0xFF9CE6FF),
+                  fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.3)),
+              ])),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+              decoration: BoxDecoration(color: const Color(0xBB2B448B),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF678BE4))),
+              child: Text('LEVEL ${widget.floor}', style: const TextStyle(
+                color: Color(0xFFFFE39D), fontWeight: FontWeight.w900))),
             IconButton(tooltip: 'Settings', onPressed: widget.onSettings,
               icon: const Icon(Icons.settings_rounded, color: Colors.white)),
           ])),
-        Positioned(left: 22, right: 22, bottom: 93,
+        Positioned(left: 17, right: 17, bottom: 96,
           child: Container(padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [Color(0xEF354CA0), Color(0xF0202F6B)]),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: const Color(0xFF7391F9)),
-              boxShadow: const [BoxShadow(color: Color(0x552E4DD6), blurRadius: 18)]),
+              boxShadow: const [BoxShadow(color: Color(0x883B61D8), blurRadius: 25, offset: Offset(0, 6))]),
             child: Row(children: [
-              SvgPicture.asset('assets/design/neuro-icon-${widget.floor.isOdd ? "2048" : "sequence"}.svg',
+              SvgPicture.asset('assets/design/neuro-icon-${widget.floor.isOdd ? "2048" : "trail"}.svg',
                 width: 45, height: 45),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,8 +158,10 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                     style: const TextStyle(color: Colors.white,
                       fontSize: 17, fontWeight: FontWeight.w900)),
                 ])),
-              FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7765FC)),
+              FilledButton.icon(
+                icon: const Icon(Icons.play_arrow_rounded),
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFFD15E),
+                  foregroundColor: const Color(0xFF1C285D)),
                 onPressed: () => widget.onNodeTap(widget.floor),
                 child: const Text('PLAY')),
             ]))),
@@ -177,18 +188,35 @@ class _Connections extends CustomPainter {
   final int floor;
   @override
   void paint(Canvas canvas, Size size) {
-    // Connection painting is independent of game assets and stays sharp on zoom.
-    for (var i = 1; i < nodes.length; i++) {
-      final p = nodes[i - 1] + const Offset(0, 78);
-      final q = nodes[i] + const Offset(0, 78);
-      final path = Path()
-        ..moveTo(p.dx, p.dy)
-        ..cubicTo(p.dx + 68, p.dy - 42, q.dx - 68, q.dy + 42, q.dx, q.dy);
-      canvas.drawPath(path, Paint()
-        ..color = i < floor ? const Color(0xFF80DDEB) : const Color(0xFF4D679C)
-        ..strokeWidth = i < floor ? 6 : 4
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round);
+    // Procedural scattered synapses, not a repeated bitmap background.
+    for (var i = 0; i < 120; i++) {
+      final x = ((i * 97 + 23) % 390).toDouble();
+      final y = ((i * 173 + 61) % size.height.toInt()).toDouble();
+      canvas.drawCircle(Offset(x, y), i % 7 == 0 ? 1.8 : .8,
+        Paint()..color = const Color(0x666BBBEA));
+    }
+    for (var i = 0; i < nodes.length; i++) {
+      final p = nodes[i] + const Offset(0, 78);
+      final side = i.isEven ? -1.0 : 1.0;
+      final end = Offset((p.dx + side * 82).clamp(25.0, 365.0), p.dy - 68);
+      canvas.drawPath(Path()..moveTo(p.dx, p.dy)
+        ..quadraticBezierTo(p.dx + side * 65, p.dy - 9, end.dx, end.dy),
+        Paint()..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6..color = const Color(0x66577FC2));
+      canvas.drawCircle(end, 7, Paint()..color = const Color(0x444F85D1));
+      canvas.drawCircle(end, 3, Paint()..color = const Color(0xFF6A9ADE));
+      if (i == 0) continue;
+      final start = nodes[i - 1] + const Offset(0, 78);
+      final path = Path()..moveTo(start.dx, start.dy)
+        ..cubicTo(start.dx + 18, start.dy + 65,
+          p.dx - 18, p.dy - 65, p.dx, p.dy);
+      final passed = i < floor;
+      canvas.drawPath(path, Paint()..style = PaintingStyle.stroke
+        ..strokeWidth = passed ? 10 : 6
+        ..color = passed ? const Color(0x4452E4F8) : const Color(0x223F76B2));
+      canvas.drawPath(path, Paint()..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round..strokeWidth = passed ? 3.6 : 2.3
+        ..color = passed ? const Color(0xFF8FEAFF) : const Color(0xFF5471A9));
     }
   }
 
