@@ -25,6 +25,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 450));
   }
 
+  Future<void> goTo(WidgetTester tester, String destination) async {
+    await tester.tap(find.text('EXPLORE'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(destination).last);
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('Home displays a live neural map with persisted progress',
       (tester) async {
     await boot(tester);
@@ -39,23 +46,19 @@ void main() {
       (tester) async {
     await boot(tester);
 
-    await tester.tap(find.text('Games'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await goTo(tester, 'Games');
     expect(find.byType(NeuroGamesPage), findsOneWidget);
     expect(find.text('Mini games'), findsOneWidget);
 
-    await tester.tap(find.text('Skills'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await goTo(tester, 'Skills');
     expect(find.byType(NeuroSkillsPage), findsOneWidget);
     expect(find.byType(SkillRadarChart), findsOneWidget);
 
-    await tester.tap(find.text('Records'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await goTo(tester, 'Records');
     expect(find.byType(NeuroRecordsPage), findsOneWidget);
     expect(find.text('No record yet'), findsNWidgets(2));
 
-    await tester.tap(find.text('Map'));
-    await tester.pump(const Duration(milliseconds: 300));
+    await goTo(tester, 'Map');
     expect(find.byType(NeuroMapView), findsOneWidget);
     await tester.tap(find.byTooltip('Settings'));
     await tester.pump();
