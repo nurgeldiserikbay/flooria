@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flooria/main.dart';
-import 'package:flooria/ui/flooria_pages.dart';
+import 'package:flooria/ui/neuro_map.dart';
+import 'package:flooria/ui/neuro_hub_pages.dart';
 import 'package:flooria/ui/flooria_extras.dart';
 import 'package:flooria/ui/skill_radar.dart';
 
@@ -15,44 +16,51 @@ void main() {
     });
   });
 
-  testWidgets('Home displays live tower state, not a baked screenshot',
-      (tester) async {
+  Future<void> boot(WidgetTester tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const FlooriaApp());
     await tester.pump(const Duration(milliseconds: 450));
+  }
 
-    expect(find.byType(FlooriaTowerHomeView), findsOneWidget);
-    expect(find.text('Floor 3'), findsOneWidget);
-    expect(find.text('PLAY 2048'), findsOneWidget);
-    expect(find.text('Reach the 128 tile'), findsOneWidget);
+  testWidgets('Home displays a live neural map with persisted progress',
+      (tester) async {
+    await boot(tester);
+    expect(find.byType(NeuroMapView), findsOneWidget);
+    expect(find.text('NODE 3'), findsOneWidget);
+    expect(find.text('NEXT CHALLENGE'), findsOneWidget);
+    expect(find.text('PLAY'), findsOneWidget);
+    expect(find.byType(InteractiveViewer), findsOneWidget);
   });
 
-  testWidgets('Games, Mind and settings remain navigable',
+  testWidgets('Four game tabs and settings remain navigable',
       (tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const FlooriaApp());
-    await tester.pump(const Duration(milliseconds: 450));
+    await boot(tester);
 
     await tester.tap(find.text('Games'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('All'), findsOneWidget);
-    expect(find.text('Favorites'), findsOneWidget);
+    expect(find.byType(NeuroGamesPage), findsOneWidget);
+    expect(find.text('Mini games'), findsOneWidget);
 
-    await tester.tap(find.text('My Mind'));
+    await tester.tap(find.text('Skills'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Floors cleared'), findsOneWidget);
+    expect(find.byType(NeuroSkillsPage), findsOneWidget);
     expect(find.byType(SkillRadarChart), findsOneWidget);
-    await tester.tap(find.byTooltip('Open settings'));
+
+    await tester.tap(find.text('Records'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(NeuroRecordsPage), findsOneWidget);
+    expect(find.text('No record yet'), findsNWidgets(2));
+
+    await tester.tap(find.text('Map'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(NeuroMapView), findsOneWidget);
+    await tester.tap(find.byTooltip('Settings'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.byType(FlooriaSettingsPage), findsOneWidget);
     expect(find.text('Haptic feedback'), findsOneWidget);
-    expect(find.text('Ambient motion'), findsOneWidget);
   });
 }
