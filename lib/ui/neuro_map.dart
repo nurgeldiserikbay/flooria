@@ -30,12 +30,21 @@ class _NeuroMapViewState extends State<NeuroMapView> {
   int? selected;
 
   // A repeatable organic path, with slight horizontal branching.
-  static const _points = <Offset>[
+  static const _seedPoints = <Offset>[
     Offset(196, 560), Offset(103, 430), Offset(260, 320),
     Offset(132, 210), Offset(308, 105), Offset(205, -30),
     Offset(85, -155), Offset(280, -265), Offset(155, -395),
     Offset(325, -525), Offset(115, -640), Offset(225, -765),
   ];
+
+  List<Offset> get _points {
+    final count = math.max(12, widget.floor + 5);
+    return List<Offset>.generate(count, (i) {
+      if (i < _seedPoints.length) return _seedPoints[i];
+      final dx = 75.0 + (i * 91 % 240).toDouble();
+      return Offset(dx, -765.0 - (i - 11) * 125.0);
+    });
+  }
 
   @override
   void dispose() {
@@ -45,10 +54,10 @@ class _NeuroMapViewState extends State<NeuroMapView> {
 
   @override
   Widget build(BuildContext context) {
-    final visible = math.min(_points.length, math.max(6, widget.floor + 4));
-    final current = (widget.floor - 1).clamp(0, _points.length - 1);
+    final points = _points;
+    final visible = math.min(points.length, math.max(6, widget.floor + 4));
+    final current = (widget.floor - 1).clamp(0, points.length - 1);
     return LayoutBuilder(builder: (context, constraints) {
-      final scale = math.min(1.0, constraints.maxWidth / 390);
       return Stack(children: [
         const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
           gradient: LinearGradient(begin: Alignment.topCenter,
@@ -62,12 +71,12 @@ class _NeuroMapViewState extends State<NeuroMapView> {
           child: SizedBox(width: 390, height: 800,
             child: Stack(children: [
               CustomPaint(size: const Size(390, 800),
-                painter: _Connections(_points.take(visible).toList(),
+                painter: _Connections(points.take(visible).toList(),
                   widget.floor)),
               for (var i = 0; i < visible; i++)
                 Positioned(
-                  left: _points[i].dx - 39,
-                  top: _points[i].dy + 45,
+                  left: points[i].dx - 39,
+                  top: points[i].dy + 45,
                   width: 78, height: 90,
                   child: Semantics(
                     label: 'Neuron ${i + 1}, ${i + 1 < widget.floor ? "completed" : i + 1 == widget.floor ? "current" : "locked"}',
@@ -91,8 +100,8 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                   ),
                 ),
               Positioned(
-                left: _points[current].dx - 21,
-                top: _points[current].dy + 16,
+                left: points[current].dx - 21,
+                top: points[current].dy + 16,
                 child: IgnorePointer(child: SvgPicture.asset(
                   'assets/design/neuro-avatar-top.svg', width: 42, height: 42)),
               ),
