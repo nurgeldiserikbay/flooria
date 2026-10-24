@@ -37,20 +37,20 @@ const path = require('node:path');
     });
 
     if (width === 390) {
-      await page.mouse.click(98, height - 40);
+      await page.mouse.click(145, height - 40);
       await page.waitForTimeout(650);
       await page.screenshot({
         path: path.join(out, 'games-390x844.png'),
       });
-      await page.mouse.click(294, height - 40);
+      await page.mouse.click(244, height - 40);
       await page.waitForTimeout(650);
       await page.screenshot({
         path: path.join(out, 'my-mind-390x844.png'),
       });
-      await page.mouse.click(215, 623);
+      await page.mouse.click(340, height - 40);
       await page.waitForTimeout(800);
       await page.screenshot({
-        path: path.join(out, 'settings-or-mind-390x844.png'),
+        path: path.join(out, 'records-390x844.png'),
       });
     }
     await page.close();
