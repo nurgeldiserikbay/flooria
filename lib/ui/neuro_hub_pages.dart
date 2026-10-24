@@ -9,44 +9,66 @@ const neuroText = Color(0xFFE8F2FF);
 const neuroMuted = Color(0xFFA7BCE5);
 const neuroAccent = Color(0xFF7D6AFF);
 
+/// One game-style portal replaces the permanent four-button app tab bar.
 class NeuroNavigation extends StatelessWidget {
   const NeuroNavigation({super.key, required this.selected, required this.onTab});
   final int selected;
   final ValueChanged<int> onTab;
+
   static const labels = ['Map', 'Games', 'Skills', 'Records'];
   static const icons = ['map', 'games', 'analytics', 'records'];
+
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.fromLTRB(14, 3, 14, 10),
-    height: 66,
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(colors: [Color(0xFF324AA0), Color(0xFF1B285B)]), borderRadius: BorderRadius.circular(23),
-      border: Border.all(color: const Color(0xFF5269AD))),
-    child: Row(children: List.generate(4, (i) =>
-      Expanded(child: Semantics(
-        button: true, selected: i == selected, label: labels[i],
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: () => onTab(i),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            decoration: BoxDecoration(
-              color: i == selected ? const Color(0x553D65D8) : Colors.transparent,
-              borderRadius: BorderRadius.circular(17)),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SvgPicture.asset('assets/design/neuro-nav-${icons[i]}.svg',
-              width: 25, height: 25,
-              colorFilter: ColorFilter.mode(
-                i == selected ? const Color(0xFF8DEFFF) : neuroMuted,
-                BlendMode.srcIn)),
-            const SizedBox(height: 3),
-            Text(labels[i], style: TextStyle(fontSize: 11,
-              fontWeight: i == selected ? FontWeight.w900 : FontWeight.w600,
-              color: i == selected ? Colors.white : neuroMuted)),
-          ])),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+    child: Align(alignment: Alignment.centerRight,
+      child: PopupMenuButton<int>(
+        tooltip: 'Explore menu',
+        position: PopupMenuPosition.over,
+        color: const Color(0xFF263971),
+        elevation: 13,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(19),
+          side: const BorderSide(color: Color(0xFF6685DB))),
+        onSelected: (index) => onTab(index),
+        itemBuilder: (context) => List.generate(labels.length, (i) =>
+          PopupMenuItem<int>(
+            value: i,
+            child: Row(children: [
+              SvgPicture.asset('assets/design/neuro-nav-${icons[i]}.svg',
+                width: 25, height: 25),
+              const SizedBox(width: 14),
+              Text(labels[i], style: TextStyle(
+                color: i == selected ? const Color(0xFF8CEEFF) : Colors.white,
+                fontWeight: FontWeight.w800)),
+              if (i == selected) ...[
+                const SizedBox(width: 10),
+                const Icon(Icons.check_circle_rounded,
+                  color: Color(0xFF8CEEFF), size: 18),
+              ],
+            ]),
+          )),
+        child: Container(
+          height: 55,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [
+              Color(0xFF7461F4), Color(0xFF345FC4)]),
+            borderRadius: BorderRadius.circular(23),
+            border: Border.all(color: const Color(0xFFB5C6FF), width: 1.5),
+            boxShadow: const [BoxShadow(color: Color(0x884766F1),
+              blurRadius: 16, offset: Offset(0, 5))]),
+          child: const Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.hub_rounded, color: Colors.white, size: 22),
+            SizedBox(width: 9),
+            Text('EXPLORE', style: TextStyle(color: Colors.white,
+              fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+            SizedBox(width: 5),
+            Icon(Icons.expand_less_rounded, color: Colors.white),
+          ]),
         ),
-      )),
-    )),
+      ),
+    ),
   );
 }
 
