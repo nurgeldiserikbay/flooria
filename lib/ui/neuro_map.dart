@@ -30,20 +30,12 @@ class _NeuroMapViewState extends State<NeuroMapView> {
   int? selected;
 
   // A repeatable organic path, with slight horizontal branching.
-  static const _seedPoints = <Offset>[
-    Offset(196, 560), Offset(103, 430), Offset(260, 320),
-    Offset(132, 210), Offset(308, 105), Offset(205, -30),
-    Offset(85, -155), Offset(280, -265), Offset(155, -395),
-    Offset(325, -525), Offset(115, -640), Offset(225, -765),
-  ];
-
   List<Offset> get _points {
     final count = math.max(12, widget.floor + 5);
-    return List<Offset>.generate(count, (i) {
-      if (i < _seedPoints.length) return _seedPoints[i];
-      final dx = 75.0 + (i * 91 % 240).toDouble();
-      return Offset(dx, -765.0 - (i - 11) * 125.0);
-    });
+    return List<Offset>.generate(count, (i) => Offset(
+      85.0 + ((i * 113 + 61) % 220).toDouble(),
+      65.0 + i * 132.0,
+    ));
   }
 
   @override
@@ -68,9 +60,9 @@ class _NeuroMapViewState extends State<NeuroMapView> {
           constrained: false,
           boundaryMargin: const EdgeInsets.all(350),
           minScale: .65, maxScale: 2.1,
-          child: SizedBox(width: 390, height: 800,
+          child: SizedBox(width: 390, height: points.last.dy + 180,
             child: Stack(children: [
-              CustomPaint(size: const Size(390, 800),
+              CustomPaint(size: Size(390, points.last.dy + 180),
                 painter: _Connections(points.take(visible).toList(),
                   widget.floor)),
               for (var i = 0; i < visible; i++)
