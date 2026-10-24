@@ -30,7 +30,6 @@ class NeuroMapView extends StatefulWidget {
 
 class _NeuroMapViewState extends State<NeuroMapView> {
   late final TransformationController _transform = TransformationController();
-  int? selected;
   bool _positioned = false;
 
   // A repeatable organic path, with slight horizontal branching.
@@ -74,7 +73,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
         const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(
           gradient: LinearGradient(begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF14275B), Color(0xFF1B3977), Color(0xFF211A60)])))),
+            colors: [Color(0xFF193778), Color(0xFF202E70), Color(0xFF171E52)])))),
         Positioned.fill(child: InteractiveViewer(
           transformationController: _transform,
           constrained: false,
@@ -97,7 +96,6 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                       borderRadius: BorderRadius.circular(42),
                       onTap: () {
                         if (i + 1 > widget.floor) return;
-                        setState(() => selected = i);
                         widget.onNodeTap(i + 1);
                       },
                       child: Column(children: [
@@ -126,7 +124,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
             const Expanded(child: Text('NEURO', style: TextStyle(
               color: Colors.white, fontWeight: FontWeight.w900,
               letterSpacing: 3, fontSize: 22))),
-            Text('NODE ${widget.floor}', style: const TextStyle(
+            Text('LEVEL ${widget.floor}', style: const TextStyle(
               color: Color(0xFFD4E4FF), fontWeight: FontWeight.w800)),
             IconButton(tooltip: 'Settings', onPressed: widget.onSettings,
               icon: const Icon(Icons.settings_rounded, color: Colors.white)),
@@ -134,16 +132,17 @@ class _NeuroMapViewState extends State<NeuroMapView> {
         Positioned(left: 22, right: 22, bottom: 93,
           child: Container(padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
-              color: const Color(0xE71A285B),
+              gradient: const LinearGradient(colors: [Color(0xEF354CA0), Color(0xF0202F6B)]),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0x667D9FF7))),
+              border: Border.all(color: const Color(0xFF7391F9)),
+              boxShadow: const [BoxShadow(color: Color(0x552E4DD6), blurRadius: 18)]),
             child: Row(children: [
               SvgPicture.asset('assets/design/neuro-icon-${widget.floor.isOdd ? "2048" : "sequence"}.svg',
                 width: 45, height: 45),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('NEXT CHALLENGE', style: TextStyle(
+                  const Text('YOUR NEXT CHALLENGE', style: TextStyle(
                     color: Color(0xFFA9C2FC), fontSize: 10,
                     fontWeight: FontWeight.w800, letterSpacing: 1)),
                   Text(widget.floor.isOdd ? '2048' : 'Number Trail',
