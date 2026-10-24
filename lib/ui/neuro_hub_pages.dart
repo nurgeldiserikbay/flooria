@@ -20,7 +20,7 @@ class NeuroNavigation extends StatelessWidget {
     margin: const EdgeInsets.fromLTRB(14, 3, 14, 10),
     height: 66,
     decoration: BoxDecoration(
-      color: const Color(0xF01B295B), borderRadius: BorderRadius.circular(23),
+      gradient: const LinearGradient(colors: [Color(0xFF324AA0), Color(0xFF1B285B)]), borderRadius: BorderRadius.circular(23),
       border: Border.all(color: const Color(0xFF5269AD))),
     child: Row(children: List.generate(4, (i) =>
       Expanded(child: Semantics(
@@ -28,7 +28,12 @@ class NeuroNavigation extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
           onTap: () => onTab(i),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            decoration: BoxDecoration(
+              color: i == selected ? const Color(0x553D65D8) : Colors.transparent,
+              borderRadius: BorderRadius.circular(17)),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             SvgPicture.asset('assets/design/neuro-nav-${icons[i]}.svg',
               width: 25, height: 25,
               colorFilter: ColorFilter.mode(
@@ -38,7 +43,7 @@ class NeuroNavigation extends StatelessWidget {
             Text(labels[i], style: TextStyle(fontSize: 11,
               fontWeight: i == selected ? FontWeight.w900 : FontWeight.w600,
               color: i == selected ? Colors.white : neuroMuted)),
-          ]),
+          ])),
         ),
       )),
     )),
@@ -58,12 +63,18 @@ class NeuroShell extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     decoration: const BoxDecoration(gradient: LinearGradient(
       begin: Alignment.topCenter, end: Alignment.bottomCenter,
-      colors: [Color(0xFF142960), neuroBg])),
+      colors: [Color(0xFF1D3680), Color(0xFF17275C), neuroBg])),
     child: Column(children: [
       Padding(padding: const EdgeInsets.fromLTRB(22, 18, 16, 12),
         child: Row(children: [
-          Expanded(child: Text(title, style: const TextStyle(
-            color: Colors.white, fontSize: 25, fontWeight: FontWeight.w900))),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('NEURO PLAYGROUND', style: TextStyle(color: Color(0xFF87DCFF),
+                fontWeight: FontWeight.w800, letterSpacing: 2.2, fontSize: 10)),
+              const SizedBox(height: 4),
+              Text(title, style: const TextStyle(
+                color: Colors.white, fontSize: 27, fontWeight: FontWeight.w900)),
+            ])),
           ...?actions,
         ])),
       Expanded(child: child),
@@ -100,7 +111,7 @@ class NeuroGamesPage extends StatelessWidget {
     child: LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
       return GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: width >= 500 ? 4 : 3,
           mainAxisSpacing: 16, crossAxisSpacing: 10, childAspectRatio: .88),
@@ -114,7 +125,21 @@ class NeuroGamesPage extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(17),
               onTap: playable ? () => onPlay(id) : null,
-              child: Opacity(opacity: playable ? 1 : .55,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.fromLTRB(7, 10, 7, 8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: playable
+                      ? [const Color(0xFF3959A5), const Color(0xFF253776)]
+                      : [const Color(0xFF283B6E), const Color(0xFF1B2B55)]),
+                  border: Border.all(color: playable
+                    ? const Color(0xFF608CF1) : const Color(0xFF385081)),
+                  borderRadius: BorderRadius.circular(19),
+                  boxShadow: playable ? const [BoxShadow(color: Color(0x333A68ED),
+                    blurRadius: 16, offset: Offset(0, 5))] : null),
+                child: Opacity(opacity: playable ? 1 : .55,
                 child: Column(children: [
                   Expanded(child: Stack(children: [
                     Center(child: AspectRatio(aspectRatio: 1,
@@ -134,7 +159,7 @@ class NeuroGamesPage extends StatelessWidget {
                       fontWeight: FontWeight.w800, fontSize: 12)),
                   if (!playable) const Text('SOON', style: TextStyle(
                     fontSize: 9, color: neuroMuted)),
-                ])),
+                ]))),
             ),
           );
         },
@@ -156,6 +181,8 @@ class NeuroSkillsPage extends StatelessWidget {
     child: ListView(padding: const EdgeInsets.fromLTRB(16, 9, 16, 24),
       children: [
         _panel(Column(children: [
+          const Icon(Icons.auto_graph_rounded, size: 27, color: Color(0xFF93E9FF)),
+          const SizedBox(height: 8),
           const Text('GAME PERFORMANCE', style: TextStyle(
             letterSpacing: 1.1, color: neuroMuted, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
@@ -166,7 +193,7 @@ class NeuroSkillsPage extends StatelessWidget {
         ])),
         const SizedBox(height: 15),
         _panel(Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Neuron $floor', style: const TextStyle(color: Colors.white,
+          Text('Current challenge $floor', style: const TextStyle(color: Colors.white,
             fontSize: 21, fontWeight: FontWeight.w900)),
           const SizedBox(height: 10),
           Text('${floor - 1} completed challenges', style: const TextStyle(
@@ -195,6 +222,9 @@ class NeuroRecordsPage extends StatelessWidget {
     title: 'My records', tab: 3, onTab: onTab,
     child: ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        const Padding(padding: EdgeInsets.only(bottom: 14), child: Text(
+          'PERSONAL BEST', style: TextStyle(color: Color(0xFF90DBFF),
+            letterSpacing: 2, fontWeight: FontWeight.w900, fontSize: 12))),
         _record('2048', '2048',
           stats.mergeRuns == 0 ? 'No record yet' : '${stats.best2048Score} points',
           stats.mergeRuns == 0 ? 'Play a game to set a record'
@@ -234,8 +264,13 @@ class NeuroRecordsPage extends StatelessWidget {
 Widget _panel(Widget child) => Container(
   padding: const EdgeInsets.all(17),
   decoration: BoxDecoration(
-    color: neuroCard, borderRadius: BorderRadius.circular(21),
-    border: Border.all(color: const Color(0xFF41538C))),
+    gradient: const LinearGradient(begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF304B96), Color(0xFF24336A)]),
+    borderRadius: BorderRadius.circular(21),
+    border: Border.all(color: const Color(0xFF536DB9)),
+    boxShadow: const [BoxShadow(color: Color(0x3310205B),
+      blurRadius: 16, offset: Offset(0, 6))]),
   child: child,
 );
 
