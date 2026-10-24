@@ -29,8 +29,8 @@ void main() {
       (tester) async {
     await boot(tester);
     expect(find.byType(NeuroMapView), findsOneWidget);
-    expect(find.text('NODE 3'), findsOneWidget);
-    expect(find.text('NEXT CHALLENGE'), findsOneWidget);
+    expect(find.text('LEVEL 3'), findsOneWidget);
+    expect(find.text('YOUR NEXT CHALLENGE'), findsOneWidget);
     expect(find.text('PLAY'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsOneWidget);
   });
