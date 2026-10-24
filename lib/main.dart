@@ -212,7 +212,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         TickerMode(enabled: tab == 0, child: _home()),
         TickerMode(enabled: tab == 1, child: _library()),
         TickerMode(enabled: tab == 2, child: _profile()),
-        TickerMode(enabled: tab == 3, child: _records()),
       ]),
     ))));
   }
@@ -229,7 +228,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     onGames: () => setState(() => tab = 1),
     onAnalytics: () => setState(() => tab = 2),
     onSettings: _showSettings,
-    onRecords: () => setState(() => tab = 3),
+    onRecords: () => setState(() => tab = 2),
   );
 
   Widget _library() => NeuroGamesPage(
@@ -245,10 +244,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     onTab: (index) => setState(() => tab = index),
   );
 
-  Widget _records() => NeuroRecordsPage(
-    stats: playerStats,
-    onTab: (index) => setState(() => tab = index),
-  );
+
 
 }
 
