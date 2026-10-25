@@ -29,10 +29,15 @@ void main() {
       onSessionEnd: (_, __) {},
     )));
     await tester.tap(find.byKey(const ValueKey('code-digit-1')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('code-digit-2')));
+    await tester.pump();
     await tester.tap(find.byTooltip('Undo symbol'));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('code-digit-3')));
+    await tester.pump();
     await tester.tap(find.byKey(const ValueKey('code-digit-4')));
+    await tester.pump();
     await tester.tap(find.text('CHECK CODE'));
     await tester.pump();
     expect(find.text('1 / 7'), findsOneWidget);
