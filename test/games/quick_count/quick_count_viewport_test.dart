@@ -26,11 +26,16 @@ void main() {
 
       for (var round = 0; round < 8; round++) {
         await tester.pump(const Duration(milliseconds: 1400));
+        expect(find.text('${round + 1} / 8'), findsOneWidget);
         final firstChoice = find.byType(FilledButton).first;
         expect(firstChoice, findsOneWidget);
+        expect(tester.widget<FilledButton>(firstChoice).onPressed, isNotNull);
         await tester.tap(firstChoice);
         await tester.pump();
-        if (round < 7) await tester.pump(const Duration(milliseconds: 430));
+        if (round < 7) {
+          await tester.pump(const Duration(milliseconds: 430));
+          expect(find.text('${round + 2} / 8'), findsOneWidget);
+        }
       }
 
       expect(reports, 1);

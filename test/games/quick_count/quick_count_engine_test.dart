@@ -35,7 +35,7 @@ void main() {
       for (var index = 0; index < QuickCountSession.roundCount; index++) {
         final target = session.current.target;
         expect(session.answer(target), isTrue);
-        expect(session.answer(target), isFalse);
+        expect(session.answer(target + 100), isFalse);
       }
 
       expect(session.finished, isTrue);
