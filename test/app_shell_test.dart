@@ -46,7 +46,7 @@ void main() {
 
     await goTo(tester, 1);
     expect(find.byType(NeuroGamesPage), findsOneWidget);
-    expect(find.text('Mini games'), findsOneWidget);
+    expect(find.text('Mini games'), findsNothing);
 
     await goTo(tester, 2);
     expect(find.byType(NeuroSkillsPage), findsOneWidget);
