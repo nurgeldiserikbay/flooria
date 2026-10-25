@@ -135,11 +135,11 @@ class _CodeBreakerPageState extends State<CodeBreakerPage> {
                         ? Column(mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text('Exact ${game.guesses[i].feedback.exact}',
-                              style: const TextStyle(fontSize: 12,
+                              style: const TextStyle(fontSize: 10, height: 1.0,
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF379D88))),
                             Text('Swap ${game.guesses[i].feedback.misplaced}',
-                              style: const TextStyle(fontSize: 11,
+                              style: const TextStyle(fontSize: 10, height: 1.0,
                                 color: Color(0xFF736A9B))),
                           ])
                         : const SizedBox.shrink()),
