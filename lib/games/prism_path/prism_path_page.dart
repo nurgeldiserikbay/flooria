@@ -55,6 +55,15 @@ class _PrismPathPageState extends State<PrismPathPage> {
   void _nextRound() {
     if (!session.advance()) return;
     setState(() {});
+    if (!session.complete || reported) return;
+
+    reported = true;
+    widget.onSessionEnd(
+      PrismPathSession.totalRounds,
+      session.moves,
+      session.mistakes,
+    );
+    if (widget.floor != null) widget.onComplete();
   }
 
   @override
@@ -244,7 +253,7 @@ class _PrismPathPageState extends State<PrismPathPage> {
                                                                   MirrorFace
                                                                       .slash
                                                               ? 0
-                                                              : .5,
+                                                              : .25,
                                                           duration:
                                                               const Duration(
                                                             milliseconds: 180,
