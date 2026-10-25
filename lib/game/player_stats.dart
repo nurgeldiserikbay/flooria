@@ -21,6 +21,8 @@ class PlayerGameStats {
   int speedRuns;
   int speedBestMillis;
   int speedBestMistakes;
+  int logicRuns;
+  int logicBestMoves;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -41,6 +43,8 @@ class PlayerGameStats {
     this.speedRuns = 0,
     this.speedBestMillis = 0,
     this.speedBestMistakes = 0,
+    this.logicRuns = 0,
+    this.logicBestMoves = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -67,6 +71,8 @@ class PlayerGameStats {
       speedRuns: read('speedRuns'),
       speedBestMillis: read('speedBestMillis'),
       speedBestMistakes: read('speedBestMistakes'),
+      logicRuns: read('logicRuns'),
+      logicBestMoves: read('logicBestMoves'),
     );
   }
 
@@ -89,6 +95,8 @@ class PlayerGameStats {
     'speedRuns': speedRuns,
     'speedBestMillis': speedBestMillis,
     'speedBestMistakes': speedBestMistakes,
+    'logicRuns': logicRuns,
+    'logicBestMoves': logicBestMoves,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -139,6 +147,14 @@ class PlayerGameStats {
     }
   }
 
+  void recordLogic({required int moves}) {
+    if (moves <= 0) return;
+    logicRuns++;
+    if (logicBestMoves == 0 || moves < logicBestMoves) {
+      logicBestMoves = moves;
+    }
+  }
+
   /// A descriptive radar based on player results (0–100 per tracked axis).
   /// A null value means the current games cannot measure this skill yet.
   /// These levels do not measure brain development or intelligence.
@@ -156,9 +172,12 @@ class PlayerGameStats {
         .round().clamp(0, 100).toInt();
     }
     return [
-      GameSkillRating('Logic', hasSequence
-        ? (sequenceBestCorrect / 3 * 100).round().clamp(0, 100).toInt() : null,
-        'Number Trail best run'),
+      GameSkillRating('Logic', logicRuns > 0
+        ? (100 - (math.max(0, logicBestMoves - 4) * 7)).clamp(0, 100).toInt()
+        : hasSequence
+          ? (sequenceBestCorrect / 3 * 100).round().clamp(0, 100).toInt()
+          : null,
+        logicRuns > 0 ? 'Light Grid move efficiency' : 'Number Trail best run'),
       GameSkillRating('Numbers', tilePercent, '2048 best tile'),
       GameSkillRating('Strategy', scorePercent, '2048 best score'),
       GameSkillRating('Memory', memoryRuns > 0
