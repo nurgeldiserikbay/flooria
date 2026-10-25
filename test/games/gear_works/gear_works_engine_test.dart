@@ -57,7 +57,7 @@ void main() {
     for (final cell in rotations.keys) {
       for (final neighbor in puzzle.neighbors(cell)) {
         if (rotations.containsKey(neighbor)) {
-          expect(rotations[cell], -rotations[neighbor]);
+          expect(rotations[cell], -rotations[neighbor]!);
         }
       }
     }
