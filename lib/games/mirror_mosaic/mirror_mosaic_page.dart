@@ -212,8 +212,8 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
                                                 board.sourceCells.contains(index);
                                             final isPlayable =
                                                 board.isPlayable(index);
-                                            final isAxis = _isAxisCell(
-                                                board, index);
+                                            final isAxis =
+                                                _isAxisCell(board, index);
                                             final isSelected =
                                                 selected.contains(index);
                                             final isCorrect = board.targetCells
@@ -231,6 +231,10 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
                                                       MirrorAxis.vertical
                                                   ? Icons.swap_horiz_rounded
                                                   : Icons.swap_vert_rounded,
+                                              axisCenter:
+                                                  index == board.axisIndex *
+                                                      board.size +
+                                                      board.axisIndex,
                                               onTap: isPlayable
                                                   ? () => _toggle(index)
                                                   : null,
@@ -291,6 +295,7 @@ class _MirrorTile extends StatelessWidget {
     required this.selected,
     required this.selectionCorrect,
     required this.axisIcon,
+    required this.axisCenter,
     required this.onTap,
   });
 
@@ -301,6 +306,7 @@ class _MirrorTile extends StatelessWidget {
   final bool selected;
   final bool selectionCorrect;
   final IconData axisIcon;
+  final bool axisCenter;
   final VoidCallback? onTap;
 
   @override
@@ -316,8 +322,7 @@ class _MirrorTile extends StatelessWidget {
                 : _tile;
     final icon = source
         ? Icons.star_rounded
-        : axis && index % MirrorMosaicSession.gridSize ==
-                MirrorMosaicSession.gridSize ~/ 2
+        : axis && axisCenter
             ? axisIcon
             : selected
                 ? selectionCorrect
