@@ -58,7 +58,9 @@ class MazeRouteSession {
 
   bool canMove(int cell, int direction) {
     if (cell < 0 || cell >= passages.length ||
-        direction < 0 || direction > 3) return false;
+        direction < 0 || direction > 3) {
+      return false;
+    }
     return passages[cell] & directions[direction].$2 != 0;
   }
 
