@@ -15,7 +15,7 @@ class MazeRouteSession {
       for (final dir in directions) {
         final next = neighbor(current, dir.$1);
         if (next != null && !visited.contains(next)) {
-          candidates.add((next, dir.$1, dir.$2));
+          candidates.add((next, dir.$2, dir.$3));
         }
       }
       if (candidates.isEmpty) {
@@ -61,7 +61,7 @@ class MazeRouteSession {
         direction < 0 || direction > 3) {
       return false;
     }
-    return passages[cell] & directions[direction].$2 != 0;
+    return (passages[cell] & directions[direction].$2) != 0;
   }
 
   bool step(int direction) {
