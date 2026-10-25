@@ -68,7 +68,7 @@ class SceneShiftSession {
   }
 
   static const int roundCount = 5;
-  static const int passScore = 4;
+  static const int maxMistakesToPass = 3;
   static const List<int> _baseCellCounts = [9, 12, 16, 16, 20];
 
   final int seed;
@@ -79,7 +79,7 @@ class SceneShiftSession {
   bool _awaitingAnswer = false;
 
   bool get finished => roundIndex >= roundCount;
-  bool get passed => finished && correctFinds >= passScore;
+  bool get passed => finished && mistakes <= maxMistakesToPass;
   bool get showingPreview => !finished && !_awaitingAnswer;
   bool get awaitingAnswer => !finished && _awaitingAnswer;
   double get progress => roundIndex / roundCount;
