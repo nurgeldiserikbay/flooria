@@ -274,13 +274,7 @@ class _AnalogyLabPageState extends State<AnalogyLabPage> {
                               ),
                               const SizedBox(height: 8),
                               if (_selectedIndex == null)
-                                Expanded(
-                                  flex: 0,
-                                  child: _AnswerOptions(
-                                    round: round,
-                                    onChoose: _choose,
-                                  ),
-                                )
+                                _AnswerOptions(round: round, onChoose: _choose)
                               else
                                 SizedBox(
                                   width: double.infinity,
