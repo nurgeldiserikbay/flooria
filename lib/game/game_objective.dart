@@ -84,6 +84,13 @@ class ObjectiveCatalog {
           target: 15,
           unit: 'Ordered tiles',
         );
+      case 'maze':
+        return const GameObjective(
+          title: 'Find the maze exit',
+          instruction: 'Navigate through the maze to reach the golden star.',
+          target: 1,
+          unit: 'Exit reached',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
