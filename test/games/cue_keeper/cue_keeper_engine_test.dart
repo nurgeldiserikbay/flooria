@@ -66,7 +66,7 @@ void main() {
       );
       expect(skipped.mistakes, 1);
       expect(skipped.actNow(), CueKeeperActionResult.invalid);
-      _finishStream(skipped, actAtTarget: true);
+      _finishStream(skipped, actAtTarget: false);
       expect(skipped.mistakes, 1);
     });
 
