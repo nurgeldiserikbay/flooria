@@ -98,6 +98,20 @@ class BeadSortPuzzle {
       final move = legal[random.nextInt(legal.length)];
       tubes[move.to].add(tubes[move.from].removeLast());
       scramble.add(move);
+      final returnedToSolved = tubes.every((tube) =>
+          tube.isEmpty ||
+          (tube.length == capacity && tube.every((bead) => bead == tube.first)));
+      if (returnedToSolved) {
+        for (var index = 0; index < tubeCount; index++) {
+          tubes[index]
+            ..clear()
+            ..addAll(index < colorCount
+                ? List<BeadColor>.filled(capacity, BeadColor.values[index])
+                : <BeadColor>[]);
+        }
+        scramble.clear();
+        break;
+      }
     }
 
     if (tubes.every((tube) =>
