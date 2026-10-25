@@ -64,7 +64,7 @@ class _QuickCountPageState extends State<QuickCountPage> {
   }
 
   void _answer(int count) {
-    if (!_flashVisible || _transitioning || !session.answer(count)) return;
+    if (_flashVisible || _transitioning || !session.answer(count)) return;
     _cancelTimer();
     final isCorrect = count == session.rounds[session.round - 1].target;
     setState(() {
