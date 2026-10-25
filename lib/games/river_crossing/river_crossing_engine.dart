@@ -109,11 +109,15 @@ class RiverCrossingSession {
   /// Selecting passengers never changes their river bank.
   bool toggle(int passenger) {
     if (complete || passenger < 0 || passenger >= passengers.length ||
-        bankOf(passenger) != boatBank) return false;
+        bankOf(passenger) != boatBank) {
+      return false;
+    }
     if (selected.contains(passenger)) {
       selected.remove(passenger);
     } else {
-      if (selected.length >= capacity) return false;
+      if (selected.length >= capacity) {
+        return false;
+      }
       selected.add(passenger);
     }
     return true;
@@ -122,7 +126,9 @@ class RiverCrossingSession {
   /// Returns false without mutation if cargo is unsafe or impossible.
   bool cross() {
     if (complete || selected.length > capacity ||
-        selected.any((i) => bankOf(i) != boatBank)) return false;
+        selected.any((i) => bankOf(i) != boatBank)) {
+      return false;
+    }
     var mask = rightMask;
     for (final i in selected) {
       mask ^= 1 << i;
