@@ -113,12 +113,16 @@ class PrismPuzzle {
       switch (direction) {
         case BeamDirection.up:
           row--;
+          break;
         case BeamDirection.right:
           column++;
+          break;
         case BeamDirection.down:
           row++;
+          break;
         case BeamDirection.left:
           column--;
+          break;
       }
       if (!_inside(row, column)) return cells;
       cells.add(PrismCell(row, column));
