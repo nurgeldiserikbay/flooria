@@ -335,7 +335,7 @@ class _AnswerOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 132,
+        height: 124,
         child: GridView.builder(
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
