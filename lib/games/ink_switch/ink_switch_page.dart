@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'ink_switch_engine.dart';
 
+const _ink = Color(0xFF4B6967);
+const _paleMint = Color(0xFFCDEBDD);
+
 /// Read the ink color of a word while ignoring the color it spells.
 class InkSwitchPage extends StatefulWidget {
   const InkSwitchPage({
@@ -28,9 +31,6 @@ class _InkSwitchPageState extends State<InkSwitchPage> {
     InkHue.amber: _HueStyle('AMBER', Color(0xFFC58B28)),
     InkHue.teal: _HueStyle('TEAL', Color(0xFF348F91)),
   };
-  static const _ink = Color(0xFF4B6967);
-  static const _paleMint = Color(0xFFCDEBDD);
-
   late InkSwitchSession session;
   int revision = 0;
   bool reported = false;
