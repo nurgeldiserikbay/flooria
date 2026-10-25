@@ -52,7 +52,7 @@ void main() {
       expect(early.targetNow, isFalse);
       expect(early.actNow(), CueKeeperActionResult.incorrect);
       expect(early.mistakes, 1);
-      _finishStream(early, actAtTarget: true);
+      _finishStream(early, actAtTarget: false);
       expect(early.mistakes, 1);
       expect(early.lastRoundCorrect, isFalse);
 
