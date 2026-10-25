@@ -123,9 +123,6 @@ class TorchBridgeSession {
       ];
       for (var a = 0; a < eligible.length; a++) {
         for (var b = a; b < eligible.length; b++) {
-          if (b == a + 0) {
-            // Crossing with one passenger is allowed.
-          }
           final idA = eligible[a];
           final mask = (1 << idA) |
               (a == b ? 0 : 1 << eligible[b]);
