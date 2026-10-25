@@ -246,7 +246,7 @@ class _ResultsPanel extends StatelessWidget {
             size: 46, color: passed ? const Color(0xFF5AA785) : const Color(0xFFE29A72)),
           const SizedBox(height: 8),
           Text('$correct / ${InkSwitchSession.roundCount}', style: const TextStyle(
-            color: _InkSwitchPageState._ink, fontSize: 29, fontWeight: FontWeight.w900,
+            color: _ink, fontSize: 29, fontWeight: FontWeight.w900,
           )),
           const SizedBox(height: 5),
           Text('$mistakes ${mistakes == 1 ? 'mistake' : 'mistakes'}',
