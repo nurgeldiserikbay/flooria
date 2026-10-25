@@ -40,10 +40,12 @@ void main() {
     final expected = InkSwitchSession(seed: 104730);
 
     for (var index = 0; index < InkSwitchSession.roundCount; index++) {
+      final correctIndex = expected.current.correctIndex;
       await tester.tap(find.byKey(ValueKey<String>(
-        'ink-option-$index-${expected.current.correctIndex}',
+        'ink-option-$index-$correctIndex',
       )));
       await tester.pump();
+      expect(expected.answer(correctIndex), isTrue);
     }
 
     expect(reports, 1);
