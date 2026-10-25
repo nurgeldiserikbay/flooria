@@ -58,7 +58,7 @@ class GameCallbacks {
 
 /// The only place where shared UI wires a mini-game into the application.
 ///
-/// Parallel authors should edit only lib/games/<new_game>/ and tests in
+/// Parallel authors should edit only lib/games/`<new_game>`/ and tests in
 /// separate feature branches. The integration owner registers new games here.
 abstract final class GameRegistry {
   static const games = <GameDefinition>[
