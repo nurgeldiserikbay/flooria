@@ -32,12 +32,14 @@ void main() {
       expect(find.byType(GridView), findsNothing);
       expect(tester.takeException(), isNull);
 
+      final expected = RuleRelaySession(seed: 4 * 7919);
       for (var round = 0; round < RuleRelaySession.roundCount; round++) {
-        await tester.tap(find.byKey(const ValueKey('rule-option-0')));
+        await tester.tap(find.byKey(ValueKey(
+            'rule-option-${expected.rounds[round].correctIndex}')));
         await tester.pump();
       }
       expect(reports, 1);
-      expect(completions, inInclusiveRange(0, 1));
+      expect(completions, 1);
       expect(find.text('PLAY AGAIN'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
