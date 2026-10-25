@@ -243,7 +243,7 @@ class NeuroSkillsPage extends StatelessWidget {
             backgroundColor: const Color(0xFF34477A),
             valueColor: const AlwaysStoppedAnimation(neuroAccent)),
           const SizedBox(height: 10),
-          Text('${stats.mergeRuns + stats.sequenceRuns} recorded sessions',
+          Text('${stats.mergeRuns + stats.sequenceRuns + stats.memoryRuns} recorded sessions',
             style: const TextStyle(color: neuroText)),
         ])),
         const SizedBox(height: 18),
@@ -259,6 +259,12 @@ class NeuroSkillsPage extends StatelessWidget {
           stats.sequenceRuns == 0 ? 'No record yet'
             : '${stats.sequenceBestCorrect} / 3 correct',
           '${stats.sequenceRuns} sessions'),
+        const SizedBox(height: 10),
+        _profileRecord('Memory Pairs', 'memory',
+          stats.memoryRuns == 0 ? 'No record yet'
+            : '${stats.memoryBestPairs} / 6 pairs',
+          stats.memoryRuns == 0 ? 'Play to set a record'
+            : '${stats.memoryBestMoves} moves • ${stats.memoryRuns} sessions'),
       ]),
   );
   Widget _profileRecord(String name, String icon, String value,
