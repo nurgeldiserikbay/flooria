@@ -13,6 +13,7 @@ import 'ui/sliding_2048_board.dart';
 import 'ui/fantasy_ui.dart';
 import 'ui/neuro_map.dart';
 import 'ui/neuro_hub_pages.dart';
+import 'ui/memory_pairs_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -120,11 +121,17 @@ class _FlooriaHomeState extends State<FlooriaHome> {
               onComplete: () => _completeFloor(),
               onSessionEnd: _record2048,
             )
-          : SequencePage(
-              floor: startingFloor,
-              onComplete: () => _completeFloor(),
-              onSessionEnd: _recordSequence,
-            ),
+          : gameId == 'memory'
+            ? MemoryPairsPage(
+                floor: startingFloor,
+                onComplete: _completeFloor,
+                onSessionEnd: _recordMemory,
+              )
+            : SequencePage(
+                floor: startingFloor,
+                onComplete: _completeFloor,
+                onSessionEnd: _recordSequence,
+              ),
       ));
       if (!mounted) return;
       if (startingFloor != null && floor > startingFloor) {
@@ -186,6 +193,11 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   void _recordSequence(int correct, int questions) {
     setState(() => playerStats.recordSequence(
       correct: correct, questions: questions));
+    _save();
+  }
+
+  void _recordMemory(int pairs, int moves) {
+    setState(() => playerStats.recordMemory(pairs: pairs, moves: moves));
     _save();
   }
 
