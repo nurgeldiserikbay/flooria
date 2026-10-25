@@ -66,8 +66,9 @@ void main() {
     for (var round = 0; round < 3; round++) {
       expect(s.finished, false);
       for (var i = 0; i < 25; i++) {
-        if (s.solution[i]) expect(s.toggle(i), true);
-        else if (i.isEven) {
+        if (s.solution[i]) {
+          expect(s.toggle(i), true);
+        } else if (i.isEven) {
           expect(s.toggle(i), true);
           expect(s.toggle(i), true);
         }
