@@ -14,6 +14,7 @@ import 'ui/light_grid_page.dart';
 import 'ui/pattern_echo_page.dart';
 import 'ui/merge_page.dart';
 import 'ui/sequence_page.dart';
+import 'ui/fifteen_page.dart';
 
 export 'ui/merge_page.dart' show MergePage;
 export 'ui/sequence_page.dart' show SequencePage;
@@ -154,7 +155,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                         onComplete: _completeFloor,
                         onSessionEnd: _recordPatternEcho,
                       )
-                    : SequencePage(
+                    : gameId == 'fifteen'
+                      ? FifteenPage(
+                          floor: startingFloor,
+                          onComplete: _completeFloor,
+                          onSessionEnd: _recordFifteen,
+                        )
+                      : SequencePage(
                 floor: startingFloor,
                 onComplete: _completeFloor,
                 onSessionEnd: _recordSequence,
@@ -247,6 +254,11 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   void _recordPatternEcho(int stages, int mistakes) {
     setState(() => playerStats.recordPatternEcho(
       stages: stages, mistakes: mistakes));
+    _save();
+  }
+
+  void _recordFifteen(int moves) {
+    setState(() => playerStats.recordFifteen(moves: moves));
     _save();
   }
 
