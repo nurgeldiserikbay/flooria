@@ -274,7 +274,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       } else if (testingAccessAll) {
         _open(gameId); // Test access always runs as practice, never advances the tower.
       }
-    }
+    },
     onGames: () => setState(() => tab = 1),
     onAnalytics: () => setState(() => tab = 2),
     onSettings: _showSettings,
