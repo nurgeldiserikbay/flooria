@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'fraction_forge_engine.dart';
 
@@ -160,9 +159,6 @@ class _FractionForgePageState extends State<FractionForgePage> {
                                 child: Center(
                                   child: LayoutBuilder(
                                     builder: (context, box) {
-                                      final side = math.min(
-                                        box.maxWidth, box.maxHeight,
-                                      );
                                       return SizedBox(
                                         width: box.maxWidth,
                                         height: box.maxHeight,
