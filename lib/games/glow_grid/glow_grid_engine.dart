@@ -69,17 +69,17 @@ class GlowGridSession {
     final indexes = List<int>.generate(cellCount, (index) => index)
       ..shuffle(random);
     final moveCount = min(cellCount - 1, size + 1 + round);
-    final scramble = indexes.take(moveCount).toList(growable: false);
+    final scramble = indexes.take(moveCount).toList();
     final lit = <int>{};
     for (final index in scramble) {
       _toggleCellAndNeighbours(lit, size, index);
     }
 
     // A small portion of valid scrambles can cancel to an empty board.
-    // Add a deterministic valid move so every round begins visibly active.
+    // Add a deterministic valid move and record it in the solution.
     if (lit.isEmpty) {
       final fallback = indexes[moveCount];
-      scramble.toList(); // keep the original solution immutable
+      scramble.add(fallback);
       _toggleCellAndNeighbours(lit, size, fallback);
     }
     return GlowGridBoard(
