@@ -43,6 +43,10 @@ void main() {
 
   testWidgets('correct analogies report earned completion once',
       (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     var completions = 0;
     var correct = -1;
     var mistakes = -1;
@@ -82,6 +86,10 @@ void main() {
 
   testWidgets('low score records misses without earning completion',
       (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     var completions = 0;
     var recordedMistakes = -1;
     final expected = AnalogyLabSession(seed: 104729, level: 1);
