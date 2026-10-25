@@ -16,6 +16,7 @@ class SignalGuardSession {
   static const int roundCount = 12;
   static const int passErrorLimit = 3;
 
+  final int seed;
   late final List<SignalKind> _sequence;
   int round = 0;
   int correctResponses = 0;

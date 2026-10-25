@@ -210,7 +210,7 @@ class _SignalGuardPageState extends State<SignalGuardPage> {
                       Text(_transitioning ? 'Next signal…' : 'Wait for the next signal',
                         style: const TextStyle(color: _muted, fontWeight: FontWeight.w700)),
                     ]);
-                  })),
+                  }))),
             const SizedBox(height: 10),
             Row(children: [
               Expanded(child: Text(complete

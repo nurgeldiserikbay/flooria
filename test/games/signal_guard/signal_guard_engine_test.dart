@@ -9,7 +9,7 @@ void main() {
       expect(first.sequence, second.sequence);
       expect(first.sequence.where((signal) => signal == SignalKind.target).length, 7);
       expect(first.sequence.where((signal) => signal == SignalKind.distractor).length, 5);
-      expect(first.roundCount, 12);
+      expect(SignalGuardSession.roundCount, 12);
     });
 
     test('correct taps and correct holds clear all trials with no errors', () {
@@ -31,7 +31,7 @@ void main() {
 
     test('false alarms and misses both count toward the pass limit', () {
       final session = SignalGuardSession(seed: 1234);
-      for (var trial = 0; trial < session.roundCount; trial++) {
+      for (var trial = 0; trial < SignalGuardSession.roundCount; trial++) {
         final signal = session.currentSignal;
         final makeError = trial < 4;
         if (makeError) {
@@ -53,7 +53,7 @@ void main() {
 
     test('pass threshold accepts exactly three errors', () {
       final session = SignalGuardSession(seed: 67);
-      for (var trial = 0; trial < session.roundCount; trial++) {
+      for (var trial = 0; trial < SignalGuardSession.roundCount; trial++) {
         final signal = session.currentSignal;
         final makeError = trial < 3;
         if (makeError) {
