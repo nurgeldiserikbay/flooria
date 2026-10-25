@@ -3,19 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
+import 'core/game_registry.dart';
 import 'game/player_stats.dart';
 import 'ui/flooria_extras.dart';
 import 'ui/neuro_map.dart';
 import 'ui/neuro_hub_pages.dart';
-import 'ui/memory_pairs_page.dart';
-import 'ui/color_spot_page.dart';
-import 'ui/tap_sprint_page.dart';
-import 'ui/light_grid_page.dart';
-import 'ui/pattern_echo_page.dart';
-import 'ui/merge_page.dart';
-import 'ui/sequence_page.dart';
-import 'ui/fifteen_page.dart';
-import 'ui/maze_route_page.dart';
 
 export 'ui/merge_page.dart' show MergePage;
 export 'ui/sequence_page.dart' show SequencePage;
@@ -120,59 +112,22 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       _save();
       final startingFloor = tower ? floor : null;
       final next = await Navigator.push<bool>(context, MaterialPageRoute<bool>(
-        builder: (_) => gameId == 'merge2048'
-          ? MergePage(
-              floor: startingFloor,
-              onComplete: () => _completeFloor(),
-              onSessionEnd: _record2048,
-            )
-          : gameId == 'memory'
-            ? MemoryPairsPage(
-                floor: startingFloor,
-                onComplete: _completeFloor,
-                onSessionEnd: _recordMemory,
-              )
-            : gameId == 'colorMatch'
-              ? ColorSpotPage(
-                  floor: startingFloor,
-                  onComplete: _completeFloor,
-                  onSessionEnd: _recordColorSpot,
-                )
-              : gameId == 'speed'
-                ? TapSprintPage(
-                    floor: startingFloor,
-                    onComplete: _completeFloor,
-                    onSessionEnd: _recordSpeed,
-                  )
-                : gameId == 'logic'
-                  ? LightGridPage(
-                      floor: startingFloor,
-                      onComplete: _completeFloor,
-                      onSessionEnd: _recordLogic,
-                    )
-                  : gameId == 'pattern'
-                    ? PatternEchoPage(
-                        floor: startingFloor,
-                        onComplete: _completeFloor,
-                        onSessionEnd: _recordPatternEcho,
-                      )
-                    : gameId == 'fifteen'
-                      ? FifteenPage(
-                          floor: startingFloor,
-                          onComplete: _completeFloor,
-                          onSessionEnd: _recordFifteen,
-                        )
-                      : gameId == 'maze'
-                        ? MazeRoutePage(
-                            floor: startingFloor,
-                            onComplete: _completeFloor,
-                            onSessionEnd: _recordMaze,
-                          )
-                        : SequencePage(
-                floor: startingFloor,
-                onComplete: _completeFloor,
-                onSessionEnd: _recordSequence,
-              ),
+        builder: (_) => GameRegistry.buildPage(
+          gameId,
+          floor: startingFloor,
+          callbacks: GameCallbacks(
+            onComplete: _completeFloor,
+            onMergeEnd: _record2048,
+            onSequenceEnd: _recordSequence,
+            onMemoryEnd: _recordMemory,
+            onColorEnd: _recordColorSpot,
+            onSpeedEnd: _recordSpeed,
+            onLogicEnd: _recordLogic,
+            onPatternEnd: _recordPatternEcho,
+            onFifteenEnd: _recordFifteen,
+            onMazeEnd: _recordMaze,
+          ),
+        ),
       ));
       if (!mounted) return;
       if (startingFloor != null && floor > startingFloor) {

@@ -1,46 +1,47 @@
-# Flooria Architecture (Foundation)
+# Neuro Playground architecture
 
-## Goals
-- One Flutter codebase for Android, iOS, and Web.
-- Offline-first progress, no player account or personal data backend.
-- A mini-game can run in Tower mode, Library mode, or a future standalone application.
-- Keep game rules independent of Flutter widgets and the UI framework.
-- Reuse procedural vector drawing instead of large texture packs where possible.
+## Current platform
+One Flutter codebase for mobile and web. Progress, favorites, recent games
+and game records are local via SharedPreferences. No user account or backend.
+Nine playable game modules are integrated.
 
-## Current implementation
-- `lib/game/merge_2048.dart`: isolated 2048 rule engine.
-- `lib/game/floor_engine.dart`: deterministic initial two-game tower schedule.
-- `lib/main.dart`: initial Flooria soft visual language, library and navigation.
-- SharedPreferences: initial local floor, favorites, recent games. Full session persistence is pending.
+## Core registry (single integration owner)
+- `lib/core/game_registry.dart` owns stable IDs, catalog metadata, the
+  playable screen factory, and an append-only campaign ID list.
+- `lib/game/floor_engine.dart` consumes that stable campaign list.
+- `lib/game/game_objective.dart` maps existing game IDs to win objectives.
+- `lib/game/player_stats.dart` stores backwards-compatible measured records.
+- `lib/main.dart` handles persistence and dispatches callbacks to registry.
+- `lib/ui/neuro_hub_pages.dart` and `lib/ui/neuro_map.dart` display metadata
+  from the same registry rather than maintaining separate label lists.
 
-## Module design contract (target)
-Each module should provide:
-- A stable identifier and a version.
-- Immutable launch configuration: mode, challenge seed, difficulty, optional content ID.
-- Level provider: generated, curated, or hybrid.
-- Pure rules/session object and serializable game state.
-- Renderer and input adapter, separate from rules.
-- Result with completion, moves, timing, accuracy, and hints used.
-- Gameplay tests validating reachability, solvability and save/restore.
+Do not reorder registered campaign IDs while floor progress is stored as an
+integer. Future schedule migrations require a data-versioning design.
 
-The Tower Director must depend on module descriptions, not concrete module classes.
-The Game Library owns independent game progression. Tower completion must never
-silently skip that progression.
+## Existing game modules
+Pure game rules currently live under `lib/game/` and independent screens
+under `lib/ui/`. They will remain compatible while **new** game modules use
+`lib/games/<id>/` and tests in `test/games/<id>/`.
 
-## Offline data
-The player's floor, recent activity, favorites, personal levels, and results remain
-on their own device. Future migrations will introduce an indexed local database and
-portable backups. Deleting content must not delete progress.
+Each module should expose:
+- Stable unique game ID and deterministic seeded rules;
+- Pure rules engine, separate from Flutter;
+- Self-contained screen with optional campaign floor, completion callback
+  and result callback;
+- Solvable level generation, invalid-input protection and safe async lifecycle;
+- Responsive mobile layout without unnecessary gameplay scrolling;
+- Focused unit and widget tests.
+
+The registry deliberately owns imports of game pages. Feature PRs should
+supply their self-contained module and ask the integrator to add it to the
+registry and objective/stats systems after review.
+
+## Parallel workflows
+Read `AGENTS.md` and `docs/PARALLEL_DEVELOPMENT.md`. Authors develop on
+separate branches, submit PRs, and avoid shared integration files.
+`Validate Feature PR` checks Dart analysis, tests and web build on PRs.
+The original Pages deployment runs from `main` only.
 
 ## Constraints
-No remote executable plugin loader. New engines ship with normal app releases.
-Additional puzzle datasets and visual assets may eventually be versioned separately,
-but network-delivered game updates are out of current scope.
-
-## Next engineering tasks
-1. Extract dedicated GameRegistry, GameHost and two reusable UI renderers.
-2. Implement persisted standalone level progression and session resume.
-3. Improve deterministic tower challenges and difficulty validation.
-4. Add Snake and Fifteen Puzzle modules.
-5. Add accessibility, reduced motion and widget tests.
-6. Replace temporary web scaffold generation with checked-in platform projects.
+No remote executable code modules. No personal-data backend required.
+Do not break legacy saved progress or rename game IDs without migrations.
