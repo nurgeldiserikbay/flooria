@@ -139,7 +139,7 @@ class NeuroGamesPage extends StatelessWidget {
     ('colorMatch', 'Color Spot', 'colors', true),
     ('sudoku', 'Sudoku', 'sudoku', false),
     ('fifteen', 'Sliding Fifteen', 'fifteen', true),
-    ('maze', 'Maze', 'maze', false),
+    ('maze', 'Maze Route', 'maze', true),
     ('reaction', 'Reaction', 'reaction', false),
     ('pattern', 'Pattern Echo', 'pattern', true),
     ('word', 'Words', 'word', false),
@@ -391,8 +391,9 @@ class NeuroGameDetailPage extends StatelessWidget {
     final logic = gameId == 'logic';
     final echo = gameId == 'pattern';
     final fifteen = gameId == 'fifteen';
-    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : fifteen ? 'Sliding Fifteen' : 'Number Trail';
-    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : fifteen ? 'fifteen' : 'trail';
+    final maze = gameId == 'maze';
+    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : fifteen ? 'Sliding Fifteen' : maze ? 'Maze Route' : 'Number Trail';
+    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : fifteen ? 'fifteen' : maze ? 'maze' : 'trail';
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
