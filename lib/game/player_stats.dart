@@ -18,6 +18,9 @@ class PlayerGameStats {
   int colorCorrect;
   int colorQuestions;
   int colorBestCorrect;
+  int speedRuns;
+  int speedBestMillis;
+  int speedBestMistakes;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -35,6 +38,9 @@ class PlayerGameStats {
     this.colorCorrect = 0,
     this.colorQuestions = 0,
     this.colorBestCorrect = 0,
+    this.speedRuns = 0,
+    this.speedBestMillis = 0,
+    this.speedBestMistakes = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -58,6 +64,9 @@ class PlayerGameStats {
       colorCorrect: read('colorCorrect'),
       colorQuestions: read('colorQuestions'),
       colorBestCorrect: read('colorBestCorrect'),
+      speedRuns: read('speedRuns'),
+      speedBestMillis: read('speedBestMillis'),
+      speedBestMistakes: read('speedBestMistakes'),
     );
   }
 
@@ -77,6 +86,9 @@ class PlayerGameStats {
     'colorCorrect': colorCorrect,
     'colorQuestions': colorQuestions,
     'colorBestCorrect': colorBestCorrect,
+    'speedRuns': speedRuns,
+    'speedBestMillis': speedBestMillis,
+    'speedBestMistakes': speedBestMistakes,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -118,6 +130,15 @@ class PlayerGameStats {
     colorBestCorrect = math.max(colorBestCorrect, correct.clamp(0, total).toInt());
   }
 
+  void recordSpeed({required int elapsedMillis, required int mistakes}) {
+    if (elapsedMillis <= 0) return;
+    speedRuns++;
+    if (speedBestMillis == 0 || elapsedMillis < speedBestMillis) {
+      speedBestMillis = elapsedMillis;
+      speedBestMistakes = math.max(0, mistakes);
+    }
+  }
+
   /// A descriptive radar based on player results (0–100 per tracked axis).
   /// A null value means the current games cannot measure this skill yet.
   /// These levels do not measure brain development or intelligence.
@@ -143,7 +164,10 @@ class PlayerGameStats {
       GameSkillRating('Memory', memoryRuns > 0
         ? (memoryBestPairs / 6 * 100).round().clamp(0, 100).toInt() : null,
         'Memory Pairs best run'),
-      const GameSkillRating('Speed', null, 'Not tracked yet'),
+      GameSkillRating('Speed', speedBestMillis > 0
+        ? ((60000 - speedBestMillis) / 60000 * 100)
+          .round().clamp(0, 100).toInt() : null,
+        'Tap Sprint best finish time'),
       GameSkillRating('Patterns', accuracy, 'Number Trail accuracy'),
       GameSkillRating('Perception', colorQuestions > 0
         ? (colorCorrect / colorQuestions * 100).round().clamp(0, 100).toInt()
