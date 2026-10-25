@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game/floor_engine.dart';
 import 'game/merge_2048.dart';
 import 'game/game_objective.dart';
 import 'game/player_stats.dart';
 import 'game/sequence_generator.dart';
-import 'ui/objective_banner.dart';
 import 'ui/flooria_extras.dart';
 import 'ui/floor_victory.dart';
 import 'ui/sliding_2048_board.dart';
@@ -319,35 +317,46 @@ class _MergePageState extends State<MergePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? '2048' : 'Challenge ${widget.floor} · 2048'), backgroundColor: const Color(0xFF172A61), foregroundColor: Colors.white),
-    body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 470), child: ListView(padding: const EdgeInsets.all(20), children: [
-      const SizedBox(height: 12),
-      const Text('NEURON PUZZLE', style: TextStyle(fontSize: 12,
-        fontWeight: FontWeight.w900, color: Color(0xFF9DEAFF),
-        letterSpacing: 2), textAlign: TextAlign.center),
-      const SizedBox(height: 4),
-      const Text('2048', style: TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.w900),
-        textAlign: TextAlign.center),
-      const SizedBox(height: 5),
-      const Text('Merge matching tiles to activate your neuron',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Color(0xFFC5D8FF), fontSize: 13)),
-      const SizedBox(height: 13),
-      ObjectiveBanner(objective: const ObjectiveCatalog().forGame('merge2048', floor: widget.floor), progress: game.highest),
-      const SizedBox(height: 18),
-      FantasyPanel(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          _stat('SCORE', '${game.score}'),
-          Container(width: 2, height: 34, color: const Color(0xFF6D82C7)),
-          _stat('BEST TILE', '${game.highest}'),
-          Container(width: 2, height: 34, color: const Color(0xFF6D82C7)),
-          _stat('MOVES', '${game.moves}'),
-        ]),
+  Widget build(BuildContext context) {
+    final objective = const ObjectiveCatalog().forGame(
+      'merge2048', floor: widget.floor);
+    return Scaffold(
+      backgroundColor: const Color(0xFFCDE6FA),
+      appBar: AppBar(
+        toolbarHeight: 48,
+        title: const Text('2048', style: TextStyle(fontWeight: FontWeight.w900)),
+        backgroundColor: const Color(0xFFE3EFFF),
+        foregroundColor: const Color(0xFF2B427D),
+        actions: [
+          if (widget.floor != null)
+            Center(child: Padding(
+              padding: const EdgeInsets.only(right: 18),
+              child: Text('LEVEL ${widget.floor}', style: const TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w900,
+                color: Color(0xFF697AA9))))),
+        ],
       ),
-      const SizedBox(height: 15),
-      Focus(
+      body: FantasyScene(child: SafeArea(child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            child: Column(children: [
+              _mission(objective.title, game.highest, objective.target),
+              const SizedBox(height: 10),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _stat('SCORE', '${game.score}'),
+                  _stat('BEST TILE', '${game.highest}'),
+                  _stat('MOVES', '${game.moves}'),
+                ]),
+              const SizedBox(height: 10),
+              Expanded(child: LayoutBuilder(builder: (context, available) {
+                final boardSize = available.biggest.shortestSide
+                  .clamp(0.0, 430.0).toDouble();
+                return Center(child: SizedBox.square(
+                  dimension: boardSize,
+                  child: Focus(
         autofocus: true,
         onKeyEvent: (_, event) {
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
@@ -395,27 +404,65 @@ class _MergePageState extends State<MergePage> {
             ),
           ),
         ),
-      ),
-      const SizedBox(height: 20),
-      if (finished && widget.floor == null) _notice('Wonderful! You reached 2048.'),
-      if (!game.canMove && !finished) _notice('No more moves. Try again!'),
-      const SizedBox(height: 14),
-      FantasyButton(label: 'RESTART PUZZLE',
-        icon: Icons.refresh_rounded,
-        onPressed: () => setState(() {
-          game = Merge2048(seed: DateTime.now().millisecondsSinceEpoch);
-          finished = false;
-          resultReported = false;
-          victoryPresented = false;
-          previousBoard = null;
-          previousDirection = null;
-          moveAnimationId++;
-        })),
+      ),,
+                ));
+              })),
+              if (finished && widget.floor == null)
+                _notice('Great! You reached the goal.'),
+              if (!game.canMove && !finished)
+                _notice('No moves left — start again!'),
+              const SizedBox(height: 9),
+              SizedBox(width: double.infinity, height: 49,
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFCF72),
+                    foregroundColor: const Color(0xFF25366D)),
+                  onPressed: () => setState(() {
+                    game = Merge2048(
+                      seed: DateTime.now().millisecondsSinceEpoch);
+                    finished = false;
+                    resultReported = false;
+                    victoryPresented = false;
+                    previousBoard = null;
+                    previousDirection = null;
+                    moveAnimationId++;
+                  }),
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('RESTART', style: TextStyle(
+                    fontWeight: FontWeight.w900))),
+              ),
+            ]),
+          ),
+        ),
+      ))),
+    );
+  }
 
-    ])))),
+  Widget _mission(String name, int current, int target) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+    decoration: BoxDecoration(
+      color: const Color(0xEAFFFFFF),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: const Color(0xFFA6C2EC))),
+    child: Row(children: [
+      const Icon(Icons.flag_rounded, size: 19, color: Color(0xFF6E62C9)),
+      const SizedBox(width: 7),
+      Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+          color: Color(0xFF304978)))),
+      Text('${current.clamp(0, target)} / $target',
+        style: const TextStyle(color: Color(0xFF6455C9),
+          fontWeight: FontWeight.w900, fontSize: 12)),
+    ]),
   );
 
-  Widget _stat(String label, String value) => Column(children: [Text(label, style: const TextStyle(letterSpacing: 1.2, color: Color(0xFFA7E8F9), fontWeight: FontWeight.w700, fontSize: 11)), const SizedBox(height: 4), Text(value, style: const TextStyle(fontSize: 25, fontWeight: FontWeight.w800, color: Colors.white))]);
+  Widget _stat(String label, String value) => Column(children: [
+    Text(label, style: const TextStyle(color: Color(0xFF5F739D),
+      fontSize: 10, fontWeight: FontWeight.w800)),
+    const SizedBox(height: 2),
+    Text(value, style: const TextStyle(color: Color(0xFF2D4378),
+      fontSize: 20, fontWeight: FontWeight.w900)),
+  ]);
   Widget _notice(String text) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF2D6191), borderRadius: BorderRadius.circular(16)), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)));
 }
 
@@ -495,89 +542,133 @@ class _SequencePageState extends State<SequencePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(widget.floor == null ? 'Number Trail' : 'Challenge ${widget.floor} · Number Trail'), backgroundColor: const Color(0xFF172A61), foregroundColor: Colors.white),
-    body: FantasyScene(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      SvgPicture.asset('assets/design/neuro-icon-trail.svg',
-        height: 96, width: 96),
-      const SizedBox(height: 20),
-      Text(done ? 'Challenge finished!' : 'NUMBER TRAIL',
-        style: const TextStyle(fontSize: 29, color: Colors.white, fontWeight: FontWeight.w900), textAlign: TextAlign.center),
-      const SizedBox(height: 12),
-      Text(done ? 'Correct answers: $correct / 3' : 'Round ${round + 1} of 3', style: const TextStyle(color: Color(0xFFB7CCF2))),
-      const SizedBox(height: 18),
-      ObjectiveBanner(objective: const ObjectiveCatalog().forGame('numberSequence', floor: widget.floor), progress: correct),
-      const SizedBox(height: 20),
-      if (!done) ...[
-        const Text('DISCOVER THE MISSING NUMBER', style: TextStyle(
-          color: Color(0xFFC5D8FF), fontSize: 11,
-          letterSpacing: 1, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 8),
-        FantasyPanel(padding: const EdgeInsets.all(17),
-          child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 240),
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(.08, 0), end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
+  Widget build(BuildContext context) {
+    final objective = const ObjectiveCatalog().forGame(
+      'numberSequence', floor: widget.floor);
+    return Scaffold(
+      backgroundColor: const Color(0xFFCDE6FA),
+      appBar: AppBar(
+        toolbarHeight: 48,
+        title: const Text('Number Trail', style: TextStyle(
+          fontWeight: FontWeight.w900)),
+        backgroundColor: const Color(0xFFE3EFFF),
+        foregroundColor: const Color(0xFF2B427D),
+        actions: [
+          if (widget.floor != null)
+            Center(child: Padding(padding: const EdgeInsets.only(right: 18),
+              child: Text('LEVEL ${widget.floor}',
+                style: const TextStyle(fontSize: 12,
+                  fontWeight: FontWeight.w900, color: Color(0xFF697AA9))))),
+        ],
+      ),
+      body: FantasyScene(child: SafeArea(child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Padding(padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+            child: Column(children: [
+              Row(children: [
+                const Icon(Icons.auto_awesome_rounded,
+                  color: Color(0xFFFFD06C), size: 23),
+                const SizedBox(width: 8),
+                Expanded(child: Text(objective.title,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800,
+                    color: Color(0xFF273D75), fontSize: 14))),
+                Text(done ? '$correct / 3' : '${round + 1} / 3',
+                  style: const TextStyle(fontWeight: FontWeight.w900,
+                    color: Color(0xFF665AC1))),
+              ]),
+              const SizedBox(height: 12),
+              Expanded(child: LayoutBuilder(builder: (context, space) {
+                return Column(mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (!done) ...[
+                      Container(
+                        width: double.infinity,
+                        constraints: BoxConstraints(
+                          minHeight: (space.maxHeight * .20).clamp(65.0, 120.0)),
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: const Color(0xF8FFFFFF),
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: const Color(0xFFA6BEEA), width: 2)),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 220),
+                          child: FittedBox(
+                            key: ValueKey<int>(round),
+                            fit: BoxFit.scaleDown,
+                            child: Text('${puzzle.numbers.join("   ")}   ?',
+                              style: const TextStyle(fontSize: 30,
+                                color: Color(0xFF273F79),
+                                fontWeight: FontWeight.w900)))),
+                      ),
+                      SizedBox(height: (space.maxHeight * .035).clamp(8.0, 19.0)),
+                      SizedBox(
+                        height: (space.maxHeight * .34).clamp(126.0, 198.0),
+                        child: GridView.count(
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 2.2,
+                          children: [
+                            for (final v in puzzle.choices)
+                              AnimatedScale(
+                                scale: answering && selectedAnswer == v ? 1.05 : 1,
+                                duration: const Duration(milliseconds: 160),
+                                child: Material(
+                                  color: answering && selectedAnswer == v
+                                    ? (selectedCorrect
+                                      ? const Color(0xFF6BDDBB)
+                                      : const Color(0xFFFFA5B3))
+                                    : const Color(0xFFDDD9FF),
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(18),
+                                    onTap: answering ? null : () => answer(v),
+                                    child: Center(child: Text('$v',
+                                      style: const TextStyle(fontSize: 25,
+                                        color: Color(0xFF2A3873),
+                                        fontWeight: FontWeight.w900))),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      const Icon(Icons.stars_rounded,
+                        size: 60, color: Color(0xFFFFD26F)),
+                      const SizedBox(height: 12),
+                      Text('Correct: $correct / 3', style: const TextStyle(
+                        fontSize: 25, fontWeight: FontWeight.w900,
+                        color: Color(0xFF273D75))),
+                      const SizedBox(height: 18),
+                      if (widget.floor == null || !passed)
+                        FilledButton.icon(
+                          onPressed: () {
+                            if (passed) {
+                              Navigator.pop(context);
+                            } else {
+                              setState(() {
+                                round = 0; correct = 0; done = false;
+                                passed = false; resultPresented = false;
+                                answering = false; selectedAnswer = null;
+                                _buildChoices();
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: Text(passed ? 'Back to map' : 'Try again')),
+                    ],
+                  ]);
+              })),
+            ]),
           ),
-          child: FittedBox(
-            key: ValueKey<int>(round),
-            fit: BoxFit.scaleDown,
-            child: Text('${puzzle.numbers.join('   ')}   ?',
-              style: const TextStyle(
-                fontSize: 27, fontWeight: FontWeight.w800, color: Colors.white)),
-          ),
-        )),
-        const SizedBox(height: 19),
-        GridView.count(
-          crossAxisCount: 2, shrinkWrap: true, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.0,
-          children: [
-            for (final v in puzzle.choices)
-              AnimatedScale(
-                scale: answering && selectedAnswer == v ? 1.055 : 1,
-                curve: Curves.easeOutBack,
-                duration: const Duration(milliseconds: 175),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  decoration: BoxDecoration(
-                    color: answering && selectedAnswer == v
-                      ? selectedCorrect
-                        ? const Color(0xFF57D3AF) : const Color(0xFFFF7396)
-                      : const Color(0xFF627ADF),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFB3C6FF), width: 2),
-                    boxShadow: const [BoxShadow(color: Color(0xFF25376D),
-                      offset: Offset(0, 4))],
-                  ),
-                  child: TextButton(
-                    onPressed: answering ? null : () => answer(v),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16))),
-                    child: Text('$v', style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.w800)),
-                  ),
-                ),
-              ),
-          ],
         ),
-      ] else if (widget.floor == null || !passed) ...[
-        Icon(passed ? Icons.emoji_events_rounded : Icons.refresh_rounded, size: 64, color: const Color(0xFF9FE8FA)),
-        const SizedBox(height: 20),
-        FilledButton(onPressed: () {
-          if (passed) {
-            Navigator.pop(context);
-          } else {
-            setState(() { round = 0; correct = 0; done = false; passed = false; resultPresented = false; answering = false; selectedAnswer = null; _buildChoices(); });
-          }
-        }, child: Text(passed ? 'Back to map' : 'Try again')),
-      ],
-    ]))))),
-  );
+      ))),
+    );
+  }
 }
