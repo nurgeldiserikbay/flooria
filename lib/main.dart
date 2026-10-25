@@ -404,7 +404,7 @@ class _MergePageState extends State<MergePage> {
             ),
           ),
         ),
-      ),,
+      ),
                 ));
               })),
               if (finished && widget.floor == null)
