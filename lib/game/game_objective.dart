@@ -42,6 +42,13 @@ class ObjectiveCatalog {
           target: required,
           unit: 'Correct answers',
         );
+      case 'memory':
+        return const GameObjective(
+          title: 'Find all 6 pairs',
+          instruction: 'Turn over two cards and remember their symbols.',
+          target: 6,
+          unit: 'Matched pairs',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
