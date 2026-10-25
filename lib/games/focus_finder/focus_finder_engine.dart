@@ -30,7 +30,7 @@ class FocusSearchRound {
     required this.targetIndex,
     required Iterable<SearchToken> tokens,
   }) : tokens = List<SearchToken>.unmodifiable(tokens) {
-    if (columns < 1 || tokens.length < 1 || targetIndex < 0 ||
+    if (columns < 1 || tokens.isEmpty || targetIndex < 0 ||
         targetIndex >= tokens.length ||
         tokens.where((token) => token.matches(target)).length != 1 ||
         !this.tokens[targetIndex].matches(target)) {
