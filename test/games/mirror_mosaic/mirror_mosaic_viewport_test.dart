@@ -68,6 +68,7 @@ void main() {
       for (final target in targets) {
         await tester.tap(find.byKey(ValueKey('mirror-mosaic-cell-$target')));
         await tester.pumpAndSettle();
+        generated.toggle(target);
       }
     }
 
