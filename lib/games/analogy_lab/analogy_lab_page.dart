@@ -344,7 +344,7 @@ class _AnswerOptions extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
-            childAspectRatio: 2.2,
+            childAspectRatio: 3.1,
           ),
           itemBuilder: (context, index) => Material(
             color: const Color(0xFFFFFEFC),
