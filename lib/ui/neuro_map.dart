@@ -17,6 +17,7 @@ class NeuroMapView extends StatefulWidget {
     required this.onRecords,
     required this.onSettings,
     this.motionEnabled = true,
+    this.testingAccessAll = false,
   });
   final int floor;
   final ValueChanged<int> onNodeTap;
@@ -25,6 +26,7 @@ class NeuroMapView extends StatefulWidget {
   final VoidCallback onRecords;
   final VoidCallback onSettings;
   final bool motionEnabled;
+  final bool testingAccessAll;
 
   @override
   State<NeuroMapView> createState() => _NeuroMapViewState();
@@ -58,7 +60,8 @@ class _NeuroMapViewState extends State<NeuroMapView> {
   @override
   Widget build(BuildContext context) {
     final points = _points;
-    final visible = math.min(points.length, math.max(6, widget.floor + 4));
+    final visible = widget.testingAccessAll
+      ? points.length : math.min(points.length, math.max(6, widget.floor + 4));
     final current = (widget.floor - 1).clamp(0, points.length - 1);
     return LayoutBuilder(builder: (context, constraints) {
       if (!_positioned) {
@@ -82,27 +85,27 @@ class _NeuroMapViewState extends State<NeuroMapView> {
             child: Stack(children: [
               CustomPaint(size: Size(390, points.last.dy + 180),
                 painter: _Connections(points.take(visible).toList(),
-                  widget.floor)),
+                  widget.floor, widget.testingAccessAll)),
               for (var i = 0; i < visible; i++)
                 Positioned(
                   left: points[i].dx - 39,
                   top: points[i].dy + 45,
                   width: 78, height: 90,
                   child: Semantics(
-                    label: 'Neuron ${i + 1}, ${i + 1 < widget.floor ? "completed" : i + 1 == widget.floor ? "current" : "locked"}',
-                    button: i + 1 <= widget.floor,
+                    label: 'Neuron ${i + 1}, ${i + 1 < widget.floor ? "completed" : i + 1 == widget.floor ? "current" : widget.testingAccessAll ? "available for testing" : "locked"}',
+                    button: i + 1 <= widget.floor || widget.testingAccessAll,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(42),
                       onTap: () {
-                        if (i + 1 > widget.floor) return;
+                        if (i + 1 > widget.floor && !widget.testingAccessAll) return;
                         widget.onNodeTap(i + 1);
                       },
                       child: Column(children: [
                         SvgPicture.asset(
-                          'assets/design/${i + 1 < widget.floor ? "neuro-node-active" : i + 1 == widget.floor ? "neuro-node-current" : "neuro-node-locked"}.svg',
+                          'assets/design/${i + 1 < widget.floor ? "neuro-node-active" : i + 1 == widget.floor || widget.testingAccessAll ? "neuro-node-current" : "neuro-node-locked"}.svg',
                           height: 67, width: 67),
                         Text('${i + 1}', style: TextStyle(
-                          color: i + 1 <= widget.floor ? const Color(0xFF263F75) : const Color(0xFF7786AA),
+                          color: i + 1 <= widget.floor || widget.testingAccessAll ? const Color(0xFF263F75) : const Color(0xFF7786AA),
                           fontWeight: FontWeight.bold, fontSize: 13)),
                       ]),
                     ),
@@ -124,7 +127,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
               children: [
                 Text('NEURO', style: TextStyle(color: Colors.white,
                   fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 22)),
-                Text('EXPLORE THE NETWORK', style: TextStyle(color: Color(0xFF9CE6FF),
+                Text(widget.testingAccessAll ? 'TEST MODE · ALL NODES OPEN' : 'EXPLORE THE NETWORK', style: TextStyle(color: Color(0xFF9CE6FF),
                   fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.3)),
               ])),
             Container(
@@ -182,9 +185,10 @@ class _NeuroMapViewState extends State<NeuroMapView> {
 }
 
 class _Connections extends CustomPainter {
-  _Connections(this.nodes, this.floor);
+  _Connections(this.nodes, this.floor, this.testingAccessAll);
   final List<Offset> nodes;
   final int floor;
+  final bool testingAccessAll;
   @override
   void paint(Canvas canvas, Size size) {
     // Procedural scattered synapses, not a repeated bitmap background.
@@ -209,7 +213,7 @@ class _Connections extends CustomPainter {
       final path = Path()..moveTo(start.dx, start.dy)
         ..cubicTo(start.dx + 18, start.dy + 65,
           p.dx - 18, p.dy - 65, p.dx, p.dy);
-      final passed = i < floor;
+      final passed = i < floor || testingAccessAll;
       canvas.drawPath(path, Paint()..style = PaintingStyle.stroke
         ..strokeWidth = passed ? 10 : 6
         ..color = passed ? const Color(0x9970D3E8) : const Color(0x556E87BE));
@@ -221,5 +225,6 @@ class _Connections extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _Connections oldDelegate) =>
-      oldDelegate.floor != floor || oldDelegate.nodes.length != nodes.length;
+      oldDelegate.floor != floor || oldDelegate.testingAccessAll != testingAccessAll ||
+      oldDelegate.nodes.length != nodes.length;
 }
