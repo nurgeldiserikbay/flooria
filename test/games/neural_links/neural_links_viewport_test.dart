@@ -14,7 +14,7 @@ void main() {
       )));
       expect(find.text('Neural Links'), findsOneWidget);
       expect(find.textContaining('crossings'), findsOneWidget);
-      expect(find.byType(CustomPaint), findsOneWidget);
+      expect(find.byKey(const ValueKey('neural-graph')), findsOneWidget);
       expect(find.byType(ListView), findsNothing);
       expect(tester.takeException(), isNull);
     });

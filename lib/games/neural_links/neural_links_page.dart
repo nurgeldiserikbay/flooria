@@ -177,6 +177,7 @@ class _NeuralLinksPageState extends State<NeuralLinksPage> {
                     _draggedNode = null;
                   }),
                   child: SizedBox.square(dimension: side, child: CustomPaint(
+                    key: const ValueKey('neural-graph'),
                     painter: _NeuralGraphPainter(
                       session: session,
                       highlightedLinks: session.crossingLinkIndices,

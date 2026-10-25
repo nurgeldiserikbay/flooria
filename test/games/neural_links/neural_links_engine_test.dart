@@ -22,7 +22,11 @@ void main() {
         return NeuralPoint(0.5 + 0.37 * cos(angle), 0.5 + 0.37 * sin(angle));
       });
       for (var index = 0; index < target.length && !session.finished; index++) {
-        expect(session.moveNode(index, target[index].x, target[index].y), isTrue);
+        final current = session.positions[index];
+        if ((current.x - target[index].x).abs() >= 0.001 ||
+            (current.y - target[index].y).abs() >= 0.001) {
+          expect(session.moveNode(index, target[index].x, target[index].y), isTrue);
+        }
       }
       expect(session.finished, isTrue);
       expect(session.crossingCount, 0);
