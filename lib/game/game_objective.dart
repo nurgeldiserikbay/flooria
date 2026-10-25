@@ -56,6 +56,13 @@ class ObjectiveCatalog {
           target: 4,
           unit: 'Correct choices',
         );
+      case 'speed':
+        return const GameObjective(
+          title: 'Find numbers 1 to 9',
+          instruction: 'Tap the shuffled numbers in ascending order.',
+          target: 9,
+          unit: 'Numbers found',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
