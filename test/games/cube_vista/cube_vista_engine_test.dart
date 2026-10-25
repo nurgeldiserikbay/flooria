@@ -15,8 +15,10 @@ void main() {
         expect(a.clues.side, orderedEquals(b.clues.side));
         expect(a.clues.footprint, orderedEquals(b.clues.footprint));
         expect(a.options.length, 3);
-        expect(a.options.map((layout) => layout.heights).toList(),
-            orderedEquals(b.options.map((layout) => layout.heights).toList()));
+        for (var option = 0; option < a.options.length; option++) {
+          expect(a.options[option].heights,
+              orderedEquals(b.options[option].heights));
+        }
 
         final matching = <int>[
           for (var index = 0; index < a.options.length; index++)
