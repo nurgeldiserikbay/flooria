@@ -8,8 +8,6 @@ import 'game/player_stats.dart';
 import 'ui/flooria_extras.dart';
 import 'ui/neuro_map.dart';
 import 'ui/neuro_hub_pages.dart';
-import 'ui/merge_page.dart';
-import 'ui/sequence_page.dart';
 
 export 'ui/merge_page.dart' show MergePage;
 export 'ui/sequence_page.dart' show SequencePage;
