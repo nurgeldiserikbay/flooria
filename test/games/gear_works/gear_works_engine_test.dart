@@ -13,6 +13,7 @@ void main() {
       expect(puzzle.solutionGears.intersection(puzzle.blockers), isEmpty);
       expect(puzzle.inventory, puzzle.solutionGears.length - puzzle.fixedGears.length);
       for (final cell in puzzle.solutionGears) {
+        if (puzzle.complete) break; // A shorter connected route may win early.
         if (puzzle.fixedGears.contains(cell)) continue;
         expect(puzzle.toggle(cell), isTrue);
       }
@@ -51,6 +52,7 @@ void main() {
   test('power directions alternate across engaged gears', () {
     final puzzle = GearWorksSession(seed: 27);
     for (final cell in puzzle.solutionGears) {
+      if (puzzle.complete) break;
       if (!puzzle.fixedGears.contains(cell)) puzzle.toggle(cell);
     }
     final rotations = puzzle.spinDirections;
