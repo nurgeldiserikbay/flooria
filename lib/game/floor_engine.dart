@@ -9,7 +9,7 @@ class FloorChallenge {
 }
 
 class FloorEngine {
-  static const gameIds = ['merge2048', 'numberSequence', 'memory', 'colorMatch'];
+  static const gameIds = ['merge2048', 'numberSequence', 'memory', 'colorMatch', 'speed'];
   const FloorEngine();
 
   FloorChallenge challengeFor(int floor) {
