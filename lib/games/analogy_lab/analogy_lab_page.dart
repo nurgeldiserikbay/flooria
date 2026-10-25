@@ -334,37 +334,46 @@ class _AnswerOptions extends StatelessWidget {
   final ValueChanged<int> onChoose;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 124,
-        child: GridView.builder(
-          padding: EdgeInsets.zero,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: round.options.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 2.2,
-          ),
-          itemBuilder: (context, index) => Material(
-            color: const Color(0xFFFFFEFC),
-            borderRadius: BorderRadius.circular(15),
-            child: InkWell(
-              key: ValueKey('analogy-option-$index'),
-              borderRadius: BorderRadius.circular(15),
-              onTap: () => onChoose(index),
-              child: Container(
-                decoration: BoxDecoration(
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          const aspectRatio = 3.1;
+          final tileWidth = (constraints.maxWidth - 8) / 2;
+          final tileHeight = tileWidth / aspectRatio;
+          final gridHeight = tileHeight * 2 + 8;
+
+          return SizedBox(
+            height: gridHeight,
+            child: GridView.builder(
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: round.options.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: aspectRatio,
+              ),
+              itemBuilder: (context, index) => Material(
+                color: const Color(0xFFFFFEFC),
+                borderRadius: BorderRadius.circular(15),
+                child: InkWell(
+                  key: ValueKey('analogy-option-$index'),
                   borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: _edge, width: 1.5),
-                ),
-                child: Center(
-                  child: _TokenArt(token: round.options[index], size: 21),
+                  onTap: () => onChoose(index),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: _edge, width: 1.5),
+                    ),
+                    child: Center(
+                      child: _TokenArt(token: round.options[index], size: 21),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       );
 }
 
