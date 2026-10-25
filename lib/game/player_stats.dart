@@ -25,6 +25,8 @@ class PlayerGameStats {
   int logicBestMoves;
   int echoRuns;
   int echoBestMistakes;
+  int fifteenRuns;
+  int fifteenBestMoves;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -49,6 +51,8 @@ class PlayerGameStats {
     this.logicBestMoves = 0,
     this.echoRuns = 0,
     this.echoBestMistakes = 0,
+    this.fifteenRuns = 0,
+    this.fifteenBestMoves = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -79,6 +83,8 @@ class PlayerGameStats {
       logicBestMoves: read('logicBestMoves'),
       echoRuns: read('echoRuns'),
       echoBestMistakes: read('echoBestMistakes'),
+      fifteenRuns: read('fifteenRuns'),
+      fifteenBestMoves: read('fifteenBestMoves'),
     );
   }
 
@@ -105,6 +111,8 @@ class PlayerGameStats {
     'logicBestMoves': logicBestMoves,
     'echoRuns': echoRuns,
     'echoBestMistakes': echoBestMistakes,
+    'fifteenRuns': fifteenRuns,
+    'fifteenBestMoves': fifteenBestMoves,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -169,6 +177,14 @@ class PlayerGameStats {
       echoBestMistakes = math.max(0, mistakes);
     }
     echoRuns++;
+  }
+
+  void recordFifteen({required int moves}) {
+    if (moves <= 0) return;
+    fifteenRuns++;
+    if (fifteenBestMoves == 0 || moves < fifteenBestMoves) {
+      fifteenBestMoves = moves;
+    }
   }
 
   /// A descriptive radar based on player results (0–100 per tracked axis).
