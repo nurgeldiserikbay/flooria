@@ -19,7 +19,9 @@ void main() {
     expect(s.travelerTimes, [1, 2, 5, 10]);
     expect(s.timeLimit, 17);
     void move(List<int> travelers) {
-      for (final id in travelers) expect(s.toggle(id), isTrue);
+      for (final id in travelers) {
+        expect(s.toggle(id), isTrue);
+      }
       expect(s.cross(), isTrue);
       expect(s.outOfTime, isFalse);
     }
