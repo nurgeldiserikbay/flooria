@@ -23,13 +23,18 @@ void main() {
       final puzzle = CloverSweepPuzzle.generate(seed: 91);
       expect(puzzle.reveal(-1), isFalse);
       expect(puzzle.toggleFlag(CloverSweepPuzzle.cellCount), isFalse);
+      expect(puzzle.toggleFlag(CloverSweepPuzzle.startCell), isTrue);
+      expect(puzzle.reveal(CloverSweepPuzzle.startCell), isFalse);
+      expect(puzzle.toggleFlag(CloverSweepPuzzle.startCell), isTrue);
       expect(puzzle.reveal(CloverSweepPuzzle.startCell), isTrue);
       expect(
           puzzle.toggleFlag(CloverSweepPuzzle.startCell), isFalse);
-      expect(puzzle.toggleFlag(35), isTrue);
-      expect(puzzle.reveal(35), isFalse);
-      expect(puzzle.toggleFlag(35), isTrue);
-      expect(puzzle.reveal(35), isTrue);
+
+      final flaggedPuzzle = CloverSweepPuzzle.generate(seed: 1001);
+      expect(flaggedPuzzle.toggleFlag(35), isTrue);
+      expect(flaggedPuzzle.reveal(35), isFalse);
+      expect(flaggedPuzzle.toggleFlag(35), isTrue);
+      expect(flaggedPuzzle.reveal(35), isTrue);
     });
 
     test('mine hits are measured and safe flood reveal completes the board',
