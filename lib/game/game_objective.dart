@@ -49,6 +49,13 @@ class ObjectiveCatalog {
           target: 6,
           unit: 'Matched pairs',
         );
+      case 'colorMatch':
+        return const GameObjective(
+          title: 'Spot 4 of 5 differences',
+          instruction: 'Find the one tile with a different shade.',
+          target: 4,
+          unit: 'Correct choices',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
