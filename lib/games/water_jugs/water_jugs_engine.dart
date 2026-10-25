@@ -62,7 +62,9 @@ class WaterJugsSession {
   /// BFS produces the shortest solution length, or null when impossible.
   static int? shortestSolution(int capA, int capB, int target) {
     if (capA <= 0 || capB <= 0 || target <= 0 ||
-        target > max(capA, capB)) return null;
+        target > max(capA, capB)) {
+      return null;
+    }
     final queue = <JugState>[const JugState(0, 0)];
     final distance = <JugState, int>{queue.first: 0};
     for (var i = 0; i < queue.length; i++) {
