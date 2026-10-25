@@ -77,6 +77,13 @@ class ObjectiveCatalog {
           target: 3,
           unit: 'Patterns recalled',
         );
+      case 'fifteen':
+        return const GameObjective(
+          title: 'Arrange all fifteen tiles',
+          instruction: 'Slide numbered tiles into the empty space to restore order.',
+          target: 15,
+          unit: 'Ordered tiles',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
