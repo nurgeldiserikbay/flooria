@@ -200,11 +200,11 @@ class PrismPathSession {
 
   bool rotate(int row, int column) {
     if (complete || roundComplete) return false;
-    final changed = puzzle.rotateAt(PrismCell(row, column));
-    if (!changed) return false;
+    final cell = PrismCell(row, column);
+    final mirror = puzzle.mirrorAt(cell);
+    if (mirror == null || !puzzle.rotateAt(cell)) return false;
     moves++;
-    if (puzzle.solved) return true;
-    mistakes++;
+    if (mirror.isDecoy || mirror.face != mirror.requiredFace) mistakes++;
     return true;
   }
 
