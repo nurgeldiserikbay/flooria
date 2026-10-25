@@ -71,7 +71,7 @@ class BeadSortPuzzle {
     final tubes = List<List<BeadColor>>.generate(
       tubeCount,
       (index) => index < colorCount
-          ? List<BeadColor>.filled( capacity, BeadColor.values[index])
+          ? List<BeadColor>.filled(capacity, BeadColor.values[index], growable: true)
           : <BeadColor>[],
     );
     final scramble = <BeadMove>[];
@@ -106,7 +106,7 @@ class BeadSortPuzzle {
           tubes[index]
             ..clear()
             ..addAll(index < colorCount
-                ? List<BeadColor>.filled(capacity, BeadColor.values[index])
+                ? List<BeadColor>.filled(capacity, BeadColor.values[index], growable: true)
                 : <BeadColor>[]);
         }
         scramble.clear();
