@@ -96,9 +96,13 @@ class QueensGuardSession {
 
   bool toggle(int cell) {
     if (complete || cell < 0 || cell >= size * size ||
-        blocked.contains(cell) || cell == fixedQueen) return false;
+        blocked.contains(cell) || cell == fixedQueen) {
+      return false;
+    }
     if (!queens.remove(cell)) {
-      if (queens.length >= size) return false;
+      if (queens.length >= size) {
+        return false;
+      }
       queens.add(cell);
     }
     placements++;
@@ -107,7 +111,9 @@ class QueensGuardSession {
 
   /// Wrong submissions keep the board editable; a success starts next round.
   bool check() {
-    if (complete || queens.length < size) return false;
+    if (complete || queens.length < size) {
+      return false;
+    }
     checks++;
     if (!solved) {
       mistakes++;
