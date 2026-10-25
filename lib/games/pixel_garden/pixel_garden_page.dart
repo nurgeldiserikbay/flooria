@@ -223,7 +223,6 @@ class _NonogramBoard extends StatelessWidget {
   final double cellSize;
   final ValueChanged<int> onTap;
 
-  static const _ink = Color(0xFF65835E);
   static const _clue = Color(0xFF7E9277);
   static const _filled = Color(0xFF93C58A);
   static const _tile = Color(0xFFFFFEFA);
@@ -339,7 +338,7 @@ class _NonogramCell extends StatelessWidget {
           label:
               'Row ${row + 1}, column ${column + 1}, ${active ? 'filled' : 'empty'}',
           child: Material(
-            color: active ? const Color(0xFF93C58A) : const Color(0xFFFFFEFA),
+            color: active ? _NonogramBoard._filled : _NonogramBoard._tile,
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
