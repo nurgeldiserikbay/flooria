@@ -191,6 +191,9 @@ class _PrismPathPageState extends State<PrismPathPage> {
                                     !session.roundComplete;
 
                                 return Semantics(
+                                  key: ValueKey<String>(
+                                    'prism-cell-${cell.row}-${cell.column}',
+                                  ),
                                   button: interactive,
                                   label: isSource
                                       ? 'Light source'
