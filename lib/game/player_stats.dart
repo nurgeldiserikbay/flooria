@@ -11,6 +11,9 @@ class PlayerGameStats {
   int sequenceCorrect;
   int sequenceQuestions;
   int sequenceBestCorrect;
+  int memoryRuns;
+  int memoryBestPairs;
+  int memoryBestMoves;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -21,6 +24,9 @@ class PlayerGameStats {
     this.sequenceCorrect = 0,
     this.sequenceQuestions = 0,
     this.sequenceBestCorrect = 0,
+    this.memoryRuns = 0,
+    this.memoryBestPairs = 0,
+    this.memoryBestMoves = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -37,6 +43,9 @@ class PlayerGameStats {
       sequenceCorrect: read('sequenceCorrect'),
       sequenceQuestions: read('sequenceQuestions'),
       sequenceBestCorrect: read('sequenceBestCorrect'),
+      memoryRuns: read('memoryRuns'),
+      memoryBestPairs: read('memoryBestPairs'),
+      memoryBestMoves: read('memoryBestMoves'),
     );
   }
 
@@ -49,6 +58,9 @@ class PlayerGameStats {
     'sequenceCorrect': sequenceCorrect,
     'sequenceQuestions': sequenceQuestions,
     'sequenceBestCorrect': sequenceBestCorrect,
+    'memoryRuns': memoryRuns,
+    'memoryBestPairs': memoryBestPairs,
+    'memoryBestMoves': memoryBestMoves,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -69,6 +81,17 @@ class PlayerGameStats {
     sequenceQuestions += questions;
     sequenceCorrect += correct.clamp(0, questions).toInt();
     sequenceBestCorrect = math.max(sequenceBestCorrect, correct);
+  }
+
+  void recordMemory({required int pairs, required int moves}) {
+    if (moves <= 0) return;
+    memoryRuns++;
+    if (pairs > memoryBestPairs ||
+        (pairs == memoryBestPairs &&
+          (memoryBestMoves == 0 || moves < memoryBestMoves))) {
+      memoryBestPairs = pairs;
+      memoryBestMoves = moves;
+    }
   }
 
   /// A descriptive radar based on player results (0–100 per tracked axis).
@@ -93,7 +116,9 @@ class PlayerGameStats {
         'Number Trail best run'),
       GameSkillRating('Numbers', tilePercent, '2048 best tile'),
       GameSkillRating('Strategy', scorePercent, '2048 best score'),
-      const GameSkillRating('Memory', null, 'Not tracked yet'),
+      GameSkillRating('Memory', memoryRuns > 0
+        ? (memoryBestPairs / 6 * 100).round().clamp(0, 100).toInt() : null,
+        'Memory Pairs best run'),
       const GameSkillRating('Speed', null, 'Not tracked yet'),
       GameSkillRating('Patterns', accuracy, 'Number Trail accuracy'),
     ];
