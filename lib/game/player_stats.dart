@@ -27,6 +27,8 @@ class PlayerGameStats {
   int echoBestMistakes;
   int fifteenRuns;
   int fifteenBestMoves;
+  int mazeRuns;
+  int mazeBestExcessSteps;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -53,6 +55,8 @@ class PlayerGameStats {
     this.echoBestMistakes = 0,
     this.fifteenRuns = 0,
     this.fifteenBestMoves = 0,
+    this.mazeRuns = 0,
+    this.mazeBestExcessSteps = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -85,6 +89,8 @@ class PlayerGameStats {
       echoBestMistakes: read('echoBestMistakes'),
       fifteenRuns: read('fifteenRuns'),
       fifteenBestMoves: read('fifteenBestMoves'),
+      mazeRuns: read('mazeRuns'),
+      mazeBestExcessSteps: read('mazeBestExcessSteps'),
     );
   }
 
@@ -113,6 +119,8 @@ class PlayerGameStats {
     'echoBestMistakes': echoBestMistakes,
     'fifteenRuns': fifteenRuns,
     'fifteenBestMoves': fifteenBestMoves,
+    'mazeRuns': mazeRuns,
+    'mazeBestExcessSteps': mazeBestExcessSteps,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -185,6 +193,15 @@ class PlayerGameStats {
     if (fifteenBestMoves == 0 || moves < fifteenBestMoves) {
       fifteenBestMoves = moves;
     }
+  }
+
+  void recordMaze({required int moves, required int shortest}) {
+    if (moves <= 0 || shortest <= 0 || moves < shortest) return;
+    final extra = moves - shortest;
+    if (mazeRuns == 0 || extra < mazeBestExcessSteps) {
+      mazeBestExcessSteps = extra;
+    }
+    mazeRuns++;
   }
 
   /// A descriptive radar based on player results (0–100 per tracked axis).
