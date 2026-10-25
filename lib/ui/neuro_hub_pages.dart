@@ -243,7 +243,7 @@ class NeuroSkillsPage extends StatelessWidget {
             backgroundColor: const Color(0xFF34477A),
             valueColor: const AlwaysStoppedAnimation(neuroAccent)),
           const SizedBox(height: 10),
-          Text('${stats.mergeRuns + stats.sequenceRuns + stats.memoryRuns + stats.colorRuns + stats.speedRuns + stats.logicRuns + stats.echoRuns + stats.fifteenRuns} recorded sessions',
+          Text('${stats.mergeRuns + stats.sequenceRuns + stats.memoryRuns + stats.colorRuns + stats.speedRuns + stats.logicRuns + stats.echoRuns + stats.fifteenRuns + stats.mazeRuns} recorded sessions',
             style: const TextStyle(color: neuroText)),
         ])),
         const SizedBox(height: 18),
@@ -295,6 +295,12 @@ class NeuroSkillsPage extends StatelessWidget {
             : '${stats.fifteenBestMoves} moves',
           stats.fifteenRuns == 0 ? 'Solve to set a record'
             : '${stats.fifteenRuns} sessions'),
+        const SizedBox(height: 10),
+        _profileRecord('Maze Route', 'maze',
+          stats.mazeRuns == 0 ? 'No record yet'
+            : '${stats.mazeBestExcessSteps} extra steps',
+          stats.mazeRuns == 0 ? 'Find the exit to set a record'
+            : '${stats.mazeRuns} sessions'),
       ]),
   );
   Widget _profileRecord(String name, String icon, String value,
