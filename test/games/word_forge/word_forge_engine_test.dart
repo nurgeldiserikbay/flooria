@@ -42,6 +42,9 @@ void main() {
       expect(session.submit(), WordForgeSubmitResult.incorrect);
       expect(session.mistakes, 1);
       expect(session.submissions, 1);
+      expect(session.submit(), WordForgeSubmitResult.incorrect);
+      expect(session.mistakes, 1);
+      expect(session.submissions, 1);
       expect(session.draft.length, session.puzzle.answer.length);
       expect(session.removeLast(), isTrue);
       expect(session.draft.length, session.puzzle.answer.length - 1);

@@ -34,6 +34,7 @@ class WordForgeSession {
   final int seed;
   late final List<WordForgePuzzle> _puzzles;
   final List<int> _selectedIndices = <int>[];
+  String? _lastRejectedDraft;
   int round = 0;
   int mistakes = 0;
   int submissions = 0;
@@ -52,12 +53,14 @@ class WordForgeSession {
       return false;
     }
     _selectedIndices.add(letterIndex);
+    _lastRejectedDraft = null;
     return true;
   }
 
   bool removeLast() {
     if (finished || _selectedIndices.isEmpty) return false;
     _selectedIndices.removeLast();
+    _lastRejectedDraft = null;
     return true;
   }
 
@@ -66,11 +69,18 @@ class WordForgeSession {
     if (_selectedIndices.length != puzzle.answer.length) {
       return WordForgeSubmitResult.incomplete;
     }
-    submissions++;
-    if (draft != puzzle.answer) {
+    final submittedDraft = draft;
+    if (submittedDraft != puzzle.answer) {
+      if (submittedDraft == _lastRejectedDraft) {
+        return WordForgeSubmitResult.incorrect;
+      }
+      _lastRejectedDraft = submittedDraft;
+      submissions++;
       mistakes++;
       return WordForgeSubmitResult.incorrect;
     }
+    _lastRejectedDraft = null;
+    submissions++;
     _selectedIndices.clear();
     round++;
     return finished
