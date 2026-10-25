@@ -111,7 +111,7 @@ class FlooriaSettingsPage extends StatelessWidget {
                 tooltip: 'Back to map',
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: const Color(0xFF2C427A))),
+                  color: Color(0xFF2C427A))),
               const SizedBox(width: 5),
               const Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +121,7 @@ class FlooriaSettingsPage extends StatelessWidget {
                       fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w900)),
                   SizedBox(height: 4),
                   Text('Settings', style: TextStyle(fontSize: 26,
-                    color: const Color(0xFF2C427A), fontWeight: FontWeight.w900)),
+                    color: Color(0xFF2C427A), fontWeight: FontWeight.w900)),
                 ])),
               SvgPicture.asset('assets/design/neuro-brand-symbol.svg',
                 width: 39, height: 39),
@@ -152,7 +152,7 @@ class FlooriaSettingsPage extends StatelessWidget {
                         letterSpacing: 1.3, fontWeight: FontWeight.w900)),
                       SizedBox(height: 5),
                       Text('Make it yours', style: TextStyle(
-                        color: const Color(0xFF2C427A), fontSize: 20, fontWeight: FontWeight.w900)),
+                        color: Color(0xFF2C427A), fontSize: 20, fontWeight: FontWeight.w900)),
                       SizedBox(height: 4),
                       Text('Adjust how your world feels', style: TextStyle(
                         color: _muted, fontSize: 12)),
@@ -192,7 +192,7 @@ class FlooriaSettingsPage extends StatelessWidget {
                   leading: const Icon(Icons.info_outline_rounded,
                     color: Color(0xFF7166C8)),
                   title: const Text('Neuro Playground',
-                    style: TextStyle(color: const Color(0xFF2C427A), fontWeight: FontWeight.w900)),
+                    style: TextStyle(color: Color(0xFF2C427A), fontWeight: FontWeight.w900)),
                   subtitle: const Text('Puzzle adventure',
                     style: TextStyle(color: _muted, fontSize: 12)),
                   trailing: const Icon(Icons.chevron_right_rounded, color: _muted),
@@ -231,7 +231,7 @@ class FlooriaSettingsPage extends StatelessWidget {
           color: accent.withValues(alpha: .15),
           borderRadius: BorderRadius.circular(15)),
         child: Icon(icon, color: accent, size: 26)),
-      title: Text(title, style: const TextStyle(color: const Color(0xFF2C427A),
+      title: Text(title, style: const TextStyle(color: Color(0xFF2C427A),
         fontWeight: FontWeight.w900, fontSize: 15)),
       subtitle: Text(subtitle, style: const TextStyle(
         color: _muted, fontSize: 11)),
