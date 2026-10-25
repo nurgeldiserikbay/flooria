@@ -138,7 +138,7 @@ class NeuroGamesPage extends StatelessWidget {
     ('speed', 'Tap Sprint', 'speed', true),
     ('colorMatch', 'Color Spot', 'colors', true),
     ('sudoku', 'Sudoku', 'sudoku', false),
-    ('fifteen', 'Fifteen', 'fifteen', false),
+    ('fifteen', 'Sliding Fifteen', 'fifteen', true),
     ('maze', 'Maze', 'maze', false),
     ('reaction', 'Reaction', 'reaction', false),
     ('pattern', 'Pattern Echo', 'pattern', true),
@@ -384,8 +384,9 @@ class NeuroGameDetailPage extends StatelessWidget {
     final speed = gameId == 'speed';
     final logic = gameId == 'logic';
     final echo = gameId == 'pattern';
-    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : 'Number Trail';
-    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : 'trail';
+    final fifteen = gameId == 'fifteen';
+    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : fifteen ? 'Sliding Fifteen' : 'Number Trail';
+    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : fifteen ? 'fifteen' : 'trail';
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
