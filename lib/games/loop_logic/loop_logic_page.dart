@@ -267,13 +267,20 @@ class _LoopBoard extends StatelessWidget {
         ? edge.first % vertexCount
         : edge.first % vertexCount;
     final horizontal = edge.horizontal;
+    final boardSide = cell * LoopLogicPuzzle.size;
     final left = horizontal
         ? column * cell + hit / 2
-        : column * cell - hit / 2;
+        : column == 0
+            ? 0.0
+            : column == LoopLogicPuzzle.size
+                ? boardSide - hit
+                : column * cell - hit / 2;
     final top = horizontal
         ? row == 0
             ? 0.0
-            : row * cell - hit / 2
+            : row == LoopLogicPuzzle.size
+                ? boardSide - hit
+                : row * cell - hit / 2
         : row * cell + hit / 2;
     final width = horizontal ? cell - hit : hit;
     final height = horizontal ? hit : cell - hit;
