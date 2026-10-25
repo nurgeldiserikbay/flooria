@@ -123,11 +123,11 @@ class _NeuroMapViewState extends State<NeuroMapView> {
           child: Row(children: [
             SvgPicture.asset('assets/design/neuro-brand-symbol.svg', width: 38),
             const SizedBox(width: 8),
-            const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('NEURO', style: TextStyle(color: Colors.white,
+                const Text('NEURO', style: TextStyle(color: Colors.white,
                   fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 22)),
-                Text(widget.testingAccessAll ? 'TEST MODE · ALL NODES OPEN' : 'EXPLORE THE NETWORK', style: TextStyle(color: Color(0xFF9CE6FF),
+                Text(widget.testingAccessAll ? 'TEST MODE · ALL NODES OPEN' : 'EXPLORE THE NETWORK', style: const TextStyle(color: Color(0xFF9CE6FF),
                   fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.3)),
               ])),
             Container(
