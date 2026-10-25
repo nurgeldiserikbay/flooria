@@ -95,7 +95,7 @@ class _SymbolMatrixPageState extends State<SymbolMatrixPage> {
   Widget _symbol(MatrixSymbol symbol, double maxSize) {
     final iconSize = math.min(
       maxSize * 0.82,
-      maxSize / (symbol.count * 0.78),
+      maxSize * 0.82 / symbol.count,
     ).clamp(13.0, 30.0).toDouble();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
