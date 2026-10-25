@@ -63,6 +63,13 @@ class ObjectiveCatalog {
           target: 9,
           unit: 'Numbers found',
         );
+      case 'logic':
+        return const GameObjective(
+          title: 'Turn off every light',
+          instruction: 'Tap a cell to change it and its neighbors.',
+          target: 9,
+          unit: 'Dark cells',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
