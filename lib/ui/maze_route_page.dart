@@ -114,7 +114,6 @@ class _MazeRoutePageState extends State<MazeRoutePage> {
                   crossAxisCount: game.size, childAspectRatio: 1),
                 itemCount: game.passages.length,
                 itemBuilder: (context, i) {
-                  final mask = game.passages[i];
                   return Container(
                     decoration: BoxDecoration(
                       color: i == game.position
