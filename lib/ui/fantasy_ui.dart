@@ -8,7 +8,7 @@ class FantasyScene extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     decoration: const BoxDecoration(gradient: LinearGradient(
       begin: Alignment.topLeft, end: Alignment.bottomRight,
-      colors: [Color(0xFF203B81), Color(0xFF15265A), Color(0xFF131C44)])),
+      colors: [Color(0xFFB8E6FA), Color(0xFFDCD6FA), Color(0xFFFFE8D9)])),
     child: child,
   );
 }
