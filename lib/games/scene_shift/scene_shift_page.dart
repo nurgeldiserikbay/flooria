@@ -454,6 +454,7 @@ const _paper = Color(0xFFFAFBF9);
 const _ink = Color(0xFF46504B);
 const _muted = Color(0xFF8D9892);
 const _teal = Color(0xFF5D9E88);
+const _blue = Color(0xFF719CCB);
 const _deepTeal = Color(0xFF4D8473);
 const _softBlue = Color(0xFFE8F1F4);
 const _edge = Color(0xFFE7ECE9);
