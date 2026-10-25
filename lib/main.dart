@@ -9,6 +9,7 @@ import 'ui/neuro_map.dart';
 import 'ui/neuro_hub_pages.dart';
 import 'ui/memory_pairs_page.dart';
 import 'ui/color_spot_page.dart';
+import 'ui/tap_sprint_page.dart';
 import 'ui/merge_page.dart';
 import 'ui/sequence_page.dart';
 
@@ -133,7 +134,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                   onComplete: _completeFloor,
                   onSessionEnd: _recordColorSpot,
                 )
-              : SequencePage(
+              : gameId == 'speed'
+                ? TapSprintPage(
+                    floor: startingFloor,
+                    onComplete: _completeFloor,
+                    onSessionEnd: _recordSpeed,
+                  )
+                : SequencePage(
                 floor: startingFloor,
                 onComplete: _completeFloor,
                 onSessionEnd: _recordSequence,
@@ -209,6 +216,12 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 
   void _recordColorSpot(int correct, int total) {
     setState(() => playerStats.recordColorSpot(correct: correct, total: total));
+    _save();
+  }
+
+  void _recordSpeed(int elapsedMillis, int mistakes) {
+    setState(() => playerStats.recordSpeed(
+      elapsedMillis: elapsedMillis, mistakes: mistakes));
     _save();
   }
 
