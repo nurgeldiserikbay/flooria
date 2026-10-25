@@ -37,18 +37,21 @@ const path = require('node:path');
     });
 
     if (width === 390) {
-      await page.mouse.click(145, height - 40);
-      await page.waitForTimeout(650);
+      // Three visible navigation portals: map / games / profile.
+      await page.mouse.click(195, height - 40);
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: path.join(out, 'games-390x844.png'),
       });
-      await page.mouse.click(244, height - 40);
-      await page.waitForTimeout(650);
+      await page.mouse.click(310, height - 40);
+      await page.waitForTimeout(750);
       await page.screenshot({
-        path: path.join(out, 'my-mind-390x844.png'),
+        path: path.join(out, 'profile-390x844.png'),
       });
-      await page.mouse.click(340, height - 40);
-      await page.waitForTimeout(800);
+      // Scroll the profile to capture records (not a non-existent fourth tab).
+      await page.mouse.move(200, 480);
+      await page.mouse.wheel(0, 590);
+      await page.waitForTimeout(700);
       await page.screenshot({
         path: path.join(out, 'records-390x844.png'),
       });
