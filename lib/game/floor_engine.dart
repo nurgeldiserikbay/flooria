@@ -1,3 +1,4 @@
+import '../core/game_registry.dart';
 import 'dart:math';
 
 /// Pure Dart tower scheduling. Game modules never depend on floor numbers.
@@ -9,7 +10,7 @@ class FloorChallenge {
 }
 
 class FloorEngine {
-  static const gameIds = ['merge2048', 'numberSequence', 'memory', 'colorMatch', 'speed', 'logic', 'pattern', 'fifteen', 'maze'];
+  static const gameIds = GameRegistry.campaignIds;
   const FloorEngine();
 
   FloorChallenge challengeFor(int floor) {
