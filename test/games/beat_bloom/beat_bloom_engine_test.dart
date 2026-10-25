@@ -29,9 +29,11 @@ void main() {
 
       expect(session.tapAt(-1), BeatBloomTapResult.invalid);
       expect(session.tapCount, 0);
-      expect(session.tapAt(interval + tolerance), BeatBloomTapResult.onBeat);
+      final firstBeat = interval - interval ~/ 2;
+      expect(session.tapAt(firstBeat + tolerance), BeatBloomTapResult.onBeat);
       expect(session.tapCount, 1);
-      expect(session.tapAt(interval * 2 + tolerance + 1),
+      final secondBeat = interval * 2 - interval ~/ 2;
+      expect(session.tapAt(secondBeat + tolerance + 1),
           BeatBloomTapResult.offBeat);
       expect(session.offBeatTaps, 1);
       expect(session.advance(), isFalse);
@@ -75,7 +77,8 @@ BeatBloomTapResult _tapRound(BeatBloomSession session,
   final interval = session.currentIntervalMillis;
   for (var tap = 1; tap <= BeatBloomSession.tapsPerRound; tap++) {
     final isAccurate = onBeat ?? tap <= accurateTaps!;
-    result = session.tapAt(tap * interval + (isAccurate ? 0 : 300));
+    final expectedMillis = tap * interval - interval ~/ 2;
+    result = session.tapAt(expectedMillis + (isAccurate ? 0 : 300));
   }
   return result;
 }

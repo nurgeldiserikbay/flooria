@@ -27,6 +27,8 @@ class _BeatBloomPageState extends State<BeatBloomPage>
   final Stopwatch _clock = Stopwatch();
   int _attempt = 0;
   String _message = 'Tap when the bloom reaches its largest size';
+  Duration get _pulseHalfBeat =>
+      Duration(milliseconds: game.currentIntervalMillis ~/ 2);
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _BeatBloomPageState extends State<BeatBloomPage>
     _resetSession();
     _pulse = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: game.currentIntervalMillis),
+      duration: _pulseHalfBeat,
       lowerBound: 0,
       upperBound: 1,
     )..repeat(reverse: true);
@@ -80,7 +82,7 @@ class _BeatBloomPageState extends State<BeatBloomPage>
     if (!game.advance()) return;
     setState(() {
       _pulse
-        ..duration = Duration(milliseconds: game.currentIntervalMillis)
+        ..duration = _pulseHalfBeat
         ..repeat(reverse: true);
       _clock
         ..reset()
@@ -100,7 +102,7 @@ class _BeatBloomPageState extends State<BeatBloomPage>
       _attempt++;
       _resetSession();
       _pulse
-        ..duration = Duration(milliseconds: game.currentIntervalMillis)
+        ..duration = _pulseHalfBeat
         ..repeat(reverse: true);
     });
   }

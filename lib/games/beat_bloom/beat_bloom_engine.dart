@@ -39,7 +39,10 @@ class BeatBloomSession {
     }
 
     tapCount++;
-    final expectedMillis = tapCount * currentIntervalMillis;
+    // The first visible pulse peaks halfway through the first beat interval;
+    // later peaks are one full interval apart.
+    final expectedMillis =
+        tapCount * currentIntervalMillis - currentIntervalMillis ~/ 2;
     lastTapOnBeat = (elapsedMillis - expectedMillis).abs() <= toleranceMillis;
     if (lastTapOnBeat) {
       onBeatTaps++;
