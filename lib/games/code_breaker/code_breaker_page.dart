@@ -185,7 +185,7 @@ class _CodeBreakerPageState extends State<CodeBreakerPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14))),
                     child: Text('$i', style: const TextStyle(fontSize: 20,
-                      fontWeight: FontWeight.w900))))),
+                      fontWeight: FontWeight.w900)))))),
             ]),
             const SizedBox(height: 9),
             Row(children: [
