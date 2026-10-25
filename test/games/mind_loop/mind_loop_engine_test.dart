@@ -31,12 +31,16 @@ void main() {
       );
     });
 
-    test('invalid range checks do not mutate a session', () {
+    test('invalid trial indices throw without changing the session', () {
       final session = MindLoopSession(seed: 14);
 
-      expect(session.respond(true), LoopResponseResult.correct);
-      expect(session.trialIndex, 1);
-      expect(session.correctAnswers, 1);
+      expect(() => session.isMatchAt(-1), throwsRangeError);
+      expect(
+        () => session.isMatchAt(MindLoopSession.roundCount),
+        throwsRangeError,
+      );
+      expect(session.trialIndex, 0);
+      expect(session.correctAnswers, 0);
       expect(session.mistakes, 0);
     });
 
