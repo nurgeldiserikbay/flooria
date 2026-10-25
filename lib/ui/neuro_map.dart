@@ -144,7 +144,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
               border: Border.all(color: const Color(0xFFACC2F2)),
               boxShadow: const [BoxShadow(color: Color(0x446B86CC), blurRadius: 25, offset: Offset(0, 6))]),
             child: Row(children: [
-              SvgPicture.asset('assets/design/neuro-icon-${switch (const FloorEngine().challengeFor(widget.floor).gameId) { "merge2048" => "2048", "memory" => "memory", "colorMatch" => "colors", "speed" => "speed", "logic" => "logic", "pattern" => "pattern", "fifteen" => "fifteen", _ => "trail" }}.svg',
+              SvgPicture.asset('assets/design/neuro-icon-${switch (const FloorEngine().challengeFor(widget.floor).gameId) { "merge2048" => "2048", "memory" => "memory", "colorMatch" => "colors", "speed" => "speed", "logic" => "logic", "pattern" => "pattern", "fifteen" => "fifteen", "maze" => "maze", _ => "trail" }}.svg',
                 width: 45, height: 45),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +152,7 @@ class _NeuroMapViewState extends State<NeuroMapView> {
                   const Text('YOUR NEXT CHALLENGE', style: TextStyle(
                     color: Color(0xFFA9C2FC), fontSize: 10,
                     fontWeight: FontWeight.w800, letterSpacing: 1)),
-                  Text(switch (const FloorEngine().challengeFor(widget.floor).gameId) { 'merge2048' => '2048', 'memory' => 'Memory Pairs', 'colorMatch' => 'Color Spot', 'speed' => 'Tap Sprint', 'logic' => 'Light Grid', 'pattern' => 'Pattern Echo', 'fifteen' => 'Sliding Fifteen', _ => 'Number Trail' },
+                  Text(switch (const FloorEngine().challengeFor(widget.floor).gameId) { 'merge2048' => '2048', 'memory' => 'Memory Pairs', 'colorMatch' => 'Color Spot', 'speed' => 'Tap Sprint', 'logic' => 'Light Grid', 'pattern' => 'Pattern Echo', 'fifteen' => 'Sliding Fifteen', 'maze' => 'Maze Route', _ => 'Number Trail' },
                     style: const TextStyle(color: Color(0xFF273F78),
                       fontSize: 17, fontWeight: FontWeight.w900)),
                 ])),
