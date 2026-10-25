@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../game/player_stats.dart';
+import '../core/game_registry.dart';
 import 'skill_radar.dart';
 
 const neuroBg = Color(0xFFD6E5FA);
@@ -130,20 +131,7 @@ class NeuroGamesPage extends StatelessWidget {
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
 
-  static const games = <(String, String, String, bool)>[
-    ('merge2048', '2048', '2048', true),
-    ('numberSequence', 'Number Trail', 'trail', true),
-    ('memory', 'Memory Pairs', 'memory', true),
-    ('logic', 'Light Grid', 'logic', true),
-    ('speed', 'Tap Sprint', 'speed', true),
-    ('colorMatch', 'Color Spot', 'colors', true),
-    ('sudoku', 'Sudoku', 'sudoku', false),
-    ('fifteen', 'Sliding Fifteen', 'fifteen', true),
-    ('maze', 'Maze Route', 'maze', true),
-    ('reaction', 'Reaction', 'reaction', false),
-    ('pattern', 'Pattern Echo', 'pattern', true),
-    ('word', 'Words', 'word', false),
-  ];
+  static const games = GameRegistry.games;
   @override
   Widget build(BuildContext context) => NeuroShell(
     title: 'Mini games', tab: 1, onTab: onTab,
@@ -157,8 +145,8 @@ class NeuroGamesPage extends StatelessWidget {
         itemCount: games.length,
         itemBuilder: (context, index) {
           final entry = games[index];
-          final id = entry.$1, label = entry.$2, asset = entry.$3;
-          final playable = entry.$4;
+          final id = entry.id, label = entry.title, asset = entry.icon;
+          final playable = entry.playable;
           return Semantics(label: playable ? label : '$label, coming soon',
             button: playable,
             child: InkWell(
@@ -390,16 +378,9 @@ class NeuroGameDetailPage extends StatelessWidget {
   final VoidCallback onPlay;
   @override
   Widget build(BuildContext context) {
-    final merge = gameId == 'merge2048';
-    final memory = gameId == 'memory';
-    final colorSpot = gameId == 'colorMatch';
-    final speed = gameId == 'speed';
-    final logic = gameId == 'logic';
-    final echo = gameId == 'pattern';
-    final fifteen = gameId == 'fifteen';
-    final maze = gameId == 'maze';
-    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : fifteen ? 'Sliding Fifteen' : maze ? 'Maze Route' : 'Number Trail';
-    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : fifteen ? 'fifteen' : maze ? 'maze' : 'trail';
+    final definition = GameRegistry.byId(gameId);
+    final title = definition.title;
+    final icon = definition.icon;
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
@@ -430,14 +411,7 @@ class NeuroGameDetailPage extends StatelessWidget {
                 style: const TextStyle(color: neuroText,
                   fontWeight: FontWeight.w900, fontSize: 29)),
               const SizedBox(height: 9),
-              Text(merge
-                ? 'Merge matching tiles to reach the goal.'
-                : memory ? 'Find every matching pair.'
-                : colorSpot ? 'Spot the different shade.'
-                : speed ? 'Tap numbers in the right order.'
-                : logic ? 'Turn off all the lights.'
-                : echo ? 'Watch the lights, then repeat.'
-                : 'Find the missing number.',
+              Text(definition.description,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: neuroMuted, fontSize: 14)),
             ]),
