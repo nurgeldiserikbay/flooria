@@ -611,7 +611,7 @@ class _SequencePageState extends State<SequencePage> {
                           crossAxisCount: 2,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          childAspectRatio: 2.2,
+                          childAspectRatio: (space.maxWidth - 12) /\n                            ((space.maxHeight * .34).clamp(126.0, 198.0) - 12),
                           children: [
                             for (final v in puzzle.choices)
                               AnimatedScale(
