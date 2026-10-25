@@ -73,40 +73,35 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
 
     return Scaffold(
       backgroundColor: _paper,
-      appBar: AppBar(
-        toolbarHeight: 48,
-        title: const Text('Mirror Mosaic',
-            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
-        backgroundColor: _paper,
-        foregroundColor: _ink,
-        actions: [
-          IconButton(
-            tooltip: 'Restart',
-            onPressed: () => setState(_startSession),
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
-      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(
                 children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Mirror Mosaic',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: _ink)),
+                  ),
+                  const SizedBox(height: 3),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       complete
                           ? 'All ${MirrorMosaicSession.boardCount} patterns matched'
-                          : 'Pattern ${session.boardIndex + 1} of ${MirrorMosaicSession.boardCount} · mirror across the axis',
+                          : 'Pattern ${session.boardIndex + 1} of ${MirrorMosaicSession.boardCount} · copy across the axis',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          color: _ink,
-                          fontSize: 14),
+                          fontWeight: FontWeight.w800,
+                          color: _muted,
+                          fontSize: 13),
                     ),
                   ),
                   const SizedBox(height: 8),
