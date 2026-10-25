@@ -14,6 +14,10 @@ class PlayerGameStats {
   int memoryRuns;
   int memoryBestPairs;
   int memoryBestMoves;
+  int colorRuns;
+  int colorCorrect;
+  int colorQuestions;
+  int colorBestCorrect;
 
   PlayerGameStats({
     this.best2048Tile = 0,
@@ -27,6 +31,10 @@ class PlayerGameStats {
     this.memoryRuns = 0,
     this.memoryBestPairs = 0,
     this.memoryBestMoves = 0,
+    this.colorRuns = 0,
+    this.colorCorrect = 0,
+    this.colorQuestions = 0,
+    this.colorBestCorrect = 0,
   });
 
   factory PlayerGameStats.fromJson(Map<String, dynamic> json) {
@@ -46,6 +54,10 @@ class PlayerGameStats {
       memoryRuns: read('memoryRuns'),
       memoryBestPairs: read('memoryBestPairs'),
       memoryBestMoves: read('memoryBestMoves'),
+      colorRuns: read('colorRuns'),
+      colorCorrect: read('colorCorrect'),
+      colorQuestions: read('colorQuestions'),
+      colorBestCorrect: read('colorBestCorrect'),
     );
   }
 
@@ -61,6 +73,10 @@ class PlayerGameStats {
     'memoryRuns': memoryRuns,
     'memoryBestPairs': memoryBestPairs,
     'memoryBestMoves': memoryBestMoves,
+    'colorRuns': colorRuns,
+    'colorCorrect': colorCorrect,
+    'colorQuestions': colorQuestions,
+    'colorBestCorrect': colorBestCorrect,
   };
 
   void record2048({required int tile, required int score, required int moves}) {
@@ -94,6 +110,14 @@ class PlayerGameStats {
     }
   }
 
+  void recordColorSpot({required int correct, required int total}) {
+    if (total <= 0) return;
+    colorRuns++;
+    colorQuestions += total;
+    colorCorrect += correct.clamp(0, total).toInt();
+    colorBestCorrect = math.max(colorBestCorrect, correct.clamp(0, total).toInt());
+  }
+
   /// A descriptive radar based on player results (0–100 per tracked axis).
   /// A null value means the current games cannot measure this skill yet.
   /// These levels do not measure brain development or intelligence.
@@ -121,6 +145,9 @@ class PlayerGameStats {
         'Memory Pairs best run'),
       const GameSkillRating('Speed', null, 'Not tracked yet'),
       GameSkillRating('Patterns', accuracy, 'Number Trail accuracy'),
+      GameSkillRating('Perception', colorQuestions > 0
+        ? (colorCorrect / colorQuestions * 100).round().clamp(0, 100).toInt()
+        : null, 'Color Spot accuracy'),
     ];
   }
 }
