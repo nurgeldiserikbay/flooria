@@ -108,8 +108,12 @@ class MatchstickEquation {
       return null;
     }
 
-    final source = MatchstickGlyph.segmentsFor(glyphs[move.fromGlyph]);
-    final destination = MatchstickGlyph.segmentsFor(glyphs[move.toGlyph]);
+    final source = Set<int>.of(
+      MatchstickGlyph.segmentsFor(glyphs[move.fromGlyph]),
+    );
+    final destination = Set<int>.of(
+      MatchstickGlyph.segmentsFor(glyphs[move.toGlyph]),
+    );
     if (!source.contains(move.fromSegment) ||
         destination.contains(move.toSegment)) {
       return null;
