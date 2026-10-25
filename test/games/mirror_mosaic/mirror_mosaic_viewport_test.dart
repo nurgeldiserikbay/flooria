@@ -20,7 +20,7 @@ void main() {
       ));
 
       expect(find.text('Mirror Mosaic'), findsOneWidget);
-      expect(find.text('Copy the pattern across the axis.'), findsOneWidget);
+      expect(find.textContaining('Pattern 1 of 5'), findsOneWidget);
       expect(find.textContaining('MATCH'), findsOneWidget);
       expect(find.byType(ListView), findsNothing);
       for (var index = 0; index < 25; index++) {
@@ -40,7 +40,7 @@ void main() {
         find.byKey(ValueKey('mirror-mosaic-cell-$target')),
       );
       await tester.pumpAndSettle();
-      expect(find.text('1 picked'), findsOneWidget);
+      expect(find.text('1 picked · 0 slips'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
