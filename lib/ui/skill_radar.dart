@@ -38,11 +38,12 @@ class _SkillRadarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (ratings.length != 6) return;
+    final axisCount = ratings.length;
+    if (axisCount < 3) return;
     final center = Offset(size.width / 2, size.height / 2 + 1);
     final radius = math.min(size.width * .265, size.height * .285);
     final angles = List<double>.generate(
-      6, (index) => -math.pi / 2 + math.pi * 2 * index / 6,
+      axisCount, (index) => -math.pi / 2 + math.pi * 2 * index / axisCount,
     );
     Offset point(double angle, double distance) =>
         Offset(center.dx + math.cos(angle) * distance,
@@ -51,7 +52,7 @@ class _SkillRadarPainter extends CustomPainter {
     // Spider-web grid, with neutral lines and four step rings.
     for (var ring = 1; ring <= 4; ring++) {
       final polygon = Path();
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < axisCount; i++) {
         final pos = point(angles[i], radius * ring / 4);
         if (i == 0) {
           polygon.moveTo(pos.dx, pos.dy);
@@ -73,7 +74,7 @@ class _SkillRadarPainter extends CustomPainter {
     final known = ratings.where((r) => r.value != null).length;
     if (known > 0) {
       final shape = Path();
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < axisCount; i++) {
         final value = ratings[i].value;
         final distance = value == null ? 0.0
           : radius * (value.clamp(0, 100) / 100);
@@ -93,7 +94,7 @@ class _SkillRadarPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeJoin = StrokeJoin.round);
 
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < axisCount; i++) {
         final rating = ratings[i];
         if (rating.value == null) continue;
         final p = point(angles[i], radius * rating.value! / 100);
@@ -105,7 +106,7 @@ class _SkillRadarPainter extends CustomPainter {
     }
 
     // Deliberately place textual labels outside the graph, not on the art.
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < axisCount; i++) {
       final rating = ratings[i];
       final labelPosition = point(angles[i], radius + 41);
       final value = rating.value == null ? '—' : '${rating.value}';
