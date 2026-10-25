@@ -136,7 +136,7 @@ class NeuroGamesPage extends StatelessWidget {
     ('memory', 'Memory Pairs', 'memory', true),
     ('logic', 'Logic', 'logic', false),
     ('speed', 'Speed', 'speed', false),
-    ('colorMatch', 'Colors', 'colors', false),
+    ('colorMatch', 'Color Spot', 'colors', true),
     ('sudoku', 'Sudoku', 'sudoku', false),
     ('fifteen', 'Fifteen', 'fifteen', false),
     ('maze', 'Maze', 'maze', false),
@@ -356,8 +356,9 @@ class NeuroGameDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final merge = gameId == 'merge2048';
     final memory = gameId == 'memory';
-    final title = merge ? '2048' : memory ? 'Memory Pairs' : 'Number Trail';
-    final icon = merge ? '2048' : memory ? 'memory' : 'trail';
+    final colorSpot = gameId == 'colorMatch';
+    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : 'Number Trail';
+    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : 'trail';
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
@@ -381,6 +382,7 @@ class NeuroGameDetailPage extends StatelessWidget {
               Text(merge
                 ? 'Merge matching tiles and reach the highest number.'
                 : memory ? 'Find matching symbols in a set of hidden cards.'
+                  : colorSpot ? 'Pick the one tile with a different color.'
                   : 'Find the number pattern and pick the missing value.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: neuroMuted,
