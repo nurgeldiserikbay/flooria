@@ -76,7 +76,7 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
       appBar: AppBar(
         toolbarHeight: 48,
         title: const Text('Mirror Mosaic',
-            style: TextStyle(fontWeight: FontWeight.w900)),
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
         backgroundColor: _paper,
         foregroundColor: _ink,
         actions: [
@@ -85,17 +85,6 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
             onPressed: () => setState(_startSession),
             icon: const Icon(Icons.refresh_rounded),
           ),
-          if (widget.floor != null)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: Text('LEVEL ${widget.floor}',
-                    style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: _muted)),
-              ),
-            ),
         ],
       ),
       body: SafeArea(
@@ -113,11 +102,14 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text('Copy the pattern across the axis.',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                                 fontWeight: FontWeight.w900,
                                 color: _ink,
                                 fontSize: 14)),
                       ),
+                      const SizedBox(width: 8),
                       Text(
                         complete
                             ? '${session.completedBoards} / ${MirrorMosaicSession.boardCount}'
@@ -157,28 +149,27 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
                                       color: Colors.white, width: 3),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'MATCH ${board.targetCount} CELLS',
-                                      style: const TextStyle(
-                                          color: _muted,
-                                          letterSpacing: 1,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w900),
+                                    Expanded(
+                                      child: Text(
+                                        'MATCH ${board.targetCount} CELLS',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            color: _muted,
+                                            letterSpacing: 1,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900),
+                                      ),
                                     ),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      '${selected.length} picked',
+                                      '${selected.length}/${board.targetCount} · ${session.mistakes} slips',
+                                      maxLines: 1,
                                       style: const TextStyle(
                                           color: _ink,
+                                          fontSize: 11,
                                           fontWeight: FontWeight.w800),
-                                    ),
-                                    Text(
-                                      '${session.mistakes} slips',
-                                      style: const TextStyle(
-                                          color: _muted,
-                                          fontWeight: FontWeight.w700),
                                     ),
                                   ],
                                 ),
