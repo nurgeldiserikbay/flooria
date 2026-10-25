@@ -141,7 +141,7 @@ class NeuroGamesPage extends StatelessWidget {
     ('fifteen', 'Fifteen', 'fifteen', false),
     ('maze', 'Maze', 'maze', false),
     ('reaction', 'Reaction', 'reaction', false),
-    ('pattern', 'Patterns', 'pattern', false),
+    ('pattern', 'Pattern Echo', 'pattern', true),
     ('word', 'Words', 'word', false),
   ];
   @override
@@ -377,8 +377,9 @@ class NeuroGameDetailPage extends StatelessWidget {
     final colorSpot = gameId == 'colorMatch';
     final speed = gameId == 'speed';
     final logic = gameId == 'logic';
-    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : 'Number Trail';
-    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : 'trail';
+    final echo = gameId == 'pattern';
+    final title = merge ? '2048' : memory ? 'Memory Pairs' : colorSpot ? 'Color Spot' : speed ? 'Tap Sprint' : logic ? 'Light Grid' : echo ? 'Pattern Echo' : 'Number Trail';
+    final icon = merge ? '2048' : memory ? 'memory' : colorSpot ? 'colors' : speed ? 'speed' : logic ? 'logic' : echo ? 'pattern' : 'trail';
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
@@ -405,6 +406,7 @@ class NeuroGameDetailPage extends StatelessWidget {
                   : colorSpot ? 'Pick the one tile with a different color.'
                   : speed ? 'Tap the shuffled numbers from 1 to 9.'
                   : logic ? 'Switch off all the lights. Each tap changes neighboring tiles.'
+                  : echo ? 'Remember a sequence of glowing pads, then repeat it.'
                   : 'Find the number pattern and pick the missing value.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: neuroMuted,
