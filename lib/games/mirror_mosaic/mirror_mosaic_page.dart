@@ -95,29 +95,19 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.auto_awesome_rounded,
-                          color: _violet, size: 22),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text('Copy the pattern across the axis.',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w900,
-                                color: _ink,
-                                fontSize: 14)),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        complete
-                            ? '${session.completedBoards} / ${MirrorMosaicSession.boardCount}'
-                            : '${session.boardIndex + 1} / ${MirrorMosaicSession.boardCount}',
-                        style: const TextStyle(
-                            color: _violet, fontWeight: FontWeight.w900),
-                      ),
-                    ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      complete
+                          ? 'All ${MirrorMosaicSession.boardCount} patterns matched'
+                          : 'Pattern ${session.boardIndex + 1} of ${MirrorMosaicSession.boardCount} · mirror across the axis',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: _ink,
+                          fontSize: 14),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ClipRRect(
@@ -148,27 +138,22 @@ class _MirrorMosaicPageState extends State<MirrorMosaicPage> {
                                   border: Border.all(
                                       color: Colors.white, width: 3),
                                 ),
-                                child: Row(
+                                child: Column(
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        'MATCH ${board.targetCount} CELLS',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            color: _muted,
-                                            letterSpacing: 1,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w900),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
                                     Text(
-                                      '${selected.length}/${board.targetCount} · ${session.mistakes} slips',
-                                      maxLines: 1,
+                                      'MATCH ${board.targetCount} CELLS',
+                                      style: const TextStyle(
+                                          color: _muted,
+                                          letterSpacing: 1,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${selected.length} picked · ${session.mistakes} slips',
                                       style: const TextStyle(
                                           color: _ink,
-                                          fontSize: 11,
+                                          fontSize: 12,
                                           fontWeight: FontWeight.w800),
                                     ),
                                   ],
