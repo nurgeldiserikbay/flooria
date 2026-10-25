@@ -42,7 +42,7 @@ jobs:
       # Screenshots are attached to every run for design-vs-reference review.
       - name: Install browser for visual review
         run: |
-          npm install --no-save --no-package-lock --no-audit playwright@1.60.0
+          npm install --no-save --no-package-lock --no-audit playwright@1.61.0
           npx playwright install --with-deps chromium
       - name: Capture real Flutter screenshots
         shell: bash
