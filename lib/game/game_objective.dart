@@ -70,6 +70,13 @@ class ObjectiveCatalog {
           target: 9,
           unit: 'Dark cells',
         );
+      case 'pattern':
+        return const GameObjective(
+          title: 'Repeat 3 light patterns',
+          instruction: 'Watch the pads flash, then repeat in the same order.',
+          target: 3,
+          unit: 'Patterns recalled',
+        );
       default:
         throw ArgumentError.value(gameId, 'gameId', 'Unknown game objective');
     }
