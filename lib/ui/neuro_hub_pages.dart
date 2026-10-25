@@ -390,56 +390,58 @@ class NeuroGameDetailPage extends StatelessWidget {
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: Column(children: [
-          Row(children: [
-            IconButton(onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white)),
-            const Expanded(child: Text('MINI GAME',
-              style: TextStyle(color: neuroMuted, fontWeight: FontWeight.w800))),
-          ]),
+        child: NeuroAtmosphere(child: Column(children: [
+          Align(alignment: Alignment.centerLeft,
+            child: IconButton(
+              tooltip: 'Back',
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF405587)))),
           Expanded(child: Center(child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              SvgPicture.asset('assets/design/neuro-icon-$icon.svg',
-                width: 144, height: 144),
-              const SizedBox(height: 25),
-              Text(title, style: const TextStyle(color: Colors.white,
-                fontWeight: FontWeight.w900, fontSize: 33)),
-              const SizedBox(height: 14),
-              Text(merge
-                ? 'Merge matching tiles and reach the highest number.'
-                : memory ? 'Find matching symbols in a set of hidden cards.'
-                  : colorSpot ? 'Pick the one tile with a different color.'
-                  : speed ? 'Tap the shuffled numbers from 1 to 9.'
-                  : logic ? 'Switch off all the lights. Each tap changes neighboring tiles.'
-                  : echo ? 'Remember a sequence of glowing pads, then repeat it.'
-                  : 'Find the number pattern and pick the missing value.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: neuroMuted,
-                  fontSize: 15, height: 1.45)),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [
+                    Color(0xFFFDFEFF), Color(0xFFDFECFF)]),
+                  borderRadius: BorderRadius.circular(38),
+                  border: Border.all(color: const Color(0xFFAABEEE)),
+                  boxShadow: const [BoxShadow(color: Color(0x285A73B5),
+                    blurRadius: 19, offset: Offset(0, 7))]),
+                child: SvgPicture.asset('assets/design/neuro-icon-$icon.svg',
+                  width: 116, height: 116)),
               const SizedBox(height: 24),
-              Text('PRACTICE MODE', style: const TextStyle(
-                color: Color(0xFF89E2EF), fontWeight: FontWeight.w800,
-                letterSpacing: 1.5)),
-              const SizedBox(height: 8),
-              const Text('Practice freely, or complete nodes on the map to unlock your route.',
+              Text(title, textAlign: TextAlign.center,
+                style: const TextStyle(color: neuroText,
+                  fontWeight: FontWeight.w900, fontSize: 29)),
+              const SizedBox(height: 9),
+              Text(merge
+                ? 'Merge matching tiles to reach the goal.'
+                : memory ? 'Find every matching pair.'
+                : colorSpot ? 'Spot the different shade.'
+                : speed ? 'Tap numbers in the right order.'
+                : logic ? 'Turn off all the lights.'
+                : echo ? 'Watch the lights, then repeat.'
+                : 'Find the missing number.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: neuroMuted, fontSize: 12)),
+                style: const TextStyle(color: neuroMuted, fontSize: 14)),
             ]),
           ))),
-          Padding(padding: const EdgeInsets.fromLTRB(25, 0, 25, 28),
+          Padding(padding: const EdgeInsets.fromLTRB(25, 5, 25, 22),
             child: SizedBox(width: double.infinity, height: 58,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: neuroAccent,
+                  foregroundColor: const Color(0xFF2B376D),
+                  backgroundColor: const Color(0xFFFFD477),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(19))),
+                    borderRadius: BorderRadius.circular(20))),
                 onPressed: onPlay,
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: const Text('PLAY', style: TextStyle(
                   fontWeight: FontWeight.w900, fontSize: 19)),
               ))),
-        ]),
+        ])),
       ))),
     );
   }
