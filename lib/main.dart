@@ -585,7 +585,7 @@ class _SequencePageState extends State<SequencePage> {
                       Container(
                         width: double.infinity,
                         constraints: BoxConstraints(
-                          minHeight: (space.maxHeight * .20).clamp(65.0, 120.0)),
+                          minHeight: (space.maxHeight * .20).clamp(65.0, 120.0).toDouble()),
                         alignment: Alignment.center,
                         padding: const EdgeInsets.all(15),
                         decoration: BoxDecoration(
@@ -603,9 +603,9 @@ class _SequencePageState extends State<SequencePage> {
                                 color: Color(0xFF273F79),
                                 fontWeight: FontWeight.w900)))),
                       ),
-                      SizedBox(height: (space.maxHeight * .035).clamp(8.0, 19.0)),
+                      SizedBox(height: (space.maxHeight * .035).clamp(8.0, 19.0).toDouble()),
                       SizedBox(
-                        height: (space.maxHeight * .34).clamp(126.0, 198.0),
+                        height: (space.maxHeight * .34).clamp(126.0, 198.0).toDouble(),
                         child: GridView.count(
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
