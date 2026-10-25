@@ -60,7 +60,11 @@ void main() {
         onComplete: () {},
         onSessionEnd: (_, __) {},
       )));
-      await tester.pump(const Duration(milliseconds: 240));
+      // Advance each async light pulse; a single large pump leaves pending
+      // fake-async timers because subsequent pulses are scheduled later.
+      for (var i = 0; i < 9; i++) {
+        await tester.pump(const Duration(milliseconds: 600));
+      }
       expect(find.byType(GridView), findsOneWidget);
       expect(find.byType(ListView), findsNothing);
       expect(find.text('RESTART'), findsOneWidget);
