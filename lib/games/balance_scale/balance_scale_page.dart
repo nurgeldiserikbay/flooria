@@ -160,7 +160,7 @@ class _BalanceScalePageState extends State<BalanceScalePage> {
                                 : current == target ? 'Ready to check!'
                                 : 'Choose weights',
                                 style: const TextStyle(color: text,
-                                    fontWeight: FontWeight.w900))),
+                                    fontWeight: FontWeight.w900)))),
                         ]),
                       ),
                       const SizedBox(height: 8),
