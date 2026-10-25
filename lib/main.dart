@@ -22,7 +22,6 @@ void main() {
 const ink = Color(0xFF343855);
 const lavender = Color(0xFF7959C9);
 const paper = Color(0xFFFFFAED);
-const mint = Color(0xFFB9E3D5);
 
 class FlooriaApp extends StatelessWidget {
   const FlooriaApp({super.key});
