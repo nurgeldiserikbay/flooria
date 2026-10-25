@@ -88,9 +88,9 @@ class TiltPuzzle {
     return TiltPuzzle._(
       start: const TiltCell(1, 1),
       goal: const TiltCell(size - 1, size - 1),
-      walls: const {
-        TiltCell(1, 3),
-        TiltCell(4, 2),
+      walls: {
+        const TiltCell(1, 3),
+        const TiltCell(4, 2),
       },
       solution: const [
         TiltDirection.right,
