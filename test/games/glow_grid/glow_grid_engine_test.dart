@@ -44,28 +44,83 @@ void main() {
     test('a legal move toggles its cell and orthogonal neighbours', () {
       final session = GlowGridSession(seed: 17);
       final before = session.litCells;
-      final index = 4;
+      final index = List<int>.generate(session.current.cellCount, (i) => i)
+          .firstWhere((i) => _afterToggle(before, session.current.size, i).isNotEmpty);
 
       expect(session.toggle(index), GlowGridMoveResult.changed);
-      final expected = Set<int>.from(before);
-      _toggle(expected, session.current.size, index);
-
-      expect(session.litCells, expected);
+      expect(session.litCells, _afterToggle(before, session.current.size, index));
       expect(session.moves, 1);
     });
 
-    test('progress only advances after a board is cleared', () {
+    test('known solutions clear every round and completion is stable', () {
       final session = GlowGridSession(seed: 44);
-      expect(session.progress, 0);
-      expect(session.completedBoards, 0);
 
-      // Clearing every currently lit cell is not itself a valid solution,
-      // but each legal action remains finite and progress stays bounded.
-      session.toggle(0);
-      expect(session.completedBoards, inInclusiveRange(0, 1));
-      expect(session.progress, session.completedBoards / GlowGridSession.boardCount);
+      for (var round = 0; round < GlowGridSession.boardCount; round++) {
+        expect(session.boardIndex, round);
+        expect(session.progress, round / GlowGridSession.boardCount);
+        final solution = _minimumSolution(session.current);
+        expect(solution, isNotEmpty);
+
+        for (var move = 0; move < solution.length; move++) {
+          final result = session.toggle(solution[move]);
+          expect(
+            result,
+            move == solution.length - 1
+                ? GlowGridMoveResult.boardSolved
+                : GlowGridMoveResult.changed,
+          );
+        }
+      }
+
+      expect(session.finished, isTrue);
+      expect(session.completedBoards, GlowGridSession.boardCount);
+      expect(session.progress, 1);
+      final finalMoves = session.moves;
+      expect(session.toggle(0), GlowGridMoveResult.invalid);
+      expect(session.moves, finalMoves);
     });
   });
+}
+
+List<int> _minimumSolution(GlowGridBoard board) {
+  final cellCount = board.cellCount;
+  final target = board.litCells.fold<int>(0, (mask, cell) => mask | (1 << cell));
+  var best = <int>[];
+  var bestLength = cellCount + 1;
+
+  for (var selection = 0; selection < (1 << cellCount); selection++) {
+    final length = _bitCount(selection);
+    if (length >= bestLength) continue;
+    final lights = <int>{};
+    for (var cell = 0; cell < cellCount; cell++) {
+      if ((selection & (1 << cell)) != 0) {
+        _toggle(lights, board.size, cell);
+      }
+    }
+    final result = lights.fold<int>(0, (mask, cell) => mask | (1 << cell));
+    if (result == target) {
+      best = [
+        for (var cell = 0; cell < cellCount; cell++)
+          if ((selection & (1 << cell)) != 0) cell,
+      ];
+      bestLength = length;
+    }
+  }
+  return best;
+}
+
+int _bitCount(int value) {
+  var count = 0;
+  for (var bits = value; bits != 0; bits &= bits - 1) {
+    count++;
+  }
+  return count;
+}
+
+Set<int> _afterToggle(Set<int> before, int size, int index) {
+  final result = Set<int>.from(before);
+  _toggle(result, size, index);
+  return result;
 }
 
 void _toggle(Set<int> cells, int size, int index) {
