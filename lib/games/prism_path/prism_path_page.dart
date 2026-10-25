@@ -201,7 +201,7 @@ class _PrismPathPageState extends State<PrismPathPage> {
                                           ? 'Crystal goal'
                                           : mirror == null
                                               ? 'Board cell'
-                                              : 'Mirror ${mirror.isDecoy ? "decoy" : ""}, ${mirror.face == MirrorFace.slash ? "slash" : "backslash"}',
+                                              : '${mirror.isDecoy ? "Decoy mirror" : "Mirror"} at row ${cell.row + 1}, column ${cell.column + 1}, ${mirror.face == MirrorFace.slash ? "slash" : "backslash"} face',
                                   child: Material(
                                     color: illuminated
                                         ? const Color(0xFFFFF0BD)
