@@ -191,7 +191,7 @@ class _ShellShufflePageState extends State<ShellShufflePage> {
                                   children: [
                                     Text(
                                       shuffling
-                                          ? 'SWAP ${_swapStep} / ${round.swaps.length}'
+                                          ? 'SWAP $_swapStep / ${round.swaps.length}'
                                           : answering
                                               ? 'STAR HIDDEN'
                                               : 'FOLLOW THE STAR',
