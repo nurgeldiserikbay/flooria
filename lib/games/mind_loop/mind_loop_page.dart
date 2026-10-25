@@ -68,7 +68,7 @@ class _MindLoopPageState extends State<MindLoopPage> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _inputLocked = false;
+      if (mounted) setState(() => _inputLocked = false);
     });
   }
 
