@@ -125,13 +125,17 @@ class _TowerTacticsPageState extends State<TowerTacticsPage> {
                     const Icon(Icons.stacked_bar_chart_rounded,
                         color: mint, size: 21),
                     const SizedBox(width: 7),
-                    Text('TOWER ${session.round} / ${session.roundCount}',
+                    Expanded(
+                      child: Text('TOWER ${session.round} / ${session.roundCount}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             color: ink,
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
                             letterSpacing: .7)),
-                    const Spacer(),
+                    ),
+                    const SizedBox(width: 8),
                     _StatPill(label: 'MOVES', value: '${session.roundMoves}'),
                   ],
                 ),
@@ -149,10 +153,6 @@ class _TowerTacticsPageState extends State<TowerTacticsPage> {
                         fontWeight: FontWeight.w800)),
                 Expanded(
                   child: LayoutBuilder(builder: (context, boardConstraints) {
-                    final pegWidth = math.min(
-                      104.0,
-                      (boardConstraints.maxWidth - 22) / 3,
-                    ).toDouble();
                     final diskHeight = math.min(
                       26.0,
                       (boardConstraints.maxHeight * .31 / session.diskCount)
@@ -164,10 +164,9 @@ class _TowerTacticsPageState extends State<TowerTacticsPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           for (var peg = 0; peg < TowerTacticsSession.pegCount; peg++)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 3),
-                              child: SizedBox(
-                                width: pegWidth,
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 3),
                                 child: _PegView(
                                   peg: peg,
                                   disks: session.board[peg],
@@ -191,12 +190,14 @@ class _TowerTacticsPageState extends State<TowerTacticsPage> {
                     const Icon(Icons.touch_app_rounded,
                         color: Color(0xFF8291A8), size: 17),
                     const SizedBox(width: 6),
-                    Text('Tap a stack, then a peg',
+                    Expanded(child: Text('Tap a stack, then a peg',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             color: const Color(0xFF71809B),
                             fontWeight: FontWeight.w800,
-                            fontSize: short ? 11 : 12)),
-                    const SizedBox(width: 12),
+                            fontSize: short ? 11 : 12))),
+                    const SizedBox(width: 4),
                     TextButton.icon(
                       onPressed: () => setState(() {
                         revision++;
