@@ -14,6 +14,7 @@ import 'ui/fantasy_ui.dart';
 import 'ui/neuro_map.dart';
 import 'ui/neuro_hub_pages.dart';
 import 'ui/memory_pairs_page.dart';
+import 'ui/color_spot_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,7 +128,13 @@ class _FlooriaHomeState extends State<FlooriaHome> {
                 onComplete: _completeFloor,
                 onSessionEnd: _recordMemory,
               )
-            : SequencePage(
+            : gameId == 'colorMatch'
+              ? ColorSpotPage(
+                  floor: startingFloor,
+                  onComplete: _completeFloor,
+                  onSessionEnd: _recordColorSpot,
+                )
+              : SequencePage(
                 floor: startingFloor,
                 onComplete: _completeFloor,
                 onSessionEnd: _recordSequence,
@@ -198,6 +205,11 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 
   void _recordMemory(int pairs, int moves) {
     setState(() => playerStats.recordMemory(pairs: pairs, moves: moves));
+    _save();
+  }
+
+  void _recordColorSpot(int correct, int total) {
+    setState(() => playerStats.recordColorSpot(correct: correct, total: total));
     _save();
   }
 
