@@ -1,0 +1,35 @@
+name: Validate Feature PR
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flutter-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate Flutter platform scaffolding
+        run: flutter create --project-name flooria --platforms=web,android,ios .
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Analyze Dart
+        run: flutter analyze
+      - name: Run automated tests
+        run: flutter test --reporter expanded
+      - name: Build web without publishing
+        run: flutter build web --release --base-href /flooria/
