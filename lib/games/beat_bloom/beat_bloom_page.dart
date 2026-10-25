@@ -174,7 +174,8 @@ class _BeatBloomPageState extends State<BeatBloomPage>
                                 fontSize: 13,
                                 fontWeight: FontWeight.w900)),
                       ),
-                      Text('${game.correctRounds} / ${game.roundCount}',
+                      Text(
+                          '${game.correctRounds} / ${BeatBloomSession.roundCount}',
                           style: const TextStyle(
                               color: Color(0xFF7276A4),
                               fontWeight: FontWeight.w900)),
