@@ -53,17 +53,18 @@ class _MemoryPairsPageState extends State<MemoryPairsPage> {
   }
 
   Future<void> _tap(int index) async {
-    if (rewarded || !session.reveal(index)) return;
+    final active = session;
+    if (rewarded || !active.reveal(index)) return;
     setState(() {});
-    if (session.isResolving) {
+    if (active.isResolving) {
       await Future<void>.delayed(const Duration(milliseconds: 720));
-      if (!mounted) return;
-      session.hideMismatch();
+      if (!mounted || active != session) return;
+      active.hideMismatch();
       setState(() {});
     }
-    if (!session.isComplete || rewarded) return;
+    if (!active.isComplete || rewarded) return;
     rewarded = true;
-    widget.onSessionEnd(session.pairsFound, session.moves);
+    widget.onSessionEnd(active.pairsFound, active.moves);
     if (widget.floor == null) {
       setState(() {});
       return;
