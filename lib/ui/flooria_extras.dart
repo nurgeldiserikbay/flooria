@@ -93,17 +93,17 @@ class FlooriaSettingsPage extends StatelessWidget {
   final ValueChanged<bool> onMotionChanged;
   final ValueChanged<bool> onHapticsChanged;
 
-  static const _muted = Color(0xFFB3C7F0);
+  static const _muted = Color(0xFF6178A0);
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF151F4D),
+    backgroundColor: const Color(0xFFD8EAFE),
     body: SafeArea(child: Center(child: ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
       child: Container(
         decoration: const BoxDecoration(gradient: LinearGradient(
           begin: Alignment.topLeft, end: Alignment.bottomRight,
-          colors: [Color(0xFF203D85), Color(0xFF182759), Color(0xFF191B48)])),
+          colors: [Color(0xFFBDEBFC), Color(0xFFE4E0FA), Color(0xFFFFEBD8)])),
         child: Column(children: [
           Padding(padding: const EdgeInsets.fromLTRB(11, 12, 20, 6),
             child: Row(children: [
@@ -111,17 +111,17 @@ class FlooriaSettingsPage extends StatelessWidget {
                 tooltip: 'Back to map',
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white)),
+                  color: const Color(0xFF2C427A))),
               const SizedBox(width: 5),
               const Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('NEURO PLAYGROUND',
-                    style: TextStyle(color: Color(0xFF92E7FF),
+                    style: TextStyle(color: Color(0xFF5C69AA),
                       fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.w900)),
                   SizedBox(height: 4),
                   Text('Settings', style: TextStyle(fontSize: 26,
-                    color: Colors.white, fontWeight: FontWeight.w900)),
+                    color: const Color(0xFF2C427A), fontWeight: FontWeight.w900)),
                 ])),
               SvgPicture.asset('assets/design/neuro-brand-symbol.svg',
                 width: 39, height: 39),
@@ -133,14 +133,14 @@ class FlooriaSettingsPage extends StatelessWidget {
                 padding: const EdgeInsets.all(17),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(colors: [
-                    Color(0xFF425DB2), Color(0xFF2A3B80)]),
+                    Color(0xFFFFFFFF), Color(0xFFE8F1FF)]),
                   borderRadius: BorderRadius.circular(23),
-                  border: Border.all(color: const Color(0xFF6D92F1)),
+                  border: Border.all(color: const Color(0xFFADBBE7)),
                   boxShadow: const [BoxShadow(color: Color(0x442452B9),
                     blurRadius: 17, offset: Offset(0, 6))]),
                 child: Row(children: [
                   Container(width: 62, height: 62,
-                    decoration: BoxDecoration(color: const Color(0xFF1D2C62),
+                    decoration: BoxDecoration(color: const Color(0xFFD1E8FE),
                       borderRadius: BorderRadius.circular(19)),
                     child: SvgPicture.asset('assets/design/neuro-avatar-top.svg')),
                   const SizedBox(width: 14),
@@ -148,21 +148,21 @@ class FlooriaSettingsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('YOUR ADVENTURE', style: TextStyle(
-                        color: Color(0xFF9CEDFF), fontSize: 10,
+                        color: Color(0xFF665AB6), fontSize: 10,
                         letterSpacing: 1.3, fontWeight: FontWeight.w900)),
                       SizedBox(height: 5),
                       Text('Make it yours', style: TextStyle(
-                        color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                        color: const Color(0xFF2C427A), fontSize: 20, fontWeight: FontWeight.w900)),
                       SizedBox(height: 4),
                       Text('Adjust how your world feels', style: TextStyle(
                         color: _muted, fontSize: 12)),
                     ])),
                 ]),
               ),
-              const SizedBox(height: 27),
+              const SizedBox(height: 20),
               const Padding(padding: EdgeInsets.only(left: 5, bottom: 11),
                 child: Text('GAMEPLAY', style: TextStyle(
-                  color: Color(0xFF8DE6FB), fontSize: 11,
+                  color: Color(0xFF5569A9), fontSize: 11,
                   letterSpacing: 2, fontWeight: FontWeight.w900))),
               _setting(
                 icon: Icons.vibration_rounded,
@@ -179,20 +179,20 @@ class FlooriaSettingsPage extends StatelessWidget {
                 subtitle: 'Gentle background animation',
                 value: motionEnabled,
                 onChanged: onMotionChanged),
-              const SizedBox(height: 27),
+              const SizedBox(height: 20),
               const Padding(padding: EdgeInsets.only(left: 5, bottom: 11),
                 child: Text('ABOUT THE GAME', style: TextStyle(
-                  color: Color(0xFF8DE6FB), fontSize: 11,
+                  color: Color(0xFF5569A9), fontSize: 11,
                   letterSpacing: 2, fontWeight: FontWeight.w900))),
               Material(
-                color: const Color(0xFF293D7D),
+                color: const Color(0xFFF4F7FF),
                 borderRadius: BorderRadius.circular(19),
                 child: ListTile(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(19)),
                   leading: const Icon(Icons.info_outline_rounded,
-                    color: Color(0xFF93EAFF)),
+                    color: Color(0xFF7166C8)),
                   title: const Text('Neuro Playground',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                    style: TextStyle(color: const Color(0xFF2C427A), fontWeight: FontWeight.w900)),
                   subtitle: const Text('Puzzle adventure',
                     style: TextStyle(color: _muted, fontSize: 12)),
                   trailing: const Icon(Icons.chevron_right_rounded, color: _muted),
@@ -218,10 +218,10 @@ class FlooriaSettingsPage extends StatelessWidget {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) => Material(
-    color: const Color(0xFF283A77),
+    color: const Color(0xFFF7F9FF),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(21),
-      side: const BorderSide(color: Color(0xFF485FA2))),
+      side: const BorderSide(color: Color(0xFFB6C7EB))),
     clipBehavior: Clip.antiAlias,
     child: SwitchListTile(
       contentPadding: const EdgeInsets.fromLTRB(14, 7, 9, 7),
@@ -231,12 +231,12 @@ class FlooriaSettingsPage extends StatelessWidget {
           color: accent.withValues(alpha: .15),
           borderRadius: BorderRadius.circular(15)),
         child: Icon(icon, color: accent, size: 26)),
-      title: Text(title, style: const TextStyle(color: Colors.white,
+      title: Text(title, style: const TextStyle(color: const Color(0xFF2C427A),
         fontWeight: FontWeight.w900, fontSize: 15)),
       subtitle: Text(subtitle, style: const TextStyle(
         color: _muted, fontSize: 11)),
       value: value,
-      activeTrackColor: const Color(0xFF6B9DF5),
+      activeTrackColor: const Color(0xFF8A75E9),
       activeThumbColor: Colors.white,
       inactiveThumbColor: const Color(0xFFB2C5E5),
       onChanged: onChanged,
