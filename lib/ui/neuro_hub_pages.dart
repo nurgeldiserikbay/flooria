@@ -106,24 +106,19 @@ class NeuroShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => NeuroAtmosphere(
-    child: Column(children: [
-      Padding(padding: const EdgeInsets.fromLTRB(23, 19, 20, 10),
-        child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('NEURO PLAYGROUND', style: TextStyle(
-                color: Color(0xFF6376B6), fontWeight: FontWeight.w900,
-                letterSpacing: 2, fontSize: 10)),
-              const SizedBox(height: 4),
-              Text(title, style: const TextStyle(
-                color: Color(0xFF273D75), fontSize: 28,
-                fontWeight: FontWeight.w900)),
-            ])),
-          ...?actions,
-        ])),
-      Expanded(child: child),
-      NeuroNavigation(selected: tab, onTab: onTab),
-    ]),
+    child: Semantics(
+      label: title,
+      explicitChildNodes: true,
+      child: Column(children: [
+        if (actions != null && actions!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+            child: Row(mainAxisAlignment: MainAxisAlignment.end,
+              children: actions!)),
+        Expanded(child: child),
+        NeuroNavigation(selected: tab, onTab: onTab),
+      ]),
+    ),
   );
 }
 
