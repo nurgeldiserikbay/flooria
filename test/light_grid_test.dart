@@ -12,6 +12,7 @@ void main() {
       final game = LightGridSession(seed: seed);
       expect(game.litCount, greaterThan(0));
       for (final position in game.scrambleMoves.reversed) {
+        if (game.finished) break; // Repeated scramble moves can cancel early.
         expect(game.tap(position), isTrue);
       }
       expect(game.litCount, 0);
