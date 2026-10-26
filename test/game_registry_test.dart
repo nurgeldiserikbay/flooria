@@ -9,7 +9,9 @@ import 'package:flooria/ui/sequence_page.dart';
 void main() {
   test('every registered game ID is unique and metadata complete', () {
     final games = GameRegistry.games;
-    expect(games.length, 12);
+    expect(games.length, 68);
+    expect(games.where((game) => game.testAccessible).length, 59);
+    expect(games.where((game) => game.playable).length, 9);
     expect(games.map((game) => game.id).toSet().length, games.length);
     for (final game in games) {
       expect(game.id, isNotEmpty);
@@ -42,10 +44,12 @@ void main() {
     }
   });
 
-  test('unimplemented games cannot be launched by mistake', () {
+  test('test-only games are launchable without entering the campaign', () {
+    expect(GameRegistry.byId('sudoku').testAccessible, isTrue);
+    expect(GameRegistry.byId('sudoku').playable, isFalse);
     expect(() => GameRegistry.byId('unknown-id'), throwsArgumentError);
-    expect(() => GameRegistry.buildPage('sudoku',
-      floor: null, callbacks: callbacks), throwsArgumentError);
+    expect(GameRegistry.buildPage('sudoku', floor: null,
+      callbacks: callbacks), isA<Widget>());
   });
 
   test('existing pages retain their expected widget types', () {
@@ -53,7 +57,8 @@ void main() {
       callbacks: callbacks), isA<MergePage>());
     expect(GameRegistry.buildPage('numberSequence', floor: 2,
       callbacks: callbacks), isA<SequencePage>());
-    for (final game in GameRegistry.games.where((game) => game.playable)) {
+    for (final game in GameRegistry.games.where((game) =>
+        game.playable || game.testAccessible)) {
       expect(GameRegistry.buildPage(game.id, floor: null,
         callbacks: callbacks), isA<Widget>());
     }
