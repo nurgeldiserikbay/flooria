@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import '../games/crate_courier/crate_courier_page.dart';
+import '../games/hue_mixer/hue_mixer_page.dart';
+import '../games/semantic_sort/semantic_sort_page.dart';
 import '../games/analogy_lab/analogy_lab_page.dart';
 import '../games/arrow_orbit/arrow_orbit_page.dart';
 import '../games/balance_scale/balance_scale_page.dart';
@@ -264,6 +267,12 @@ abstract final class GameRegistry {
       description: 'Experimental game available for testing.', playable: false, testAccessible: true),
     GameDefinition(id: 'wordLadder', title: 'Word Ladder', icon: 'word',
       description: 'Transform words one letter at a time.', playable: false, testAccessible: true),
+    GameDefinition(id: 'crateCourier', title: 'Crate Courier', icon: 'maze',
+      description: 'Push crates onto the matching docks.', playable: false, testAccessible: true),
+    GameDefinition(id: 'hueMixer', title: 'Hue Mixer', icon: 'colors',
+      description: 'Mix color ratios to match the target.', playable: false, testAccessible: true),
+    GameDefinition(id: 'semanticSort', title: 'Semantic Sort', icon: 'word',
+      description: 'Sort objects into their correct categories.', playable: false, testAccessible: true),
   ];
 
   /// Do NOT reorder existing IDs. Campaign progress is saved as a floor
@@ -492,6 +501,15 @@ abstract final class GameRegistry {
           onSessionEnd: _ignoreTestSession);
       case 'word':
         return WordForgePage(floor: floor, onComplete: callbacks.onComplete,
+          onSessionEnd: _ignoreTestSession);
+      case 'crateCourier':
+        return CrateCourierPage(floor: floor, onComplete: callbacks.onComplete,
+          onSessionEnd: _ignoreTestSession);
+      case 'hueMixer':
+        return HueMixerPage(floor: floor, onComplete: callbacks.onComplete,
+          onSessionEnd: _ignoreTestSession);
+      case 'semanticSort':
+        return SemanticSortPage(floor: floor, onComplete: callbacks.onComplete,
           onSessionEnd: _ignoreTestSession);
       default:
         throw ArgumentError.value(id, 'id', 'Mini-game is not playable');
