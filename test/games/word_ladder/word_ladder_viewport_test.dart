@@ -63,7 +63,8 @@ void main() {
     ));
 
     for (var round = 0; round < WordLadderSession.roundCount; round++) {
-      while (expected.rungIndex < expected.current.prompts.length) {
+      while (!expected.finished &&
+          expected.rungIndex < expected.current.prompts.length) {
         final word = expected.prompt.correctWord;
         await tester.tap(find.byKey(ValueKey('word-ladder-choice-$word')));
         await tester.pump();
@@ -103,7 +104,8 @@ void main() {
 
     for (var round = 0; round < WordLadderSession.roundCount; round++) {
       final prompt = expected.prompt;
-      final wrong = prompt.choices.firstWhere((word) => word != prompt.correctWord);
+      final wrong =
+          prompt.choices.firstWhere((word) => word != prompt.correctWord);
       await tester.tap(find.byKey(ValueKey('word-ladder-choice-$wrong')));
       await tester.pump();
       expected.answer(wrong);
