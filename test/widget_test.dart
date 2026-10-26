@@ -1,10 +1,3 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flooria/main.dart';
-
-void main() {
-  testWidgets('Flooria boots with locally saved journey', (tester) async {
-    await tester.pumpWidget(const FlooriaApp());
-    await tester.pumpAndSettle();
-    expect(find.text('Flooria'), findsOneWidget);
-  }, skip: true); // Requires SharedPreferences test initialization.
-}
+// The application shell tests live in app_shell_test.dart.
+// Keeping this file prevents `flutter create` from generating the default
+// MyApp test during CI scaffolding.

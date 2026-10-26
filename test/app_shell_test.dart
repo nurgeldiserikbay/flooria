@@ -10,7 +10,6 @@ import 'package:flooria/ui/skill_radar.dart';
 void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({
-      'floor': 3,
       'recent': <String>[],
       'favorites': <String>[],
     });
@@ -30,18 +29,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Home displays a live neural map with persisted progress',
+  testWidgets('Home starts with a single open neuron',
       (tester) async {
     await boot(tester);
     expect(find.byType(NeuroMapView), findsOneWidget);
-    expect(find.text('LEVEL 3'), findsOneWidget);
-    expect(find.text('YOUR NEXT CHALLENGE'), findsOneWidget);
-    expect(find.text('PLAY'), findsOneWidget);
+    expect(find.text('0 / 13'), findsOneWidget);
+    expect(find.text('FIRST SPARK'), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsOneWidget);
-    expect(find.text('12'), findsOneWidget);
   });
 
-  testWidgets('Three visible game portals, combined profile and settings work',
+  testWidgets('Games, skills and settings follow the new progression shell',
       (tester) async {
     await boot(tester);
 
@@ -53,8 +50,7 @@ void main() {
     expect(find.byType(NeuroSkillsPage), findsOneWidget);
     expect(find.byType(SkillRadarChart), findsOneWidget);
 
-    expect(find.text('PERSONAL RECORDS'), findsOneWidget);
-    expect(find.text('No record yet'), findsWidgets);
+    expect(find.text('PLAY MORE'), findsOneWidget);
 
     await goTo(tester, 0);
     expect(find.byType(NeuroMapView), findsOneWidget);
@@ -63,11 +59,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.byType(FlooriaSettingsPage), findsOneWidget);
     expect(find.text('Haptic feedback'), findsOneWidget);
-    expect(find.text('Testing access'), findsOneWidget);
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getBool('testing_access_all') ?? true, isTrue);
-    await tester.tap(find.widgetWithText(SwitchListTile, 'Testing access'));
-    await tester.pumpAndSettle();
-    expect(preferences.getBool('testing_access_all'), isFalse);
+    expect(find.text('Ambient motion'), findsOneWidget);
   });
 }

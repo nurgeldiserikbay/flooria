@@ -1,25 +1,24 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'game/floor_engine.dart';
-import 'core/game_registry.dart';
-import 'game/player_stats.dart';
-import 'ui/flooria_extras.dart';
-import 'ui/neuro_map.dart';
-import 'ui/neuro_hub_pages.dart';
 
-export 'ui/merge_page.dart' show MergePage;
-export 'ui/sequence_page.dart' show SequencePage;
+import 'core/game_registry.dart';
+import 'core/neuron_progression.dart';
+import 'core/skill_progress.dart';
+import 'ui/flooria_extras.dart';
+import 'ui/neuro_hub_pages.dart';
+import 'ui/neuro_map.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const FlooriaApp());
 }
 
-const ink = Color(0xFF343855);
-const lavender = Color(0xFF7959C9);
-const paper = Color(0xFFFFFAED);
+const _ink = Color(0xFF273D75);
+const _accent = Color(0xFF776BE0);
+const _paper = Color(0xFFF4F6FF);
 
 class FlooriaApp extends StatelessWidget {
   const FlooriaApp({super.key});
@@ -30,13 +29,12 @@ class FlooriaApp extends StatelessWidget {
     title: 'Neuro Playground',
     theme: ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: paper,
-      colorScheme: ColorScheme.fromSeed(seedColor: lavender, surface: paper),
+      scaffoldBackgroundColor: _paper,
+      colorScheme: ColorScheme.fromSeed(seedColor: _accent, surface: _paper),
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: ink),
-        headlineMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: ink),
-        titleLarge: TextStyle(fontWeight: FontWeight.w700, color: Colors.white),
-        bodyLarge: TextStyle(color: ink),
+        headlineLarge: TextStyle(color: _ink, fontWeight: FontWeight.w800),
+        headlineMedium: TextStyle(color: _ink, fontWeight: FontWeight.w800),
+        bodyLarge: TextStyle(color: _ink),
       ),
     ),
     home: const FlooriaHome(),
@@ -50,17 +48,15 @@ class FlooriaHome extends StatefulWidget {
 }
 
 class _FlooriaHomeState extends State<FlooriaHome> {
-  int tab = 0;
-  int floor = 1;
-  int towerSceneRevision = 0;
-  final Set<String> favorites = {};
-  final List<String> recent = [];
-  bool loaded = false;
-  bool motionEnabled = true;
-  bool hapticsEnabled = true;
-  bool testingAccessAll = true;
-  bool openingGame = false;
-  PlayerGameStats playerStats = PlayerGameStats();
+  static const _progressKey = 'neuro_progress_v2';
+  static const _skillsKey = 'neuro_skills_v1';
+  int _tab = 0;
+  bool _loaded = false;
+  bool _motionEnabled = true;
+  bool _hapticsEnabled = true;
+  final Set<String> _favorites = {};
+  PlayerProgress _progress = PlayerProgress();
+  SkillProgress _skills = SkillProgress();
 
   @override
   void initState() {
@@ -71,230 +67,181 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _restore() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
-    setState(() {
-      floor = prefs.getInt('floor') ?? 1;
-      try {
-        final saved = prefs.getString('player_stats_v1');
-        if (saved != null) {
-          playerStats = PlayerGameStats.fromJson(
-            Map<String, dynamic>.from(jsonDecode(saved) as Map));
-        }
-      } catch (_) {
-        playerStats = PlayerGameStats(); // Invalid old data should never block launch.
+    try {
+      final raw = prefs.getString(_progressKey);
+      if (raw != null) {
+        _progress = PlayerProgress.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map));
       }
-      motionEnabled = prefs.getBool('ambient_motion') ?? true;
-      hapticsEnabled = prefs.getBool('haptic_feedback') ?? true;
-      testingAccessAll = prefs.getBool('testing_access_all') ?? true;
-      favorites.addAll(prefs.getStringList('favorites') ?? []);
-      recent.addAll(prefs.getStringList('recent') ?? []);
-      loaded = true;
+    } catch (_) {
+      _progress = PlayerProgress();
+    }
+    try {
+      final raw = prefs.getString(_skillsKey);
+      if (raw != null) {
+        _skills = SkillProgress.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map));
+      }
+    } catch (_) {
+      _skills = SkillProgress();
+    }
+    setState(() {
+      _motionEnabled = prefs.getBool('ambient_motion') ?? true;
+      _hapticsEnabled = prefs.getBool('haptic_feedback') ?? true;
+      _favorites.addAll(prefs.getStringList('favorites') ?? const []);
+      _loaded = true;
     });
   }
 
   Future<void> _save() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('floor', floor);
-    await prefs.setString('player_stats_v1', jsonEncode(playerStats.toJson()));
-    await prefs.setBool('ambient_motion', motionEnabled);
-    await prefs.setBool('haptic_feedback', hapticsEnabled);
-    await prefs.setBool('testing_access_all', testingAccessAll);
-    await prefs.setStringList('favorites', favorites.toList());
-    await prefs.setStringList('recent', recent);
+    await prefs.setString(_progressKey, jsonEncode(_progress.toJson()));
+    await prefs.setString(_skillsKey, jsonEncode(_skills.toJson()));
+    await prefs.setBool('ambient_motion', _motionEnabled);
+    await prefs.setBool('haptic_feedback', _hapticsEnabled);
+    await prefs.setStringList('favorites', _favorites.toList());
   }
 
-  Future<void> _open(String gameId, {bool tower = false}) async {
-    if (openingGame) return; // avoid duplicate route pushes on quick taps
-    openingGame = true;
-    bool openNext = false;
-    try {
-      if (hapticsEnabled) HapticFeedback.selectionClick();
-      setState(() {
-        recent.remove(gameId);
-        recent.insert(0, gameId);
-      });
-      _save();
-      final startingFloor = tower ? floor : null;
-      final next = await Navigator.push<bool>(context, MaterialPageRoute<bool>(
-        builder: (_) => GameRegistry.buildPage(
-          gameId,
-          floor: startingFloor,
-          callbacks: GameCallbacks(
-            onComplete: _completeFloor,
-            onMergeEnd: _record2048,
-            onSequenceEnd: _recordSequence,
-            onMemoryEnd: _recordMemory,
-            onColorEnd: _recordColorSpot,
-            onSpeedEnd: _recordSpeed,
-            onLogicEnd: _recordLogic,
-            onPatternEnd: _recordPatternEcho,
-            onFifteenEnd: _recordFifteen,
-            onMazeEnd: _recordMaze,
-          ),
-        ),
-      ));
-      if (!mounted) return;
-      if (startingFloor != null && floor > startingFloor) {
-        setState(() => towerSceneRevision++);
-        openNext = next == true;
-      }
-    } finally {
-      openingGame = false;
-    }
-    if (openNext && mounted) {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        await _open(const FloorEngine().challengeFor(floor).gameId, tower: true);
-      }
-    }
+  void _saveProgress() {
+    setState(() {});
+    _save();
   }
 
-  Future<void> _showGameDetail(String gameId) async {
-    if (openingGame) return;
+  Future<void> _openNeuron(NeuronNode node) async {
+    if (_progress.availability(node.id) == NeuronAvailability.locked) return;
+    final moduleId = node.moduleId;
+    final module = moduleId == null ? null : GameRegistry.maybeById(moduleId);
+    if (module == null) {
+      await _showSlotInfo(node);
+      return;
+    }
+    await _launch(module, level: node.level, mode: GamePlayMode.neuron,
+      neuronId: node.id);
+  }
+
+  Future<void> _launch(GameDefinition module, {required int level,
+      required GamePlayMode mode, String? neuronId}) async {
+    if (mode == GamePlayMode.standalone &&
+        !_progress.unlockedModuleIds.contains(module.id)) return;
+    var completed = false;
     await Navigator.of(context).push<void>(MaterialPageRoute<void>(
-      builder: (screenContext) => NeuroGameDetailPage(
-        gameId: gameId,
-        onPlay: () {
-          Navigator.of(screenContext).pop();
-          _open(gameId);
+      builder: (context) => module.buildPage(context, GameLaunch(
+        level: level,
+        mode: mode,
+        onComplete: (result) {
+          if (completed) return;
+          completed = true;
+          if (neuronId != null) {
+            _progress.completeNeuron(neuronId);
+          } else {
+            _progress.completeStandaloneLevel(module.id, level, result.score,
+              maxLevel: module.maxLevel);
+          }
+          final skillScore = result.metrics[module.skill];
+          if (skillScore != null) _skills.record(module.skill, skillScore.round());
+          _saveProgress();
+        },
+      )),
+    ));
+  }
+
+  Future<void> _showSlotInfo(NeuronNode node) async {
+    if (_hapticsEnabled) HapticFeedback.selectionClick();
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF8F9FF),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        child: SafeArea(child: Column(mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 38, height: 4,
+              decoration: BoxDecoration(color: const Color(0xFFD4D9E8),
+                borderRadius: BorderRadius.circular(10))),
+            const SizedBox(height: 23),
+            const Icon(Icons.auto_awesome_rounded,
+              color: _accent, size: 34),
+            const SizedBox(height: 10),
+            Text('NODE ${node.slot.toString().padLeft(2, '0')}',
+              style: const TextStyle(color: _ink, fontSize: 18,
+                fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+            const SizedBox(height: 6),
+            const Text('Game modules will appear here after approval.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: neuroMuted, fontSize: 13)),
+          ])),
+      ),
+    );
+  }
+
+  void _showSettings() {
+    Navigator.of(context).push<void>(MaterialPageRoute<void>(
+      builder: (_) => FlooriaSettingsPage(
+        motionEnabled: _motionEnabled,
+        hapticsEnabled: _hapticsEnabled,
+        onMotionChanged: (value) {
+          setState(() => _motionEnabled = value);
+          _save();
+        },
+        onHapticsChanged: (value) {
+          setState(() => _hapticsEnabled = value);
+          _save();
         },
       ),
     ));
   }
 
-  void _showSettings() {
-    Navigator.of(context).push<void>(MaterialPageRoute<void>(
-      builder: (_) => StatefulBuilder(
-        builder: (routeContext, updateRoute) => FlooriaSettingsPage(
-          motionEnabled: motionEnabled,
-          hapticsEnabled: hapticsEnabled,
-          testingAccessAll: testingAccessAll,
-          onTestingAccessAllChanged: (v) {
-            setState(() => testingAccessAll = v);
-            updateRoute(() {});
-            _save();
-          },
-          onMotionChanged: (v) {
-            setState(() => motionEnabled = v);
-            updateRoute(() {});
-            _save();
-          },
-          onHapticsChanged: (v) {
-            setState(() => hapticsEnabled = v);
-            updateRoute(() {});
-            _save();
-            if (v) HapticFeedback.selectionClick();
-          },
-        ),
-      ),
-    ));
-  }
-
-  void _record2048(int score, int tile, int moves) {
-    setState(() => playerStats.record2048(
-      score: score, tile: tile, moves: moves));
-    _save();
-  }
-
-  void _recordSequence(int correct, int questions) {
-    setState(() => playerStats.recordSequence(
-      correct: correct, questions: questions));
-    _save();
-  }
-
-  void _recordMemory(int pairs, int moves) {
-    setState(() => playerStats.recordMemory(pairs: pairs, moves: moves));
-    _save();
-  }
-
-  void _recordColorSpot(int correct, int total) {
-    setState(() => playerStats.recordColorSpot(correct: correct, total: total));
-    _save();
-  }
-
-  void _recordSpeed(int elapsedMillis, int mistakes) {
-    setState(() => playerStats.recordSpeed(
-      elapsedMillis: elapsedMillis, mistakes: mistakes));
-    _save();
-  }
-
-  void _recordLogic(int moves) {
-    setState(() => playerStats.recordLogic(moves: moves));
-    _save();
-  }
-
-  void _recordPatternEcho(int stages, int mistakes) {
-    setState(() => playerStats.recordPatternEcho(
-      stages: stages, mistakes: mistakes));
-    _save();
-  }
-
-  void _recordFifteen(int moves) {
-    setState(() => playerStats.recordFifteen(moves: moves));
-    _save();
-  }
-
-  void _recordMaze(int moves, int shortest) {
-    setState(() => playerStats.recordMaze(
-      moves: moves, shortest: shortest));
-    _save();
-  }
-
-  void _completeFloor() {
-    setState(() => floor++);
-    _save();
-  }
-
   void _toggleFavorite(String id) {
-    if (hapticsEnabled) HapticFeedback.selectionClick();
-    setState(() => favorites.contains(id) ? favorites.remove(id) : favorites.add(id));
+    setState(() => _favorites.contains(id)
+        ? _favorites.remove(id) : _favorites.add(id));
     _save();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!loaded) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    return Scaffold(body: SafeArea(child: Center(child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: IndexedStack(index: tab, children: [
-        TickerMode(enabled: tab == 0, child: _home()),
-        TickerMode(enabled: tab == 1, child: _library()),
-        TickerMode(enabled: tab == 2, child: _profile()),
-      ]),
-    ))));
+    if (!_loaded) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: IndexedStack(index: _tab, children: [
+        TickerMode(enabled: _tab == 0, child: NeuroMapView(
+          completedNeurons: _progress.completedNeurons,
+          motionEnabled: _motionEnabled,
+          onNodeTap: _openNeuron,
+          onGames: () => setState(() => _tab = 1),
+          onAnalytics: () => setState(() => _tab = 2),
+          onSettings: _showSettings,
+        )),
+        TickerMode(enabled: _tab == 1, child: NeuroGamesPage(
+          unlockedGameIds: _progress.unlockedModuleIds,
+          bestStandaloneLevels: _progress.bestStandaloneLevels,
+          favorites: _favorites,
+          onFavorite: _toggleFavorite,
+          onPlay: (id) {
+            final module = GameRegistry.maybeById(id);
+            if (module == null) return;
+            _launch(module,
+              level: _progress.nextStandaloneLevel(id, maxLevel: module.maxLevel),
+              mode: GamePlayMode.standalone);
+          },
+          onTab: (index) => setState(() => _tab = index),
+        )),
+        TickerMode(enabled: _tab == 2, child: NeuroSkillsPage(
+          completedCount: _progress.completedNeurons.length,
+          ratings: _skills.ratings,
+          onTab: (index) => setState(() => _tab = index),
+        )),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
-
-  Widget _home() => NeuroMapView(
-    floor: floor,
-    testingAccessAll: testingAccessAll,
-    motionEnabled: motionEnabled,
-    onNodeTap: (selected) {
-      final gameId = const FloorEngine().challengeFor(selected).gameId;
-      if (selected <= floor) {
-        _open(gameId, tower: selected == floor);
-      } else if (testingAccessAll) {
-        _open(gameId); // Test access always runs as practice, never advances the tower.
-      }
-    },
-    onGames: () => setState(() => tab = 1),
-    onAnalytics: () => setState(() => tab = 2),
-    onSettings: _showSettings,
-    onRecords: () => setState(() => tab = 2),
-  );
-
-  Widget _library() => NeuroGamesPage(
-    testingAccessAll: testingAccessAll,
-    favorites: favorites,
-    onFavorite: _toggleFavorite,
-    onPlay: _showGameDetail,
-    onTab: (index) => setState(() => tab = index),
-  );
-
-  Widget _profile() => NeuroSkillsPage(
-    floor: floor,
-    stats: playerStats,
-    onTab: (index) => setState(() => tab = index),
-  );
-
-
-
 }

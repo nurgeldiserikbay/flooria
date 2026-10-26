@@ -1,5 +1,5 @@
 name: flooria
-description: A gentle infinite puzzle tower.
+description: A branching mobile puzzle adventure.
 publish_to: none
 version: 0.1.0+1
 
@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.3.2
-  flutter_svg: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -19,20 +18,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/art/
-    - assets/design/
-    - assets/tower/
-    - assets/2048.svg
-    - assets/number_trail.svg
-    - assets/color_match.svg
-    - assets/games.svg
-    - assets/my_mind.svg
-    - assets/play.svg
-    - assets/locked.svg
-    - assets/completed.svg
-    - assets/sprout.svg
-    - assets/sudoku.svg
-    - assets/memory.svg
-    - assets/fifteen.svg
-    - assets/Glossy FLOORIA Game Logo with Sprout (2).png
