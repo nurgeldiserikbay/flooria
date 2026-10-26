@@ -173,7 +173,7 @@ class _BeliefDetectivePageState extends State<BeliefDetectivePage> {
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'Where does ${''}think the object is now?',
+                                'Where does ${round.character} think the object is now?',
                                 style: TextStyle(
                                   color: _ink,
                                   fontSize: 14,
@@ -385,7 +385,7 @@ class _BeliefOptions extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (context, constraints) {
           final tileWidth = (constraints.maxWidth - 8) / 2;
-          final tileHeight = (tileWidth / 2.9).clamp(52.0, 68.0);
+          final tileHeight = tileWidth / 2.9;
           final gridHeight = tileHeight * 2 + 8;
 
           return SizedBox(
