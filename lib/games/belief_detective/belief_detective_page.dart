@@ -172,7 +172,7 @@ class _BeliefDetectivePageState extends State<BeliefDetectivePage> {
                                 child: _StoryBoard(round: round),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
+                              Text(
                                 'Where does ${round.character} think the object is now?',
                                 style: TextStyle(
                                   color: _ink,
