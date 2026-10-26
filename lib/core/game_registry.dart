@@ -59,6 +59,7 @@ import '../games/tower_tactics/tower_tactics_page.dart';
 import '../games/water_jugs/water_jugs_page.dart';
 import '../games/word_bridge/word_bridge_page.dart';
 import '../games/word_forge/word_forge_page.dart';
+import '../games/word_ladder/word_ladder_page.dart';
 
 import '../ui/color_spot_page.dart';
 import '../ui/fifteen_page.dart';
@@ -261,6 +262,8 @@ abstract final class GameRegistry {
       description: 'Experimental game available for testing.', playable: false, testAccessible: true),
     GameDefinition(id: 'word_bridge', title: 'Word Bridge', icon: 'word',
       description: 'Experimental game available for testing.', playable: false, testAccessible: true),
+    GameDefinition(id: 'wordLadder', title: 'Word Ladder', icon: 'word',
+      description: 'Transform words one letter at a time.', playable: false, testAccessible: true),
   ];
 
   /// Do NOT reorder existing IDs. Campaign progress is saved as a floor
@@ -483,6 +486,9 @@ abstract final class GameRegistry {
           onSessionEnd: _ignoreTestSession);
       case 'word_bridge':
         return WordBridgePage(floor: floor, onComplete: callbacks.onComplete,
+          onSessionEnd: _ignoreTestSession);
+      case 'wordLadder':
+        return WordLadderPage(floor: floor, onComplete: callbacks.onComplete,
           onSessionEnd: _ignoreTestSession);
       case 'word':
         return WordForgePage(floor: floor, onComplete: callbacks.onComplete,
