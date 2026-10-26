@@ -282,6 +282,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   );
 
   Widget _library() => NeuroGamesPage(
+    testingAccessAll: testingAccessAll,
     favorites: favorites,
     onFavorite: _toggleFavorite,
     onPlay: _showGameDetail,
