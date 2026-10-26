@@ -305,11 +305,10 @@ class _StoryBoard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 5),
-            for (var index = 0; index < round.moves.length; index++)
+            for (final move in round.moves)
               _MoveRow(
                 character: round.character,
-                move: round.moves[index],
-                index: index,
+                move: move,
               ),
           ],
         ),
@@ -320,12 +319,10 @@ class _MoveRow extends StatelessWidget {
   const _MoveRow({
     required this.character,
     required this.move,
-    required this.index,
   });
 
   final String character;
   final BeliefMove move;
-  final int index;
 
   @override
   Widget build(BuildContext context) => Container(
