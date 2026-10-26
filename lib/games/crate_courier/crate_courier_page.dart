@@ -202,11 +202,11 @@ class _BoardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (context, constraints) {
-          final cell = constraints.maxWidth / board.size;
           final side = (constraints.maxHeight < constraints.maxWidth
                   ? constraints.maxHeight
                   : constraints.maxWidth)
               .floorToDouble();
+          final crates = board.crates;
           return Center(
             child: SizedBox(
               width: side,
@@ -222,13 +222,14 @@ class _BoardView extends StatelessWidget {
                   childAspectRatio: 1,
                 ),
                 itemBuilder: (context, index) {
-                  final point = BoardPoint(index ~/ board.size, index % board.size);
+                  final point =
+                      BoardPoint(index ~/ board.size, index % board.size);
                   final border = point.row == 0 ||
                       point.col == 0 ||
                       point.row == board.size - 1 ||
                       point.col == board.size - 1 ||
                       board.walls.contains(point);
-                  final crateIndex = board.crates.indexOf(point);
+                  final crateIndex = crates.indexOf(point);
                   final isPlayer = board.player == point;
                   final isTarget = board.targets.contains(point);
                   final tileColor = border
@@ -295,7 +296,7 @@ class _DirectionPad extends StatelessWidget {
         children: [
           SizedBox(
             width: 174,
-            height: 104,
+            height: 132,
             child: Column(
               children: [
                 _MoveButton(
