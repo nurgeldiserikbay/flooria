@@ -112,7 +112,10 @@ class CausalLabSession {
       firstModel: pair.$1,
       secondModel: pair.$2,
       observation: observation,
-      experiments: List.unmodifiable(experiments),
+      // Repeating the known observation cannot teach us anything new.
+      experiments: List.unmodifiable(
+        experiments.where((experiment) => experiment != observation),
+      ),
     );
   }
 }

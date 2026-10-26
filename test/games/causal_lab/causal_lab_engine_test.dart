@@ -18,11 +18,12 @@ void main() {
 
     test('invalid experiments leave round and score unchanged', () {
       final session = CausalLabSession(seed: 11);
-      expect(session.answer(const Experiment(sun: true, water: true)), isTrue);
-      final score = session.correct;
-      expect(session.answer(const Experiment(sun: false, water: false)), isFalse);
+      final knownObservation = session.current.observation;
+      expect(session.answer(knownObservation), isFalse);
+      expect(session.round, 0);
+      expect(session.correct, 0);
+      expect(session.answer(session.current.experiments.first), isTrue);
       expect(session.round, 1);
-      expect(session.correct, score);
     });
 
     test('informative experiments score and completion stops input', () {

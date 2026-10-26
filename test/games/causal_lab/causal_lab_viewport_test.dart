@@ -13,7 +13,7 @@ void main() {
         floor: 3, onComplete: () {}, onSessionEnd: (_, __) {})));
       await tester.pump();
       expect(find.text('Causal Lab'), findsOneWidget);
-      expect(find.byKey(const ValueKey('causal-test-0-0')), findsOneWidget);
+      expect(find.text('RUN TEST'), findsNWidgets(3));
       expect(find.byType(ListView), findsNothing);
       expect(tester.takeException(), isNull);
     });
