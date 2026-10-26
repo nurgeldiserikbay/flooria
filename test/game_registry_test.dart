@@ -9,8 +9,8 @@ import 'package:flooria/ui/sequence_page.dart';
 void main() {
   test('every registered game ID is unique and metadata complete', () {
     final games = GameRegistry.games;
-    expect(games.length, 68);
-    expect(games.where((game) => game.testAccessible).length, 59);
+    expect(games.length, 69);
+    expect(games.where((game) => game.testAccessible).length, 60);
     expect(games.where((game) => game.playable).length, 9);
     expect(games.map((game) => game.id).toSet().length, games.length);
     for (final game in games) {
@@ -49,6 +49,10 @@ void main() {
     expect(GameRegistry.byId('sudoku').playable, isFalse);
     expect(() => GameRegistry.byId('unknown-id'), throwsArgumentError);
     expect(GameRegistry.buildPage('sudoku', floor: null,
+      callbacks: callbacks), isA<Widget>());
+    expect(GameRegistry.byId('wordLadder').testAccessible, isTrue);
+    expect(GameRegistry.byId('wordLadder').playable, isFalse);
+    expect(GameRegistry.buildPage('wordLadder', floor: null,
       callbacks: callbacks), isA<Widget>());
   });
 
