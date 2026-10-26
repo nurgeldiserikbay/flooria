@@ -58,7 +58,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   bool loaded = false;
   bool motionEnabled = true;
   bool hapticsEnabled = true;
-  bool testingAccessAll = true;
   bool openingGame = false;
   PlayerGameStats playerStats = PlayerGameStats();
 
@@ -71,6 +70,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _restore() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+    await prefs.remove('testing_access_all');
     setState(() {
       floor = prefs.getInt('floor') ?? 1;
       try {
@@ -84,7 +84,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       }
       motionEnabled = prefs.getBool('ambient_motion') ?? true;
       hapticsEnabled = prefs.getBool('haptic_feedback') ?? true;
-      testingAccessAll = prefs.getBool('testing_access_all') ?? true;
       favorites.addAll(prefs.getStringList('favorites') ?? []);
       recent.addAll(prefs.getStringList('recent') ?? []);
       loaded = true;
@@ -97,7 +96,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     await prefs.setString('player_stats_v1', jsonEncode(playerStats.toJson()));
     await prefs.setBool('ambient_motion', motionEnabled);
     await prefs.setBool('haptic_feedback', hapticsEnabled);
-    await prefs.setBool('testing_access_all', testingAccessAll);
     await prefs.setStringList('favorites', favorites.toList());
     await prefs.setStringList('recent', recent);
   }
@@ -167,12 +165,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         builder: (routeContext, updateRoute) => FlooriaSettingsPage(
           motionEnabled: motionEnabled,
           hapticsEnabled: hapticsEnabled,
-          testingAccessAll: testingAccessAll,
-          onTestingAccessAllChanged: (v) {
-            setState(() => testingAccessAll = v);
-            updateRoute(() {});
-            _save();
-          },
           onMotionChanged: (v) {
             setState(() => motionEnabled = v);
             updateRoute(() {});
@@ -265,14 +257,11 @@ class _FlooriaHomeState extends State<FlooriaHome> {
 
   Widget _home() => NeuroMapView(
     floor: floor,
-    testingAccessAll: testingAccessAll,
     motionEnabled: motionEnabled,
     onNodeTap: (selected) {
       final gameId = const FloorEngine().challengeFor(selected).gameId;
       if (selected <= floor) {
         _open(gameId, tower: selected == floor);
-      } else if (testingAccessAll) {
-        _open(gameId); // Test access always runs as practice, never advances the tower.
       }
     },
     onGames: () => setState(() => tab = 1),
@@ -282,7 +271,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   );
 
   Widget _library() => NeuroGamesPage(
-    testingAccessAll: testingAccessAll,
     favorites: favorites,
     onFavorite: _toggleFavorite,
     onPlay: _showGameDetail,

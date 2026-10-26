@@ -63,11 +63,5 @@ void main() {
     await tester.pump(const Duration(milliseconds: 700));
     expect(find.byType(FlooriaSettingsPage), findsOneWidget);
     expect(find.text('Haptic feedback'), findsOneWidget);
-    expect(find.text('Testing access'), findsOneWidget);
-    final preferences = await SharedPreferences.getInstance();
-    expect(preferences.getBool('testing_access_all') ?? true, isTrue);
-    await tester.tap(find.widgetWithText(SwitchListTile, 'Testing access'));
-    await tester.pumpAndSettle();
-    expect(preferences.getBool('testing_access_all'), isFalse);
   });
 }

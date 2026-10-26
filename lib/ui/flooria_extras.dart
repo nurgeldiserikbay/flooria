@@ -84,16 +84,12 @@ class FlooriaSettingsPage extends StatelessWidget {
     super.key,
     required this.motionEnabled,
     required this.hapticsEnabled,
-    required this.testingAccessAll,
-    required this.onTestingAccessAllChanged,
     required this.onMotionChanged,
     required this.onHapticsChanged,
   });
 
   final bool motionEnabled;
   final bool hapticsEnabled;
-  final bool testingAccessAll;
-  final ValueChanged<bool> onTestingAccessAllChanged;
   final ValueChanged<bool> onMotionChanged;
   final ValueChanged<bool> onHapticsChanged;
 
@@ -183,14 +179,6 @@ class FlooriaSettingsPage extends StatelessWidget {
                 subtitle: 'Gentle background animation',
                 value: motionEnabled,
                 onChanged: onMotionChanged),
-              const SizedBox(height: 12),
-              _setting(
-                icon: Icons.lock_open_rounded,
-                accent: const Color(0xFF80D6B2),
-                title: 'Testing access',
-                subtitle: 'Open every implemented map challenge; practice does not advance progress',
-                value: testingAccessAll,
-                onChanged: onTestingAccessAllChanged),
               const SizedBox(height: 20),
               const Padding(padding: EdgeInsets.only(left: 5, bottom: 11),
                 child: Text('ABOUT THE GAME', style: TextStyle(
