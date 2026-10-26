@@ -76,10 +76,8 @@ void main() {
     await boot(tester);
     await goTo(tester, 1);
     expect(find.byType(NeuroGamesPage), findsOneWidget);
-    await tester.scrollUntilVisible(
-      find.text('Causal Lab'), 220,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.drag(find.byType(GridView), const Offset(0, -350));
+    await tester.pumpAndSettle();
     expect(find.text('Causal Lab'), findsOneWidget);
     expect(find.text('TEST BUILD'), findsWidgets);
     await tester.tap(find.text('Causal Lab'));
