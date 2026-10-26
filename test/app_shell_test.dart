@@ -70,4 +70,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(preferences.getBool('testing_access_all'), isFalse);
   });
+
+  testWidgets('testing access exposes standalone game builds in the library',
+      (tester) async {
+    await boot(tester);
+    await goTo(tester, 1);
+    expect(find.byType(NeuroGamesPage), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Causal Lab'), 220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Causal Lab'), findsOneWidget);
+    expect(find.text('TEST BUILD'), findsWidgets);
+    await tester.tap(find.text('Causal Lab'));
+    await tester.pumpAndSettle();
+    expect(find.text('TEST BUILD'), findsOneWidget);
+    await tester.tap(find.text('PLAY'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pick a test that separates the models.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

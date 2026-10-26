@@ -9,7 +9,7 @@ import 'package:flooria/ui/sequence_page.dart';
 void main() {
   test('every registered game ID is unique and metadata complete', () {
     final games = GameRegistry.games;
-    expect(games.length, 12);
+    expect(games.length, 71);
     expect(games.map((game) => game.id).toSet().length, games.length);
     for (final game in games) {
       expect(game.id, isNotEmpty);
@@ -34,11 +34,20 @@ void main() {
     }
   });
 
-  test('every playable game has an objective and is in campaign', () {
-    for (final game in GameRegistry.games.where((game) => game.playable)) {
+  test('campaign games retain objectives; test builds stay out of campaign', () {
+    for (final game in GameRegistry.games.where((game) =>
+        game.playable && !game.testingOnly)) {
       expect(GameRegistry.campaignIds, contains(game.id));
       final objective = const ObjectiveCatalog().forGame(game.id);
       expect(objective.target, greaterThan(0));
+    }
+    final testBuilds = GameRegistry.games.where((game) => game.testingOnly);
+    expect(testBuilds.length, 59);
+    for (final game in testBuilds) {
+      expect(game.playable, isTrue);
+      expect(GameRegistry.campaignIds, isNot(contains(game.id)));
+      expect(GameRegistry.buildPage(game.id, floor: null,
+        callbacks: callbacks), isA<Widget>());
     }
   });
 

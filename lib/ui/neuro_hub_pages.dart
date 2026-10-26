@@ -125,11 +125,13 @@ class NeuroShell extends StatelessWidget {
 
 class NeuroGamesPage extends StatelessWidget {
   const NeuroGamesPage({super.key, required this.onTab, required this.onPlay,
-    required this.favorites, required this.onFavorite});
+    required this.favorites, required this.onFavorite,
+    required this.testingAccessAll});
   final ValueChanged<int> onTab;
   final ValueChanged<String> onPlay;
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
+  final bool testingAccessAll;
 
   static const games = GameRegistry.games;
   @override
@@ -137,15 +139,17 @@ class NeuroGamesPage extends StatelessWidget {
     title: 'Mini games', tab: 1, onTab: onTab,
     child: LayoutBuilder(builder: (context, constraints) {
       final width = constraints.maxWidth;
+      final visibleGames = games.where((game) =>
+        testingAccessAll || !game.testingOnly).toList(growable: false);
       return GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: width >= 500 ? 4 : 3,
           mainAxisSpacing: 16, crossAxisSpacing: 10, childAspectRatio: .88),
-        itemCount: games.length,
+        itemCount: visibleGames.length,
         itemBuilder: (context, index) {
-          final entry = games[index];
-          final id = entry.id, label = entry.title, asset = entry.icon;
+          final entry = visibleGames[index];
+          final id = entry.id, label = entry.title;
           final playable = entry.playable;
           return Semantics(label: playable ? label : '$label, coming soon',
             button: playable,
@@ -170,9 +174,9 @@ class NeuroGamesPage extends StatelessWidget {
                 child: Column(children: [
                   Expanded(child: Stack(children: [
                     Center(child: AspectRatio(aspectRatio: 1,
-                      child: SvgPicture.asset(
-                        'assets/design/neuro-icon-$asset.svg',
-                        fit: BoxFit.contain))),
+                      child: _catalogIcon(entry, size: 64))),
+                    if (entry.testingOnly) Positioned(left: 0, top: 0,
+                      child: _testBadge()),
                     if (playable) Positioned(right: 0, top: 0, child: InkResponse(
                       onTap: () => onFavorite(id),
                       radius: 22,
@@ -184,6 +188,8 @@ class NeuroGamesPage extends StatelessWidget {
                   Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: neuroText,
                       fontWeight: FontWeight.w800, fontSize: 12)),
+                  if (entry.testingOnly) const Text('TEST BUILD', style: TextStyle(
+                    fontSize: 8, color: Color(0xFF7185AA), fontWeight: FontWeight.w900)),
                   if (!playable) const Text('SOON', style: TextStyle(
                     fontSize: 9, color: neuroMuted)),
                 ]))),
@@ -334,7 +340,7 @@ class NeuroRecordsPage extends StatelessWidget {
           stats.sequenceRuns == 0 ? 'Play a game to set a record'
             : '${stats.sequenceRuns} sessions • ${stats.sequenceCorrect} correct answers'),
         const SizedBox(height: 22),
-        const Text('More games will appear here once playable.',
+        const Text('Test builds are for practice and do not update profile records.',
           textAlign: TextAlign.center,
           style: TextStyle(color: neuroMuted, fontSize: 12)),
       ]),
@@ -380,7 +386,6 @@ class NeuroGameDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final definition = GameRegistry.byId(gameId);
     final title = definition.title;
-    final icon = definition.icon;
     return Scaffold(
       backgroundColor: neuroBg,
       body: SafeArea(child: Center(child: ConstrainedBox(
@@ -404,9 +409,12 @@ class NeuroGameDetailPage extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFAABEEE)),
                   boxShadow: const [BoxShadow(color: Color(0x285A73B5),
                     blurRadius: 19, offset: Offset(0, 7))]),
-                child: SvgPicture.asset('assets/design/neuro-icon-$icon.svg',
-                  width: 116, height: 116)),
+                child: _catalogIcon(definition, size: 116)),
               const SizedBox(height: 24),
+              if (definition.testingOnly) ...[
+                _testBadge(),
+                const SizedBox(height: 10),
+              ],
               Text(title, textAlign: TextAlign.center,
                 style: const TextStyle(color: neuroText,
                   fontWeight: FontWeight.w900, fontSize: 29)),
@@ -434,3 +442,40 @@ class NeuroGameDetailPage extends StatelessWidget {
     );
   }
 }
+
+Widget _catalogIcon(GameDefinition definition, {required double size}) {
+  if (!definition.testingOnly) {
+    return SvgPicture.asset(
+      'assets/design/neuro-icon-${definition.icon}.svg',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+    );
+  }
+  final hue = definition.id.codeUnits.fold<int>(0, (sum, unit) => sum + unit) % 360;
+  final color = HSLColor.fromAHSL(1, hue.toDouble(), .48, .83).toColor();
+  final initial = definition.title.substring(0, 1).toUpperCase();
+  return Container(
+    width: size,
+    height: size,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: color,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: size * .04),
+    ),
+    child: Text(initial, style: TextStyle(
+      color: neuroText, fontSize: size * .43, fontWeight: FontWeight.w900)),
+  );
+}
+
+Widget _testBadge() => Container(
+  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+  decoration: BoxDecoration(
+    color: const Color(0xFFFFE4AB),
+    borderRadius: BorderRadius.circular(20),
+  ),
+  child: const Text('TEST BUILD', style: TextStyle(
+    color: Color(0xFF7F6334), fontSize: 8, letterSpacing: .6,
+    fontWeight: FontWeight.w900)),
+);

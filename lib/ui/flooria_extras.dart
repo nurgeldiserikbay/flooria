@@ -188,7 +188,7 @@ class FlooriaSettingsPage extends StatelessWidget {
                 icon: Icons.lock_open_rounded,
                 accent: const Color(0xFF80D6B2),
                 title: 'Testing access',
-                subtitle: 'Open every implemented map challenge; practice does not advance progress',
+                subtitle: 'Open every implemented challenge and test build; practice does not advance progress',
                 value: testingAccessAll,
                 onChanged: onTestingAccessAllChanged),
               const SizedBox(height: 20),
