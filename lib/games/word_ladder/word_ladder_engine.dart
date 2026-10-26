@@ -58,6 +58,7 @@ class WordLadderSession {
     'cap', 'can', 'cab', 'car', 'cut', 'cup', 'bat', 'hat', 'mat', 'rat',
     'hot', 'got', 'lot', 'pot', 'cop', 'con', 'cog', 'dog', 'log', 'fog',
     'sit', 'bit', 'fit', 'hit', 'cot', 'dot', 'don', 'cat', 'bag', 'bog',
+    'tag', 'rag', 'sag', 'wag', 'gag', 'mag', 'bug', 'big', 'beg',
     'bold', 'gold', 'hold', 'sold', 'told', 'colt', 'cord', 'card', 'lord',
     'ford', 'word', 'core', 'cork', 'hard', 'care', 'cart', 'ware', 'wart',
     'warn', 'wade', 'bead', 'head', 'leaf', 'lean', 'lend', 'read', 'road',
