@@ -38,31 +38,6 @@ jobs:
         run: flutter test --reporter expanded
       - name: Build web
         run: flutter build web --release --base-href /flooria/
-      # Actual browser captures of the compiled Flutter application.
-      # Screenshots are attached to every run for design-vs-reference review.
-      - name: Install browser for visual review
-        run: |
-          npm install --no-save --no-package-lock --no-audit playwright@1.61.0
-          npx playwright install --with-deps chromium
-      - name: Capture real Flutter screenshots
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/flooria-preview/flooria screenshots
-          cp -R build/web/. /tmp/flooria-preview/flooria/
-          python3 -m http.server 8765 --directory /tmp/flooria-preview > /tmp/flooria-preview.log 2>&1 &
-          for i in $(seq 1 20); do
-            if curl --fail --silent http://127.0.0.1:8765/flooria/ > /dev/null; then break; fi
-            sleep 1
-          done
-          node tools/capture_ui.cjs
-      - name: Upload visual QA screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: flooria-ui-screenshots
-          path: screenshots/
-          if-no-files-found: warn
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

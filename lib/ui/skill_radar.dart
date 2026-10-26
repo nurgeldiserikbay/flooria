@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../game/player_stats.dart';
+import '../core/skill_progress.dart';
 
 /// Lightweight Dota-style stat polygon. No image or chart dependency.
 /// The empty axes are not rated or silently invented.

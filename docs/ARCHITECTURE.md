@@ -1,47 +1,26 @@
-# Neuro Playground architecture
+# Architecture
 
-## Current platform
-One Flutter codebase for mobile and web. Progress, favorites, recent games
-and game records are local via SharedPreferences. No user account or backend.
-Nine playable game modules are integrated.
+## App shell
 
-## Core registry (single integration owner)
-- `lib/core/game_registry.dart` owns stable IDs, catalog metadata, the
-  playable screen factory, and an append-only campaign ID list.
-- `lib/game/floor_engine.dart` consumes that stable campaign list.
-- `lib/game/game_objective.dart` maps existing game IDs to win objectives.
-- `lib/game/player_stats.dart` stores backwards-compatible measured records.
-- `lib/main.dart` handles persistence and dispatches callbacks to registry.
-- `lib/ui/neuro_hub_pages.dart` and `lib/ui/neuro_map.dart` display metadata
-  from the same registry rather than maintaining separate label lists.
+- `lib/main.dart` owns navigation, local preferences, progress persistence, and dispatch to game modules.
+- `lib/core/neuron_progression.dart` owns the branching node graph and progression data. It does not import Flutter.
+- `lib/core/game_registry.dart` owns approved game metadata and one screen factory per module. The catalog is empty until games are approved.
+- `lib/core/skill_progress.dart` stores only explicit 0–100 measurements returned by modules.
+- `lib/ui/neuro_map.dart`, `neuro_hub_pages.dart`, and `skill_radar.dart` render shared navigation and progression UI.
+- Shared UI is drawn with Flutter widgets and CustomPainter. There are no bundled game assets or runtime-loaded code.
 
-Do not reorder registered campaign IDs while floor progress is stored as an
-integer. Future schedule migrations require a data-versioning design.
+## Adding an approved game
 
-## Existing game modules
-Pure game rules currently live under `lib/game/` and independent screens
-under `lib/ui/`. They will remain compatible while **new** game modules use
-`lib/games/<id>/` and tests in `test/games/<id>/`.
+Create `lib/games/<stable_id>/` with a pure Dart rules engine and a Flutter page. Keep game state local to the module and use the shared launch contract:
 
-Each module should expose:
-- Stable unique game ID and deterministic seeded rules;
-- Pure rules engine, separate from Flutter;
-- Self-contained screen with optional campaign floor, completion callback
-  and result callback;
-- Solvable level generation, invalid-input protection and safe async lifecycle;
-- Responsive mobile layout without unnecessary gameplay scrolling;
-- Focused unit and widget tests.
+- `GameLaunch.level` supplies the node or standalone level.
+- `GameLaunch.mode` distinguishes map challenges from standalone play.
+- `GameLaunch.onComplete(GameResult(...))` records a win once.
+- `GameResult.score` carries the module's score; `metrics` may include an explicitly measured skill on a 0–100 scale.
+- `GameDefinition.maxLevel` caps standalone progression; `skill` selects the optional metric key.
 
-The registry deliberately owns imports of game pages. Feature PRs should
-supply their self-contained module and ask the integrator to add it to the
-registry and objective/stats systems after review.
+Then add one `GameDefinition` to `GameRegistry.games` and assign its stable ID to selected nodes in `NeuronMapGraph`. Leaving the module out of the registry disables it without deleting source. Repeated module IDs on different nodes support harder variants without duplicating the game implementation.
 
-## Parallel workflows
-Read `AGENTS.md` and `docs/PARALLEL_DEVELOPMENT.md`. Authors develop on
-separate branches, submit PRs, and avoid shared integration files.
-`Validate Feature PR` checks Dart analysis, tests and web build on PRs.
-The original Pages deployment runs from `main` only.
+## Persistence
 
-## Constraints
-No remote executable code modules. No personal-data backend required.
-Do not break legacy saved progress or rename game IDs without migrations.
+Map completion and standalone best levels/scores are stored locally in SharedPreferences through `PlayerProgress`. Named skill measurements are stored separately through `SkillProgress`. The app has no account or backend requirement.
