@@ -122,7 +122,9 @@ class _FlooriaHomeState extends State<FlooriaHome> {
   Future<void> _launch(GameDefinition module, {required int level,
       required GamePlayMode mode, String? neuronId}) async {
     if (mode == GamePlayMode.standalone &&
-        !_progress.unlockedModuleIds.contains(module.id)) return;
+        !_progress.unlockedModuleIds.contains(module.id)) {
+      return;
+    }
     var completed = false;
     await Navigator.of(context).push<void>(MaterialPageRoute<void>(
       builder: (context) => module.buildPage(context, GameLaunch(
