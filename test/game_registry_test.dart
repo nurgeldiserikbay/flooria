@@ -9,8 +9,8 @@ import 'package:flooria/ui/sequence_page.dart';
 void main() {
   test('every registered game ID is unique and metadata complete', () {
     final games = GameRegistry.games;
-    expect(games.length, 69);
-    expect(games.where((game) => game.testAccessible).length, 60);
+    expect(games.length, 72);
+    expect(games.where((game) => game.testAccessible).length, 63);
     expect(games.where((game) => game.playable).length, 9);
     expect(games.map((game) => game.id).toSet().length, games.length);
     for (final game in games) {
@@ -54,6 +54,13 @@ void main() {
     expect(GameRegistry.byId('wordLadder').playable, isFalse);
     expect(GameRegistry.buildPage('wordLadder', floor: null,
       callbacks: callbacks), isA<Widget>());
+    for (final id in <String>['crateCourier', 'hueMixer', 'semanticSort']) {
+      final game = GameRegistry.byId(id);
+      expect(game.testAccessible, isTrue);
+      expect(game.playable, isFalse);
+      expect(GameRegistry.buildPage(id, floor: null,
+        callbacks: callbacks), isA<Widget>());
+    }
   });
 
   test('existing pages retain their expected widget types', () {
