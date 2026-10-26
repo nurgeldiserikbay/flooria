@@ -154,7 +154,7 @@ class CrateCourierSession {
     ].take(crateCount).toList();
     const playerStart = BoardPoint(5, 4);
     final minimumPushes = crateCount + (level >= 8 ? 3 : 1);
-    CrateBoard? fallback;
+    CrateCourierRound? fallback;
 
     for (var attempt = 0; attempt < 200; attempt++) {
       var player = playerStart;
