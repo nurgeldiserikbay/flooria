@@ -150,7 +150,7 @@ abstract final class GameRegistry {
     GameDefinition(id: 'reaction', title: 'Reaction', icon: 'reaction',
       description: 'Respond to the changing signal.', playable: false, testAccessible: true),
     GameDefinition(id: 'pattern', title: 'Pattern Echo', icon: 'pattern',
-      description: 'Watch the lights, then repeat.', playable: true),
+      description: 'Memorize a growing sequence of glowing tiles, then repeat it.', playable: true),
     GameDefinition(id: 'word', title: 'Words', icon: 'word',
       description: 'Build words from the letter set.', playable: false, testAccessible: true),
     GameDefinition(id: 'analogy_lab', title: 'Analogy Lab', icon: 'pattern',
