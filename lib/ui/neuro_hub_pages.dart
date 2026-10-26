@@ -125,17 +125,19 @@ class NeuroShell extends StatelessWidget {
 
 class NeuroGamesPage extends StatelessWidget {
   const NeuroGamesPage({super.key, required this.onTab, required this.onPlay,
-    required this.favorites, required this.onFavorite});
+    required this.favorites, required this.onFavorite,
+    required this.testingAccessAll});
   final ValueChanged<int> onTab;
   final ValueChanged<String> onPlay;
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
-
-  static const games = GameRegistry.games;
+  final bool testingAccessAll;
   @override
   Widget build(BuildContext context) => NeuroShell(
     title: 'Mini games', tab: 1, onTab: onTab,
     child: LayoutBuilder(builder: (context, constraints) {
+      final games = GameRegistry.games.where((game) =>
+        game.playable || (testingAccessAll && game.testAccessible)).toList();
       final width = constraints.maxWidth;
       return GridView.builder(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
@@ -146,7 +148,7 @@ class NeuroGamesPage extends StatelessWidget {
         itemBuilder: (context, index) {
           final entry = games[index];
           final id = entry.id, label = entry.title, asset = entry.icon;
-          final playable = entry.playable;
+          final playable = entry.playable || entry.testAccessible;
           return Semantics(label: playable ? label : '$label, coming soon',
             button: playable,
             child: InkWell(
