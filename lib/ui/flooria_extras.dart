@@ -22,9 +22,11 @@ class FlooriaSettingsPage extends StatelessWidget {
       title: const Text('Settings'),
       backgroundColor: Colors.transparent,
     ),
-    body: SafeArea(child: Center(child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: ListView(padding: const EdgeInsets.all(20), children: [
+    body: SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ListView(padding: const EdgeInsets.all(20), children: [
         const Text('GAMEPLAY', style: TextStyle(
           color: Color(0xFF6077A6), fontSize: 11,
           letterSpacing: 1.8, fontWeight: FontWeight.w900)),
@@ -46,8 +48,10 @@ class FlooriaSettingsPage extends StatelessWidget {
         const Text('NEURO PLAYGROUND', textAlign: TextAlign.center,
           style: TextStyle(color: Color(0xFF8995AD), fontSize: 10,
             letterSpacing: 1.4, fontWeight: FontWeight.w800)),
-      ]),
-    )))),
+          ]),
+        ),
+      ),
+    ),
   );
 }
 
