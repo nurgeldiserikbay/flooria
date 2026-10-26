@@ -48,10 +48,17 @@ void main() {
       }
     });
 
-    test('invalid choices do not change score or progress', () {
+    test('answers after completion are invalid and do not change score', () {
       final session = BeliefDetectiveSession(seed: 18);
+      for (var index = 0; index < BeliefDetectiveSession.roundCount; index++) {
+        session.answer(session.current.correctPlace);
+      }
 
-      expect(session.answer(BeliefPlace.values[99]), BeliefAnswerResult.invalid);
+      expect(session.answer(BeliefPlace.garden), BeliefAnswerResult.invalid);
+      expect(session.roundIndex, BeliefDetectiveSession.roundCount);
+      expect(session.correctCount, BeliefDetectiveSession.roundCount);
+      expect(session.mistakes, 0);
+      expect(session.progress, 1);
     });
 
     test('answers advance once and track correct and incorrect choices', () {
