@@ -197,7 +197,7 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                           gap * (_engine.columns - 1),
                       height: gridHeight,
                       child: GridView.builder(
-                        key: ValueKey('number-hunt-board-${_currentLevel}-${_engine.roundIndex}'),
+                        key: ValueKey('number-hunt-board-$_currentLevel-${_engine.roundIndex}'),
                         physics: const NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.zero,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
