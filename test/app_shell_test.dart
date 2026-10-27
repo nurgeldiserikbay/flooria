@@ -37,7 +37,13 @@ void main() {
     await boot(tester);
     expect(find.byType(NeuroMapView), findsOneWidget);
     expect(find.text('0 / 13'), findsOneWidget);
-    expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('node_01')),
+        matching: find.byIcon(Icons.grid_view_rounded),
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(InteractiveViewer), findsOneWidget);
   });
 

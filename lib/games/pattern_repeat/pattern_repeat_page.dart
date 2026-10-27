@@ -43,6 +43,8 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
   bool _complete = false;
   bool _wrongTap = false;
   bool _reported = false;
+  Timer? _delayTimer;
+  Completer<void>? _delayCompleter;
 
   @override
   void initState() {
@@ -58,15 +60,15 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
       _activeCell = null;
       _wrongTap = false;
     });
-    await Future<void>.delayed(const Duration(milliseconds: 380));
+    await _wait(const Duration(milliseconds: 380));
 
     for (final cell in _engine.sequence) {
       if (!mounted) return;
       setState(() => _activeCell = cell);
-      await Future<void>.delayed(const Duration(milliseconds: 360));
+      await _wait(const Duration(milliseconds: 360));
       if (!mounted) return;
       setState(() => _activeCell = null);
-      await Future<void>.delayed(const Duration(milliseconds: 130));
+      await _wait(const Duration(milliseconds: 130));
     }
 
     if (mounted) setState(() => _showingPattern = false);
@@ -83,7 +85,7 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
         _wrongTap = true;
         _activeCell = cell;
       });
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await _wait(const Duration(milliseconds: 300));
       await _showPattern();
       return;
     }
@@ -105,8 +107,30 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
     }
 
     setState(() => _activeCell = cell);
-    await Future<void>.delayed(const Duration(milliseconds: 110));
+    await _wait(const Duration(milliseconds: 110));
     if (mounted) setState(() => _activeCell = null);
+  }
+
+  Future<void> _wait(Duration duration) {
+    final completer = Completer<void>();
+    _delayCompleter = completer;
+    _delayTimer = Timer(duration, () {
+      _delayTimer = null;
+      _delayCompleter = null;
+      if (!completer.isCompleted) completer.complete();
+    });
+    return completer.future;
+  }
+
+  @override
+  void dispose() {
+    _delayTimer?.cancel();
+    if (!(_delayCompleter?.isCompleted ?? true)) {
+      _delayCompleter!.complete();
+    }
+    _delayTimer = null;
+    _delayCompleter = null;
+    super.dispose();
   }
 
   @override
