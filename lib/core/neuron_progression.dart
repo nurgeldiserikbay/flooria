@@ -5,8 +5,6 @@ class NeuronNode {
     required this.id,
     required this.slot,
     required this.level,
-    required this.column,
-    required this.row,
     this.moduleId,
     this.parents = const [],
   });
@@ -14,8 +12,6 @@ class NeuronNode {
   final String id;
   final int slot;
   final int level;
-  final int column;
-  final int row;
   final String? moduleId;
   final List<String> parents;
 }
@@ -24,30 +20,30 @@ enum NeuronAvailability { locked, open, complete }
 
 abstract final class NeuronMapGraph {
   static const nodes = <NeuronNode>[
-    NeuronNode(id: 'node_01', slot: 1, level: 1, column: 2, row: 0),
-    NeuronNode(id: 'node_02', slot: 2, level: 1, column: 1, row: 1,
+    NeuronNode(id: 'node_01', slot: 1, level: 1),
+    NeuronNode(id: 'node_02', slot: 2, level: 1,
       parents: ['node_01']),
-    NeuronNode(id: 'node_03', slot: 3, level: 1, column: 3, row: 1,
+    NeuronNode(id: 'node_03', slot: 3, level: 1,
       parents: ['node_01']),
-    NeuronNode(id: 'node_04', slot: 4, level: 2, column: 0, row: 2,
+    NeuronNode(id: 'node_04', slot: 4, level: 2,
       parents: ['node_02']),
-    NeuronNode(id: 'node_05', slot: 5, level: 2, column: 2, row: 2,
+    NeuronNode(id: 'node_05', slot: 5, level: 2,
       parents: ['node_02', 'node_03']),
-    NeuronNode(id: 'node_06', slot: 6, level: 2, column: 4, row: 2,
+    NeuronNode(id: 'node_06', slot: 6, level: 2,
       parents: ['node_03']),
-    NeuronNode(id: 'node_07', slot: 7, level: 3, column: 0, row: 3,
+    NeuronNode(id: 'node_07', slot: 7, level: 3,
       parents: ['node_04']),
-    NeuronNode(id: 'node_08', slot: 8, level: 3, column: 1, row: 3,
+    NeuronNode(id: 'node_08', slot: 8, level: 3,
       parents: ['node_04', 'node_05']),
-    NeuronNode(id: 'node_09', slot: 9, level: 3, column: 3, row: 3,
+    NeuronNode(id: 'node_09', slot: 9, level: 3,
       parents: ['node_05', 'node_06']),
-    NeuronNode(id: 'node_10', slot: 10, level: 3, column: 4, row: 3,
+    NeuronNode(id: 'node_10', slot: 10, level: 3,
       parents: ['node_06']),
-    NeuronNode(id: 'node_11', slot: 11, level: 4, column: 1, row: 4,
+    NeuronNode(id: 'node_11', slot: 11, level: 4,
       parents: ['node_07', 'node_08']),
-    NeuronNode(id: 'node_12', slot: 12, level: 4, column: 3, row: 4,
+    NeuronNode(id: 'node_12', slot: 12, level: 4,
       parents: ['node_09', 'node_10']),
-    NeuronNode(id: 'node_13', slot: 13, level: 5, column: 2, row: 5,
+    NeuronNode(id: 'node_13', slot: 13, level: 5,
       parents: ['node_11', 'node_12']),
   ];
 

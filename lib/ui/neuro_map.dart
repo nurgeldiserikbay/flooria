@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/neuron_progression.dart';
 import 'game_glyph.dart';
+import 'neuro_connection_svg.dart';
 import 'neuro_hub_pages.dart';
 
 /// Branching, pannable progression map. The graph stays data-only in
@@ -29,7 +30,6 @@ class NeuroMapView extends StatefulWidget {
   @override
   State<NeuroMapView> createState() => _NeuroMapViewState();
 }
-
 class _NeuroMapViewState extends State<NeuroMapView>
     with SingleTickerProviderStateMixin {
   late final TransformationController _transform = TransformationController();
@@ -39,14 +39,42 @@ class _NeuroMapViewState extends State<NeuroMapView>
   );
   bool _positioned = false;
 
-  static const double _mapWidth = 560;
-  static const double _columnGap = 110;
-  static const double _rowGap = 125;
-  static const double _topInset = 52;
-  static const double _nodeSize = 62;
+  static const double _mapWidth = 390;
+  static const double _mapHeight = 620;
+  static const double _mapInsetX = 29;
+  static const double _mapInsetY = 26;
+  // Hand-shaped positions keep the progression organic instead of reading as
+  // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
+  static const _mapPositions = <String, Offset>{
+    'node_01': Offset(.50, .06),
+    'node_02': Offset(.22, .20),
+    'node_03': Offset(.78, .22),
+    'node_04': Offset(.08, .37),
+    'node_05': Offset(.40, .39),
+    'node_06': Offset(.91, .37),
+    'node_07': Offset(.10, .55),
+    'node_08': Offset(.31, .57),
+    'node_09': Offset(.69, .56),
+    'node_10': Offset(.91, .58),
+    'node_11': Offset(.31, .76),
+    'node_12': Offset(.70, .78),
+    'node_13': Offset(.50, .94),
+  };
 
-  double _x(NeuronNode node) => 58 + node.column * _columnGap;
-  double _y(NeuronNode node) => _topInset + node.row * _rowGap;
+  Offset _point(NeuronNode node) {
+    final position = _mapPositions[node.id] ?? const Offset(.5, .5);
+    return Offset(
+      _mapInsetX + position.dx * (_mapWidth - _mapInsetX * 2),
+      _mapInsetY + position.dy * (_mapHeight - _mapInsetY * 2),
+    );
+  }
+
+  double _diameter(NeuronNode node, Set<String> completed) {
+    final state = NeuronMapGraph.availability(node, completed);
+    if (state == NeuronAvailability.open) return node.id == 'node_01' ? 76 : 68;
+    if (state == NeuronAvailability.complete) return 66;
+    return 48;
+  }
 
   @override
   void initState() {
@@ -80,20 +108,22 @@ class _NeuroMapViewState extends State<NeuroMapView>
   @override
   Widget build(BuildContext context) {
     final nodes = NeuronMapGraph.nodes;
-    final mapHeight = _topInset + (nodes.last.row + 1) * _rowGap + 48;
-    final openCount = nodes.where((node) => NeuronMapGraph.availability(
-      node, widget.completedNeurons) != NeuronAvailability.locked).length;
-
+    final positions = {for (final node in nodes) node.id: _point(node)};
     return LayoutBuilder(builder: (context, bounds) {
       if (!_positioned) {
         _positioned = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final scale = (bounds.maxWidth / _mapWidth).clamp(.62, .94);
+          const verticalChrome = 148.0;
+          final viewportHeight = math.max(0.0, bounds.maxHeight - verticalChrome);
+          final scale = math.min(
+            bounds.maxWidth / _mapWidth,
+            viewportHeight / _mapHeight,
+          ).clamp(.62, 1.02);
           _transform.value = Matrix4.identity()
             ..translateByDouble(
               (bounds.maxWidth - _mapWidth * scale) / 2,
-              8,
+              math.max(0.0, (viewportHeight - _mapHeight * scale) / 2),
               0,
               1,
             )
@@ -104,42 +134,56 @@ class _NeuroMapViewState extends State<NeuroMapView>
       return Stack(children: [
         const Positioned.fill(child: _MapAtmosphere()),
         Positioned.fill(
-          top: 78,
-          bottom: 88,
+          top: 66,
+          bottom: 82,
           child: InteractiveViewer(
             transformationController: _transform,
             constrained: false,
-            boundaryMargin: const EdgeInsets.fromLTRB(80, 80, 80, 130),
-            minScale: .5,
-            maxScale: 1.45,
+            boundaryMargin: const EdgeInsets.fromLTRB(38, 35, 38, 58),
+            minScale: .72,
+            maxScale: 1.35,
             child: SizedBox(
               width: _mapWidth,
-              height: mapHeight,
+              height: _mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
-                CustomPaint(
-                  size: Size(_mapWidth, mapHeight),
-                  painter: _SynapsePainter(
-                    nodes: nodes,
-                    completed: widget.completedNeurons,
-                    x: _x,
-                    y: _y,
+                NeuroConnectionSvg(
+                  width: _mapWidth,
+                  height: _mapHeight,
+                  nodes: nodes,
+                  positions: positions,
+                  completed: widget.completedNeurons,
+                ),
+                AnimatedBuilder(
+                  animation: _pulse,
+                  builder: (context, _) => CustomPaint(
+                    size: const Size(_mapWidth, _mapHeight),
+                    painter: NeuroFlowParticles(
+                      nodes: nodes,
+                      positions: positions,
+                      completed: widget.completedNeurons,
+                      phase: _pulse.value,
+                    ),
                   ),
                 ),
                 for (final node in nodes)
-                  Positioned(
-                    left: _x(node) - _nodeSize / 2,
-                    top: _y(node) - _nodeSize / 2,
-                    width: _nodeSize,
-                    height: _nodeSize,
-                    child: _NeuronDot(
-                      key: ValueKey(node.id),
-                      node: node,
-                      state: NeuronMapGraph.availability(
-                        node, widget.completedNeurons),
-                      pulse: _pulse,
-                      onTap: widget.onNodeTap,
-                    ),
-                  ),
+                  Builder(builder: (context) {
+                    final point = _point(node);
+                    final diameter = _diameter(node, widget.completedNeurons);
+                    return Positioned(
+                      left: point.dx - diameter / 2,
+                      top: point.dy - diameter / 2,
+                      width: diameter,
+                      height: diameter,
+                      child: _NeuronDot(
+                        key: ValueKey(node.id),
+                        node: node,
+                        state: NeuronMapGraph.availability(
+                          node, widget.completedNeurons),
+                        pulse: _pulse,
+                        onTap: widget.onNodeTap,
+                      ),
+                    );
+                  }),
               ]),
             ),
           ),
@@ -163,17 +207,6 @@ class _NeuroMapViewState extends State<NeuroMapView>
               icon: const Icon(Icons.tune_rounded, color: Color(0xFF41517A)),
             ),
           ]),
-        ),
-        Positioned(
-          left: 20,
-          bottom: 90,
-          child: IgnorePointer(child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            opacity: openCount == 1 ? .74 : 0,
-            child: const Text('FIRST SPARK', style: TextStyle(
-              color: Color(0xFF52658E), fontSize: 9,
-              letterSpacing: 1.8, fontWeight: FontWeight.w900)),
-          )),
         ),
         Positioned(
           left: 0,
@@ -211,75 +244,122 @@ class _NeuronDot extends StatelessWidget {
   Widget build(BuildContext context) {
     final locked = state == NeuronAvailability.locked;
     final complete = state == NeuronAvailability.complete;
-    final icon = GameGlyphs.iconFor(node.moduleId ?? 'slot');
+    final open = state == NeuronAvailability.open;
+    final icon = node.id == 'node_01' && node.moduleId == null
+        ? Icons.play_arrow_rounded
+        : GameGlyphs.iconFor(node.moduleId ?? 'slot');
+    final glow = .5 + .5 * math.sin(pulse.value * math.pi * 2);
+    final size = node.id == 'node_01' && open ? 76.0 : open ? 68.0 : complete ? 66.0 : 48.0;
+    final color = complete
+        ? const Color(0xFF53B99F)
+        : const Color(0xFF716BE0);
     return Semantics(
       label: 'Node ${node.slot}, level ${node.level}, ${locked ? "locked" : complete ? "complete" : "open"}',
       button: !locked,
       child: AnimatedBuilder(
         animation: pulse,
-        builder: (context, child) {
-          final glow = state == NeuronAvailability.open
-              ? .18 + (math.sin(pulse.value * math.pi * 2) + 1) * .08
-              : 0.0;
-          return Transform.scale(
-            scale: locked ? 1 : 1 + glow * .05,
-            child: child,
-          );
-        },
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: locked ? null : () => onTap(node),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: locked
-                    ? const Color(0xFF39445D)
-                    : complete
-                        ? const Color(0xFFB7F2DE)
-                        : const Color(0xFFFAFBFF),
-                border: Border.all(
-                  color: locked
-                      ? const Color(0xFF58627A)
+        builder: (context, _) => Transform.scale(
+          scale: open ? 1 + .018 * glow : 1,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: locked ? null : () => onTap(node),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: locked
+                      ? const RadialGradient(
+                          center: Alignment(-.25, -.35),
+                          colors: [Color(0xFFE1E7F1), Color(0xFFC7D1E3)],
+                        )
                       : complete
-                          ? const Color(0xFF57BEA0)
-                          : const Color(0xFFFFFFFF),
-                  width: 3,
-                ),
-                boxShadow: [
-                  if (!locked) BoxShadow(
-                    color: complete
-                        ? const Color(0x5557BEA0)
-                        : const Color(0x5575C7FF),
-                    blurRadius: complete ? 17 : 20,
-                    spreadRadius: complete ? 1 : 3,
+                          ? const RadialGradient(
+                              center: Alignment(-.3, -.45),
+                              colors: [Color(0xFFD8FFF0), Color(0xFF7CD4B6)],
+                            )
+                          : const RadialGradient(
+                              center: Alignment(-.3, -.45),
+                              colors: [Color(0xFFC1B9FF), Color(0xFF716BE0)],
+                            ),
+                  border: Border.all(
+                    color: locked
+                        ? const Color(0x99FFFFFF)
+                        : complete
+                            ? const Color(0xFFFFFFFF)
+                            : const Color(0xFFF9F8FF),
+                    width: open ? 3 : 2,
                   ),
-                ],
+                  boxShadow: [
+                    if (open) BoxShadow(
+                      color: color.withValues(alpha: .18 + glow * .13),
+                      blurRadius: 18 + glow * 7,
+                      spreadRadius: 3 + glow * 2,
+                    ),
+                    if (complete) const BoxShadow(
+                      color: Color(0x4453B99F), blurRadius: 16,
+                      offset: Offset(0, 5)),
+                    if (!locked) const BoxShadow(
+                      color: Color(0x22415382), blurRadius: 8,
+                      offset: Offset(0, 5)),
+                  ],
+                ),
+                child: Stack(alignment: Alignment.center, children: [
+                  if (open) Container(
+                    width: size * .69,
+                    height: size * .69,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: .28), width: 1.2),
+                    ),
+                  ),
+                  Icon(icon, size: open ? 29 : locked ? 18 : 25,
+                    color: locked
+                        ? const Color(0xFF8A96AC)
+                        : Colors.white),
+                  if (complete) const Positioned(
+                    right: 0, bottom: 0,
+                    child: CircleAvatar(
+                      radius: 10,
+                      backgroundColor: Color(0xFFFFFFFF),
+                      child: Icon(Icons.check_rounded, size: 13,
+                        color: Color(0xFF35A88C)),
+                    ),
+                  ),
+                  if (locked) Positioned(
+                    right: 0, bottom: 0,
+                    child: Container(
+                      width: 17,
+                      height: 17,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFEAF0FA),
+                      ),
+                      child: const Icon(Icons.lock_rounded, size: 10,
+                        color: Color(0xFF8290A9)),
+                    ),
+                  ),
+                  if (!complete && !locked) Positioned(
+                    right: 1, top: 1,
+                    child: Container(
+                      width: 17,
+                      height: 17,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFF8F6FF),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('${node.level}', style: const TextStyle(
+                        color: Color(0xFF655BC2), fontSize: 9,
+                        fontWeight: FontWeight.w900)),
+                    ),
+                  ),
+                ]),
               ),
-              child: Stack(alignment: Alignment.center, children: [
-                Icon(icon, size: 27, color: locked
-                    ? const Color(0xFF78839B)
-                    : const Color(0xFF5364A3)),
-                if (complete) const Positioned(
-                  right: 1, bottom: 1,
-                  child: CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Color(0xFF55BDA0),
-                    child: Icon(Icons.check_rounded, size: 13,
-                      color: Colors.white),
-                  ),
-                ),
-                if (!complete && !locked) Positioned(
-                  right: 4, bottom: 3,
-                  child: Text('${node.level}', style: const TextStyle(
-                    color: Color(0xFF6675A8), fontSize: 9,
-                    fontWeight: FontWeight.w900)),
-                ),
-                if (locked) const Icon(Icons.lock_rounded,
-                  size: 14, color: Color(0xFFABB3C5)),
-              ]),
             ),
           ),
         ),
@@ -292,13 +372,33 @@ class _MapAtmosphere extends StatelessWidget {
   const _MapAtmosphere();
 
   @override
-  Widget build(BuildContext context) => const DecoratedBox(
-    decoration: BoxDecoration(gradient: LinearGradient(
+  Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
+    const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFFE9F5FF), Color(0xFFE9EAFE), Color(0xFFF6EFFA)],
-    )),
-  );
+      colors: [Color(0xFFE8F6FF), Color(0xFFEBECFF), Color(0xFFFFF0E7)],
+    ))),
+    const Positioned(top: -135, left: -100,
+      child: _AtmosphereOrb(size: 310, color: Color(0x6671C9EE))),
+    const Positioned(top: 145, right: -175,
+      child: _AtmosphereOrb(size: 360, color: Color(0x557A78E5))),
+    const Positioned(bottom: -190, left: -115,
+      child: _AtmosphereOrb(size: 360, color: Color(0x55F4BFA9))),
+  ]);
+}
+
+class _AtmosphereOrb extends StatelessWidget {
+  const _AtmosphereOrb({required this.size, required this.color});
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(child: Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(shape: BoxShape.circle, gradient:
+      RadialGradient(colors: [color, color.withValues(alpha: 0)])),
+  ));
 }
 
 class _BrandMark extends StatelessWidget {
@@ -334,63 +434,4 @@ class _ProgressPill extends StatelessWidget {
       color: Color(0xFF52628E), fontSize: 10,
       fontWeight: FontWeight.w900)),
   );
-}
-
-class _SynapsePainter extends CustomPainter {
-  const _SynapsePainter({
-    required this.nodes,
-    required this.completed,
-    required this.x,
-    required this.y,
-  });
-
-  final List<NeuronNode> nodes;
-  final Set<String> completed;
-  final double Function(NeuronNode) x;
-  final double Function(NeuronNode) y;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final byId = {for (final node in nodes) node.id: node};
-    for (var i = 0; i < 82; i++) {
-      final px = ((i * 137 + 29) % size.width.toInt()).toDouble();
-      final py = ((i * 191 + 43) % size.height.toInt()).toDouble();
-      canvas.drawCircle(Offset(px, py), i.isEven ? 1 : 1.8,
-        Paint()..color = const Color(0x224C67A0));
-    }
-    for (final node in nodes) {
-      for (final parentId in node.parents) {
-        final parent = byId[parentId];
-        if (parent == null) continue;
-        final start = Offset(x(parent), y(parent));
-        final end = Offset(x(node), y(node));
-        final path = Path()
-          ..moveTo(start.dx, start.dy + 29)
-          ..cubicTo(start.dx, start.dy + 76,
-              end.dx, end.dy - 76, end.dx, end.dy - 29);
-        final passed = completed.contains(parent.id) && completed.contains(node.id);
-        final open = completed.contains(parent.id);
-        final color = passed
-            ? const Color(0xFF64BFA8)
-            : open
-                ? const Color(0xFF9DADE0)
-                : const Color(0x333C4B6C);
-        canvas.drawPath(path, Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = passed ? 4.2 : open ? 3 : 2.4
-          ..strokeCap = StrokeCap.round
-          ..color = color);
-        if (open) {
-          final middle = Offset((start.dx + end.dx) / 2,
-              (start.dy + end.dy) / 2);
-          canvas.drawCircle(middle, 3.2, Paint()..color = color);
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SynapsePainter oldDelegate) =>
-      oldDelegate.completed.length != completed.length ||
-      oldDelegate.nodes.length != nodes.length;
 }
