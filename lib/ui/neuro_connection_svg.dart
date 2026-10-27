@@ -76,15 +76,15 @@ class NeuroConnectionSvg extends StatelessWidget {
         : canAdvance || currentBranch
             ? node.slot.isEven ? '#8B7CE2' : '#62A9D4'
             : '#7B8EAE';
-    final opacity = passed ? '.78' : canAdvance ? '.78' : currentBranch ? '.48' : '.17';
-    final base = '<path d="$path" stroke="$color" stroke-width="${active ? 2.3 : 1.7}" '
+    final opacity = passed ? '.84' : canAdvance ? '.84' : currentBranch ? '.62' : '.30';
+    final base = '<path d="$path" stroke="$color" stroke-width="${active ? 2.8 : 2.1}" '
         'stroke-opacity="$opacity"/>';
 
     switch (node.slot % 3) {
       case 0:
         return '$base'
-            '<path d="$path" stroke="$color" stroke-width="${passed ? 2.1 : 1.7}" '
-            'stroke-opacity="${active ? '.9' : '.28'}" '
+            '<path d="$path" stroke="$color" stroke-width="${passed ? 2.5 : 2.0}" '
+            'stroke-opacity="${active ? '.96' : '.44'}" '
             'stroke-dasharray="1.5 10"/>';
       case 1:
         final midpoint = _cubicPoint(start, c1, c2, end, .52);
@@ -97,12 +97,12 @@ class NeuroConnectionSvg extends StatelessWidget {
             '${_n(midpoint.dx - spread * 17)} ${_n(midpoint.dy + 15)}';
         return '$base'
             '<path d="$path" stroke="$color" stroke-width="1.8" '
-            'stroke-opacity="${active ? '.78' : '.23'}" '
+            'stroke-opacity="${active ? '.86' : '.38'}" '
             'stroke-dasharray="2 9"/>'
             '<path d="$forkA" stroke="$color" stroke-width="1.35" '
-            'stroke-opacity="${active ? '.63' : '.19'}"/>'
+            'stroke-opacity="${active ? '.72' : '.32'}"/>'
             '<path d="$forkB" stroke="$color" stroke-width="1.15" '
-            'stroke-opacity="${active ? '.48' : '.14'}"/>';
+            'stroke-opacity="${active ? '.62' : '.27'}"/>';
       default:
         final length = math.sqrt(dx * dx + dy * dy);
         final nx = length == 0 ? 0.0 : -dy / length * 4.0;
@@ -113,7 +113,7 @@ class NeuroConnectionSvg extends StatelessWidget {
             '${_n(end.dx + nx)} ${_n(end.dy + ny)}';
         return '$base'
             '<path d="$paired" stroke="$color" stroke-width="1.15" '
-            'stroke-opacity="${active ? '.56' : '.18'}" '
+            'stroke-opacity="${active ? '.68' : '.31'}" '
             'stroke-dasharray="2 8"/>';
     }
   }
