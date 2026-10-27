@@ -26,7 +26,10 @@ void main() {
 
   Future<void> goTo(WidgetTester tester, int index) async {
     await tester.tap(find.byKey(ValueKey('neuro-nav-$index')).last);
-    await tester.pumpAndSettle();
+    // The map has a repeating ambient pulse, so pump the navigation transition
+    // for a bounded duration instead of waiting for every ticker to stop.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 220));
   }
 
   testWidgets('Home starts with a single open neuron',
