@@ -6,6 +6,7 @@ abstract final class GameGlyphs {
   static const icons = <String, IconData>{
     'slot': Icons.auto_awesome_rounded,
     'memory': Icons.grid_view_rounded,
+    'pattern_repeat': Icons.grid_view_rounded,
     'logic': Icons.account_tree_rounded,
     'focus': Icons.center_focus_strong_rounded,
     'motion': Icons.bolt_rounded,
@@ -21,6 +22,7 @@ abstract final class GameGlyphs {
     const colors = <String, Color>{
       'slot': Color(0xFF776BE0),
       'memory': Color(0xFF8374D4),
+      'pattern_repeat': Color(0xFF8374D4),
       'logic': Color(0xFF53A993),
       'focus': Color(0xFFE98F9C),
       'motion': Color(0xFF5495C8),

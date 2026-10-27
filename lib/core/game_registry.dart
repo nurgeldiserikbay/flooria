@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../games/pattern_repeat/pattern_repeat_page.dart';
+
 enum GamePlayMode { neuron, standalone }
 
 @immutable
@@ -51,7 +53,16 @@ class GameDefinition {
 /// Product catalog. It intentionally starts empty until the game list is
 /// approved. Each module can be disabled here without deleting its source.
 abstract final class GameRegistry {
-  static const games = <GameDefinition>[];
+  static const games = <GameDefinition>[
+    GameDefinition(
+      id: 'pattern_repeat',
+      title: 'Pattern Repeat',
+      icon: 'memory',
+      skill: 'memory',
+      maxLevel: 100,
+      buildPage: buildPatternRepeatPage,
+    ),
+  ];
 
   static List<GameDefinition> get enabledGames =>
       games.where((game) => game.enabled).toList(growable: false);
