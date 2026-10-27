@@ -125,19 +125,27 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         !_progress.unlockedModuleIds.contains(module.id)) {
       return;
     }
-    var completed = false;
+    var completedNeuron = false;
+    var lastStandaloneLevel = level - 1;
     await Navigator.of(context).push<void>(MaterialPageRoute<void>(
       builder: (context) => module.buildPage(context, GameLaunch(
         level: level,
+        maxLevel: module.maxLevel,
         mode: mode,
         onComplete: (result) {
-          if (completed) return;
-          completed = true;
           if (neuronId != null) {
-            _progress.completeNeuron(neuronId);
+            if (!completedNeuron) {
+              completedNeuron = true;
+              _progress.completeNeuron(neuronId);
+            }
           } else {
-            _progress.completeStandaloneLevel(module.id, level, result.score,
-              maxLevel: module.maxLevel);
+            final completedLevel = result.level ?? level;
+            if (completedLevel != lastStandaloneLevel + 1) return;
+            _progress.completeStandaloneLevel(
+              module.id, completedLevel, result.score,
+              maxLevel: module.maxLevel,
+            );
+            lastStandaloneLevel = completedLevel;
           }
           final skillScore = result.metrics[module.skill];
           if (skillScore != null) _skills.record(module.skill, skillScore.round());

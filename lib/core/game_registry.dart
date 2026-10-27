@@ -6,21 +6,24 @@ enum GamePlayMode { neuron, standalone }
 
 @immutable
 class GameResult {
-  const GameResult({this.score = 0, this.metrics = const {}});
+  const GameResult({this.score = 0, this.metrics = const {}, this.level});
 
   final int score;
   final Map<String, num> metrics;
+  final int? level;
 }
 
 @immutable
 class GameLaunch {
   const GameLaunch({
     required this.level,
+    this.maxLevel = 100,
     required this.mode,
     required this.onComplete,
   });
 
   final int level;
+  final int maxLevel;
   final GamePlayMode mode;
   final ValueChanged<GameResult> onComplete;
 }

@@ -37,7 +37,8 @@ class PatternRepeatPage extends StatefulWidget {
 }
 
 class _PatternRepeatPageState extends State<PatternRepeatPage> {
-  late final PatternRepeatEngine _engine;
+  late PatternRepeatEngine _engine;
+  late int _currentLevel;
   int? _activeCell;
   bool _showingPattern = true;
   bool _complete = false;
@@ -49,7 +50,8 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
   @override
   void initState() {
     super.initState();
-    _engine = PatternRepeatEngine.forLevel(widget.launch.level);
+    _currentLevel = widget.launch.level;
+    _engine = PatternRepeatEngine.forLevel(_currentLevel);
     unawaited(_showPattern());
   }
 
@@ -99,6 +101,7 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
       if (!_reported) {
         _reported = true;
         widget.launch.onComplete(GameResult(
+          level: _currentLevel,
           score: _engine.score,
           metrics: {'memory': max(0, 100 - _engine.mistakes * 10)},
         ));
@@ -109,6 +112,22 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
     setState(() => _activeCell = cell);
     await _wait(const Duration(milliseconds: 110));
     if (mounted) setState(() => _activeCell = null);
+  }
+
+  void _continueAfterLevel() {
+    if (_currentLevel >= widget.launch.maxLevel) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    setState(() {
+      _currentLevel++;
+      _engine = PatternRepeatEngine.forLevel(_currentLevel);
+      _complete = false;
+      _wrongTap = false;
+      _reported = false;
+      _activeCell = null;
+    });
+    unawaited(_showPattern());
   }
 
   Future<void> _wait(Duration duration) {
@@ -151,12 +170,12 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
         foregroundColor: _ink,
         elevation: 0,
         titleSpacing: 4,
-        title: Text('Pattern  ·  ${widget.launch.level}',
+        title: Text('Pattern  ·  $_currentLevel',
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 18),
-            child: Center(child: _LevelPill(level: widget.launch.level)),
+            child: Center(child: _LevelPill(level: _currentLevel)),
           ),
         ],
       ),
@@ -243,14 +262,16 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
                         width: double.infinity,
                         height: 54,
                         child: FilledButton(
-                          onPressed: () => Navigator.of(context).maybePop(),
+                          onPressed: _continueAfterLevel,
                           style: FilledButton.styleFrom(
                             backgroundColor: _accent,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18)),
                           ),
-                          child: const Text('CONTINUE',
-                            style: TextStyle(fontWeight: FontWeight.w900,
+                          child: Text(
+                            _currentLevel >= widget.launch.maxLevel
+                                ? 'FINISH' : 'NEXT LEVEL',
+                            style: const TextStyle(fontWeight: FontWeight.w900,
                               letterSpacing: 1.1)),
                         ),
                       )
