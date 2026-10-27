@@ -23,6 +23,7 @@ abstract final class NeuronMapGraph {
     NeuronNode(id: 'node_01', slot: 1, level: 1,
       moduleId: 'pattern_repeat'),
     NeuronNode(id: 'node_02', slot: 2, level: 1,
+      moduleId: 'number_hunt',
       parents: ['node_01']),
     NeuronNode(id: 'node_03', slot: 3, level: 1,
       parents: ['node_01']),

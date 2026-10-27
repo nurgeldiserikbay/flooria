@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../games/pattern_repeat/pattern_repeat_page.dart';
+import '../games/number_hunt/number_hunt_page.dart';
 
 enum GamePlayMode { neuron, standalone }
 
@@ -64,6 +65,14 @@ abstract final class GameRegistry {
       skill: 'memory',
       maxLevel: 100,
       buildPage: buildPatternRepeatPage,
+    ),
+    GameDefinition(
+      id: 'number_hunt',
+      title: 'Find the Number',
+      icon: 'number_hunt',
+      skill: 'focus',
+      maxLevel: 100,
+      buildPage: buildNumberHuntPage,
     ),
   ];
 
