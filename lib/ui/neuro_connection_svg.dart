@@ -34,8 +34,14 @@ class NeuroConnectionSvg extends StatelessWidget {
   String _buildSvg() {
     final byId = {for (final node in nodes) node.id: node};
     final defs = StringBuffer();
+    final cellBodies = StringBuffer();
     final drawings = StringBuffer();
     var edgeIndex = 0;
+
+    for (final node in nodes) {
+      final center = positions[node.id];
+      if (center != null) cellBodies.write(_cellMorphology(node, center));
+    }
 
     for (final node in nodes) {
       for (final parentId in node.parents) {
@@ -63,7 +69,58 @@ class NeuroConnectionSvg extends StatelessWidget {
         'viewBox="0 0 ${width.toStringAsFixed(0)} ${height.toStringAsFixed(0)}">'
         '<defs>$defs</defs>'
         '<g fill="none" stroke-linecap="round" stroke-linejoin="round">'
-        '$drawings</g></svg>';
+        '$cellBodies$drawings</g></svg>';
+  }
+
+  /// The game button is the cell body; these SVG arms make the map read as
+  /// neurons rather than circles joined by wires.
+  String _cellMorphology(NeuronNode node, Offset center) {
+    final state = NeuronMapGraph.availability(node, completed);
+    final radius = _NeuralEdge.radius(node, completed);
+    final color = state == NeuronAvailability.complete
+        ? '#45B89E'
+        : state == NeuronAvailability.open
+            ? '#8172E9'
+            : const ['#7C9FCF', '#9386CC', '#65AB9F', '#D09178']
+                [(node.slot - 1) % 4];
+    final opacity = state == NeuronAvailability.locked ? '.52' : '.76';
+    final body = StringBuffer()
+      ..write('<circle cx="${_n(center.dx)}" cy="${_n(center.dy)}" '
+          'r="${_n(radius + 4)}" fill="none" stroke="$color" '
+          'stroke-width="1.6" stroke-opacity=".48"/>');
+
+    const armAngles = [11.0, 82.0, 176.0, 281.0];
+    const armLengths = [15.0, 23.0, 18.0, 25.0];
+    for (var arm = 0; arm < armAngles.length; arm++) {
+      final angle = (armAngles[arm] + node.slot * 9) * math.pi / 180;
+      final direction = Offset(math.cos(angle), math.sin(angle));
+      final normal = Offset(-direction.dy, direction.dx);
+      final base = center + direction * (radius + 3);
+      final fork = center + direction * (radius + armLengths[arm]);
+      final trunkControl = center + direction * (radius + armLengths[arm] * .58) +
+          normal * (arm.isEven ? 2.2 : -1.6);
+      final trunk = 'M${_n(base.dx)} ${_n(base.dy)} '
+          'Q${_n(trunkControl.dx)} ${_n(trunkControl.dy)} '
+          '${_n(fork.dx)} ${_n(fork.dy)}';
+      body.write('<path d="$trunk" stroke="$color" stroke-width="2.5" '
+          'stroke-opacity="$opacity"/>');
+
+      for (final side in const [-1.0, 1.0]) {
+        final twigLength = 8.0 + ((node.slot + arm) % 3) * 2.5;
+        final branchSpread = 5.0 + ((node.slot + arm) % 2) * 3.0;
+        final tip = fork + direction * twigLength + normal * (side * branchSpread);
+        final control = fork + direction * (twigLength * .58) +
+            normal * (side * branchSpread * .5);
+        final twig = 'M${_n(fork.dx)} ${_n(fork.dy)} '
+            'Q${_n(control.dx)} ${_n(control.dy)} '
+            '${_n(tip.dx)} ${_n(tip.dy)}';
+        body.write('<path d="$twig" stroke="$color" stroke-width="1.55" '
+            'stroke-opacity="$opacity"/><circle cx="${_n(tip.dx)}" '
+            'cy="${_n(tip.dy)}" r="1.8" fill="$color" '
+            'fill-opacity="$opacity"/>');
+      }
+    }
+    return body.toString();
   }
 
   String _gradient(int index, _NeuralEdge edge) =>
@@ -78,6 +135,9 @@ class NeuroConnectionSvg extends StatelessWidget {
     final path = edge.curve.svgPath;
     final gradient = 'url(#axon$index)';
     final opacity = edge.active ? '.88' : '.58';
+    final terminal = '<circle cx="${_n(edge.curve.end.dx)}" '
+        'cy="${_n(edge.curve.end.dy)}" r="4.1" fill="$gradient" '
+        'stroke="#FFFFFF" stroke-width="1.35" stroke-opacity=".96"/>';
     final sheath = '<path d="$path" stroke="$gradient" '
         'stroke-width="8" stroke-opacity="${edge.active ? '.15' : '.11'}"/>'
         '<path d="$path" stroke="$gradient" stroke-width="4.4" '
@@ -87,11 +147,12 @@ class NeuroConnectionSvg extends StatelessWidget {
 
     switch (motif) {
       case 0:
-        return '$sheath${_myelin(edge, gradient)}${_axonCollaterals(edge, gradient)}';
+        return '$sheath${_myelin(edge, gradient)}'
+            '${_axonCollaterals(edge, gradient)}$terminal';
       case 1:
-        return '$sheath${_dendriteForks(edge, gradient)}';
+        return '$sheath${_dendriteForks(edge, gradient)}$terminal';
       default:
-        return _synapticRelay(edge, gradient);
+        return '${_synapticRelay(edge, gradient)}$terminal';
     }
   }
 
@@ -208,8 +269,8 @@ class _NeuralEdge {
     final vector = end - start;
     final distance = vector.distance;
     final direction = vector / distance;
-    final startRadius = _radius(parent, completed) + 3;
-    final endRadius = _radius(node, completed) + 5;
+    final startRadius = radius(parent, completed) + 5;
+    final endRadius = radius(node, completed) + 5;
     final from = start + direction * startRadius;
     final to = end - direction * endRadius;
     final normal = Offset(-direction.dy, direction.dx);
@@ -244,7 +305,7 @@ class _NeuralEdge {
     );
   }
 
-  static double _radius(NeuronNode node, Set<String> completed) {
+  static double radius(NeuronNode node, Set<String> completed) {
     final state = NeuronMapGraph.availability(node, completed);
     if (state == NeuronAvailability.open) return node.id == 'node_01' ? 38 : 34;
     if (state == NeuronAvailability.complete) return 33;
