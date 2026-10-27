@@ -182,7 +182,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
                         pulse: _pulse,
                         onTap: widget.onNodeTap,
                       ),
-                    ),
+                    );
                   }),
               ]),
             ),
