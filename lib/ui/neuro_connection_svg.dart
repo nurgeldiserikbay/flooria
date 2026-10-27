@@ -153,7 +153,6 @@ class NeuroConnectionSvg extends StatelessWidget {
     final pre = edge.curve.pointAt(.45);
     final post = edge.curve.pointAt(.56);
     final preTangent = edge.curve.tangentAt(.45);
-    final postTangent = edge.curve.tangentAt(.56);
     final prePath = edge.curve.segment(0, .45);
     final postPath = edge.curve.segment(.56, 1);
     final normal = Offset(-preTangent.dy, preTangent.dx);
