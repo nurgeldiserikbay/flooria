@@ -288,7 +288,7 @@ class _NeuronDot extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: locked
-                      ? const RadialGradient(
+                      ? RadialGradient(
                           center: Alignment(-.25, -.35),
                           colors: [lockedTint.$1, lockedTint.$2],
                         )
