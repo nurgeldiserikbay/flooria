@@ -39,10 +39,8 @@ class _NeuroMapViewState extends State<NeuroMapView>
   );
   bool _positioned = false;
 
-  static const double _mapWidth = 390;
-  static const double _mapHeight = 620;
-  static const double _mapInsetX = 29;
-  static const double _mapInsetY = 26;
+  static const double _baseMapWidth = 390;
+  static const double _baseMapHeight = 620;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
   static const _mapPositions = <String, Offset>{
@@ -61,11 +59,13 @@ class _NeuroMapViewState extends State<NeuroMapView>
     'node_13': Offset(.50, .94),
   };
 
-  Offset _point(NeuronNode node) {
+  Offset _point(NeuronNode node, double width, double height) {
     final position = _mapPositions[node.id] ?? const Offset(.5, .5);
+    final insetX = width * .075;
+    final insetY = height * .045;
     return Offset(
-      _mapInsetX + position.dx * (_mapWidth - _mapInsetX * 2),
-      _mapInsetY + position.dy * (_mapHeight - _mapInsetY * 2),
+      insetX + position.dx * (width - insetX * 2),
+      insetY + position.dy * (height - insetY * 2),
     );
   }
 
@@ -73,7 +73,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
     final state = NeuronMapGraph.availability(node, completed);
     if (state == NeuronAvailability.open) return node.id == 'node_01' ? 76 : 68;
     if (state == NeuronAvailability.complete) return 66;
-    return 48;
+    return 54;
   }
 
   @override
@@ -108,22 +108,28 @@ class _NeuroMapViewState extends State<NeuroMapView>
   @override
   Widget build(BuildContext context) {
     final nodes = NeuronMapGraph.nodes;
-    final positions = {for (final node in nodes) node.id: _point(node)};
     return LayoutBuilder(builder: (context, bounds) {
+      const chromeHeight = 148.0;
+      final viewportHeight = math.max(0.0, bounds.maxHeight - chromeHeight);
+      // Keep the map larger than its viewport at its resting scale. This gives
+      // pan gestures room to move the network even before the player zooms in.
+      final mapWidth = math.max(_baseMapWidth, bounds.maxWidth * 1.25);
+      final mapHeight = math.max(_baseMapHeight, viewportHeight * 1.18);
+      final positions = {
+        for (final node in nodes) node.id: _point(node, mapWidth, mapHeight),
+      };
       if (!_positioned) {
         _positioned = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          const verticalChrome = 148.0;
-          final viewportHeight = math.max(0.0, bounds.maxHeight - verticalChrome);
           final scale = math.min(
-            bounds.maxWidth / _mapWidth,
-            viewportHeight / _mapHeight,
-          ).clamp(.62, 1.02);
+            bounds.maxWidth / mapWidth,
+            viewportHeight / mapHeight,
+          ).clamp(.62, 1.0);
           _transform.value = Matrix4.identity()
             ..translateByDouble(
-              (bounds.maxWidth - _mapWidth * scale) / 2,
-              math.max(0.0, (viewportHeight - _mapHeight * scale) / 2),
+              (bounds.maxWidth - mapWidth * scale) / 2,
+              (viewportHeight - mapHeight * scale) / 2,
               0,
               1,
             )
@@ -139,16 +145,17 @@ class _NeuroMapViewState extends State<NeuroMapView>
           child: InteractiveViewer(
             transformationController: _transform,
             constrained: false,
-            boundaryMargin: const EdgeInsets.fromLTRB(38, 35, 38, 58),
-            minScale: .72,
+            panEnabled: true,
+            boundaryMargin: const EdgeInsets.all(240),
+            minScale: .62,
             maxScale: 1.35,
             child: SizedBox(
-              width: _mapWidth,
-              height: _mapHeight,
+              width: mapWidth,
+              height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
                 NeuroConnectionSvg(
-                  width: _mapWidth,
-                  height: _mapHeight,
+                  width: mapWidth,
+                  height: mapHeight,
                   nodes: nodes,
                   positions: positions,
                   completed: widget.completedNeurons,
@@ -156,7 +163,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
                 AnimatedBuilder(
                   animation: _pulse,
                   builder: (context, _) => CustomPaint(
-                    size: const Size(_mapWidth, _mapHeight),
+                    size: Size(mapWidth, mapHeight),
                     painter: NeuroFlowParticles(
                       nodes: nodes,
                       positions: positions,
@@ -167,7 +174,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
                 ),
                 for (final node in nodes)
                   Builder(builder: (context) {
-                    final point = _point(node);
+                    final point = positions[node.id]!;
                     final diameter = _diameter(node, widget.completedNeurons);
                     return Positioned(
                       left: point.dx - diameter / 2,
@@ -247,12 +254,21 @@ class _NeuronDot extends StatelessWidget {
     final open = state == NeuronAvailability.open;
     final icon = node.id == 'node_01' && node.moduleId == null
         ? Icons.play_arrow_rounded
-        : GameGlyphs.iconFor(node.moduleId ?? 'slot');
+        : node.moduleId == null
+            ? Icons.hub_rounded
+            : GameGlyphs.iconFor(node.moduleId!);
     final glow = .5 + .5 * math.sin(pulse.value * math.pi * 2);
-    final size = node.id == 'node_01' && open ? 76.0 : open ? 68.0 : complete ? 66.0 : 48.0;
+    final size = node.id == 'node_01' && open ? 76.0 : open ? 68.0 : complete ? 66.0 : 54.0;
     final color = complete
         ? const Color(0xFF53B99F)
         : const Color(0xFF716BE0);
+    final lockedTints = <(Color, Color)>[
+      (const Color(0xFFD6E8FF), const Color(0xFFAAC8F0)),
+      (const Color(0xFFE5DDFF), const Color(0xFFC2B6F0)),
+      (const Color(0xFFD4F1EA), const Color(0xFFA8D8CB)),
+      (const Color(0xFFFFE5D8), const Color(0xFFF3C4B1)),
+    ];
+    final lockedTint = lockedTints[(node.slot - 1) % lockedTints.length];
     return Semantics(
       label: 'Node ${node.slot}, level ${node.level}, ${locked ? "locked" : complete ? "complete" : "open"}',
       button: !locked,
@@ -274,7 +290,7 @@ class _NeuronDot extends StatelessWidget {
                   gradient: locked
                       ? const RadialGradient(
                           center: Alignment(-.25, -.35),
-                          colors: [Color(0xFFE1E7F1), Color(0xFFC7D1E3)],
+                          colors: [lockedTint.$1, lockedTint.$2],
                         )
                       : complete
                           ? const RadialGradient(
@@ -317,9 +333,9 @@ class _NeuronDot extends StatelessWidget {
                         color: Colors.white.withValues(alpha: .28), width: 1.2),
                     ),
                   ),
-                  Icon(icon, size: open ? 29 : locked ? 18 : 25,
+                  Icon(icon, size: open ? 29 : locked ? 21 : 25,
                     color: locked
-                        ? const Color(0xFF8A96AC)
+                        ? const Color(0xFF536889)
                         : Colors.white),
                   if (complete) const Positioned(
                     right: 0, bottom: 0,
