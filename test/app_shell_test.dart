@@ -37,7 +37,7 @@ void main() {
     await boot(tester);
     expect(find.byType(NeuroMapView), findsOneWidget);
     expect(find.text('0 / 13'), findsOneWidget);
-    expect(find.text('FIRST SPARK'), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
     expect(find.byType(InteractiveViewer), findsOneWidget);
   });
 
