@@ -51,7 +51,7 @@ void main() {
     Future<void> finishLevel(int level) async {
       await tester.pump(const Duration(milliseconds: 380));
       final sequence = PatternRepeatEngine.forLevel(level).sequence;
-      for (final cell in sequence) {
+      for (var i = 0; i < sequence.length; i++) {
         await tester.pump(const Duration(milliseconds: 360));
         await tester.pump(const Duration(milliseconds: 130));
       }
