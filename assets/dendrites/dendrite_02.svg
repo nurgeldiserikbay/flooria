@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+ <defs><linearGradient id="g" x1="86" y1="92" x2="430" y2="422" gradientUnits="userSpaceOnUse"><stop stop-color="#A88AFF"/><stop offset=".5" stop-color="#65B8E9"/><stop offset="1" stop-color="#596FD2"/></linearGradient><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+ <g stroke="url(#g)" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+  <g stroke-width="13" opacity=".28"><path d="M78 91C126 137 167 167 210 205S274 269 316 304 378 361 436 422"/><path d="M210 205C218 166 207 132 184 99"/><path d="M210 205C171 220 142 243 118 276"/><path d="M316 304C350 286 383 283 418 291"/><path d="M316 304C300 342 300 378 312 415"/><path d="M378 361C400 350 426 349 452 358"/><path d="M167 167C153 136 129 115 98 102"/></g>
+  <g stroke-width="5.5"><path d="M78 91C126 137 167 167 210 205S274 269 316 304 378 361 436 422"/><path d="M210 205C218 166 207 132 184 99"/><path d="M210 205C171 220 142 243 118 276"/><path d="M316 304C350 286 383 283 418 291"/><path d="M316 304C300 342 300 378 312 415"/><path d="M378 361C400 350 426 349 452 358"/><path d="M167 167C153 136 129 115 98 102"/></g>
+ </g>
+</svg>

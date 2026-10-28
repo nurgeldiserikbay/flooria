@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/neuron_progression.dart';
 import 'game_glyph.dart';
@@ -43,6 +44,24 @@ class _NeuroMapViewState extends State<NeuroMapView>
   static const double _baseMapHeight = 620;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
+  // Fixed, irregular anchors avoid a repeated pattern and stay stable during rebuilds.
+  static const _fogAnchors =
+      <(String, String, double, double, double, double)>[
+    ('node_02', 'assets/fog/fog_01.png', .54, .23, .38, -.28),
+    ('node_06', 'assets/fog/fog_02.png', .52, .22, .34, .42),
+    ('node_08', 'assets/fog/fog_03.png', .58, .24, .42, -.16),
+    ('node_12', 'assets/fog/fog_04.png', .56, .23, .36, .31),
+  ];
+
+  // Four separate branch silhouettes soften the map's structure. Their fixed
+  // positions and varied rotations keep the layout organic across rebuilds.
+  static const _dendriteAnchors = <(String, double, double, double, double, double)>[
+    ('assets/dendrites/dendrite_01.svg', .18, .29, .38, .24, -.18),
+    ('assets/dendrites/dendrite_02.svg', .79, .30, .38, .22, .46),
+    ('assets/dendrites/dendrite_03.svg', .20, .68, .38, .23, -.34),
+    ('assets/dendrites/dendrite_04.svg', .80, .67, .38, .25, .28),
+  ];
+
   static const _mapPositions = <String, Offset>{
     'node_01': Offset(.50, .06),
     'node_02': Offset(.22, .20),
@@ -153,6 +172,50 @@ class _NeuroMapViewState extends State<NeuroMapView>
               width: mapWidth,
               height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
+                for (final fog in _fogAnchors)
+                  if (NeuronMapGraph.availability(
+                    nodes.firstWhere((node) => node.id == fog.$1),
+                    widget.completedNeurons,
+                  ) == NeuronAvailability.locked)
+                    Positioned(
+                      left: positions[fog.$1]!.dx - mapWidth * fog.$3 / 2,
+                      top: positions[fog.$1]!.dy - mapHeight * fog.$4 / 2,
+                      width: mapWidth * fog.$3,
+                      height: mapHeight * fog.$4,
+                      child: IgnorePointer(
+                        child: Opacity(
+                          opacity: fog.$5,
+                          child: Transform.rotate(
+                            angle: fog.$6,
+                            child: Image.asset(
+                              fog.$2,
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.medium,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                for (final dendrite in _dendriteAnchors)
+                  Positioned(
+                    left: mapWidth * dendrite.$2 - mapWidth * dendrite.$4 / 2,
+                    top: mapHeight * dendrite.$3 - mapWidth * dendrite.$4 / 2,
+                    width: mapWidth * dendrite.$4,
+                    height: mapWidth * dendrite.$4,
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: dendrite.$5,
+                        child: Transform.rotate(
+                          angle: dendrite.$6,
+                          child: SvgPicture.asset(
+                            dendrite.$1,
+                            fit: BoxFit.contain,
+                            clipBehavior: Clip.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 NeuroConnectionSvg(
                   width: mapWidth,
                   height: mapHeight,
@@ -203,7 +266,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
             const _BrandMark(),
             const SizedBox(width: 10),
             const Expanded(child: Text('NEURO PLAYGROUND',
-              style: TextStyle(color: Color(0xFF314064),
+              style: TextStyle(color: Color(0xFFF4F5FF),
                 fontSize: 13, fontWeight: FontWeight.w900,
                 letterSpacing: 1.2))),
             _ProgressPill(value: '${widget.completedNeurons.length} / ${nodes.length}'),
@@ -211,7 +274,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
             IconButton(
               tooltip: 'Settings',
               onPressed: widget.onSettings,
-              icon: const Icon(Icons.tune_rounded, color: Color(0xFF41517A)),
+              icon: const Icon(Icons.tune_rounded, color: Color(0xFFE9EEFF)),
             ),
           ]),
         ),
@@ -389,32 +452,21 @@ class _MapAtmosphere extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0xFFE8F6FF), Color(0xFFEBECFF), Color(0xFFFFF0E7)],
-    ))),
-    const Positioned(top: -135, left: -100,
-      child: _AtmosphereOrb(size: 310, color: Color(0x6671C9EE))),
-    const Positioned(top: 145, right: -175,
-      child: _AtmosphereOrb(size: 360, color: Color(0x557A78E5))),
-    const Positioned(bottom: -190, left: -115,
-      child: _AtmosphereOrb(size: 360, color: Color(0x55F4BFA9))),
+    Image.asset(
+      'assets/background/neural_hex_mesh.webp',
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.medium,
+    ),
+    const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x120B1537), Color(0x28110D38)],
+        ),
+      ),
+    ),
   ]);
-}
-
-class _AtmosphereOrb extends StatelessWidget {
-  const _AtmosphereOrb({required this.size, required this.color});
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(child: Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(shape: BoxShape.circle, gradient:
-      RadialGradient(colors: [color, color.withValues(alpha: 0)])),
-  ));
 }
 
 class _BrandMark extends StatelessWidget {
