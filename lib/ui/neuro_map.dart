@@ -157,7 +157,6 @@ class _NeuroMapViewState extends State<NeuroMapView>
       }
 
       return Stack(children: [
-        const Positioned.fill(child: _MapAtmosphere()),
         Positioned.fill(
           top: 66,
           bottom: 82,
@@ -172,6 +171,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
               width: mapWidth,
               height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
+                const Positioned.fill(child: _MapAtmosphere()),
                 for (final fog in _fogAnchors)
                   if (NeuronMapGraph.availability(
                     nodes.firstWhere((node) => node.id == fog.$1),
@@ -452,17 +452,26 @@ class _MapAtmosphere extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    Image.asset(
-      'assets/background/neural_hex_mesh.jpg',
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.medium,
+    Positioned.fill(
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/background/neural_hex_mesh.jpg'),
+            fit: BoxFit.none,
+            repeat: ImageRepeat.repeat,
+            scale: 1,
+          ),
+        ),
+      ),
     ),
-    const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0x120B1537), Color(0x28110D38)],
+    const Positioned.fill(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x120B1537), Color(0x28110D38)],
+          ),
         ),
       ),
     ),
