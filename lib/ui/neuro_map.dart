@@ -43,6 +43,12 @@ class _NeuroMapViewState extends State<NeuroMapView>
   static const double _baseMapHeight = 620;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
+  static const _fogAnchors = <(String, String, double, double)>[
+    ('node_04', 'assets/fog/fog_01.png', .54, .24),
+    ('node_09', 'assets/fog/fog_02.png', .56, .23),
+    ('node_12', 'assets/fog/fog_03.png', .58, .24),
+  ];
+
   static const _mapPositions = <String, Offset>{
     'node_01': Offset(.50, .06),
     'node_02': Offset(.22, .20),
@@ -153,6 +159,27 @@ class _NeuroMapViewState extends State<NeuroMapView>
               width: mapWidth,
               height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
+                for (final fog in _fogAnchors)
+                  if (NeuronMapGraph.availability(
+                    nodes.firstWhere((node) => node.id == fog.$1),
+                    widget.completedNeurons,
+                  ) == NeuronAvailability.locked)
+                    Positioned(
+                      left: positions[fog.$1]!.dx - mapWidth * fog.$3 / 2,
+                      top: positions[fog.$1]!.dy - mapHeight * fog.$4 / 2,
+                      width: mapWidth * fog.$3,
+                      height: mapHeight * fog.$4,
+                      child: IgnorePointer(
+                        child: Opacity(
+                          opacity: .58,
+                          child: Image.asset(
+                            fog.$2,
+                            fit: BoxFit.fill,
+                            filterQuality: FilterQuality.medium,
+                          ),
+                        ),
+                      ),
+                    ),
                 NeuroConnectionSvg(
                   width: mapWidth,
                   height: mapHeight,
