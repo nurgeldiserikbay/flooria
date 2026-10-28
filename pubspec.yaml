@@ -20,6 +20,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/background/neural_hex_mesh.webp
+    - assets/background/neural_hex_mesh.jpg
     - assets/fog/
     - assets/dendrites/
