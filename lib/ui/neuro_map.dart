@@ -452,27 +452,30 @@ class _MapAtmosphere extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    DecoratedBox(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('assets/background/neural_hex_mesh.jpg'),
-          fit: BoxFit.none,
-          repeat: ImageRepeat.repeat,
-          scale: 1,
+    Positioned.fill(
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/background/neural_hex_mesh.jpg'),
+            fit: BoxFit.none,
+            repeat: ImageRepeat.repeat,
+            scale: 1,
+          ),
         ),
       ),
     ),
-    const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0x120B1537), Color(0x28110D38)],
+    const Positioned.fill(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x120B1537), Color(0x28110D38)],
+          ),
         ),
       ),
     ),
-  ]);
-}
+  ]);}
 
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
