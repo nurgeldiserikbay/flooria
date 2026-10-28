@@ -475,7 +475,8 @@ class _MapAtmosphere extends StatelessWidget {
         ),
       ),
     ),
-  ]);}
+  ]);
+}
 
 class _BrandMark extends StatelessWidget {
   const _BrandMark();
