@@ -43,10 +43,13 @@ class _NeuroMapViewState extends State<NeuroMapView>
   static const double _baseMapHeight = 620;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
-  static const _fogAnchors = <(String, String, double, double)>[
-    ('node_04', 'assets/fog/fog_01.png', .54, .24),
-    ('node_09', 'assets/fog/fog_02.png', .56, .23),
-    ('node_12', 'assets/fog/fog_03.png', .58, .24),
+  // Fixed, irregular anchors avoid a repeated pattern and stay stable during rebuilds.
+  static const _fogAnchors =
+      <(String, String, double, double, double, double)>[
+    ('node_02', 'assets/fog/fog_01.png', .54, .23, .38, -.28),
+    ('node_06', 'assets/fog/fog_02.png', .52, .22, .34, .42),
+    ('node_08', 'assets/fog/fog_03.png', .58, .24, .42, -.16),
+    ('node_12', 'assets/fog/fog_04.png', .56, .23, .36, .31),
   ];
 
   static const _mapPositions = <String, Offset>{
@@ -171,11 +174,14 @@ class _NeuroMapViewState extends State<NeuroMapView>
                       height: mapHeight * fog.$4,
                       child: IgnorePointer(
                         child: Opacity(
-                          opacity: .58,
-                          child: Image.asset(
-                            fog.$2,
-                            fit: BoxFit.fill,
-                            filterQuality: FilterQuality.medium,
+                          opacity: fog.$5,
+                          child: Transform.rotate(
+                            angle: fog.$6,
+                            child: Image.asset(
+                              fog.$2,
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.medium,
+                            ),
                           ),
                         ),
                       ),
