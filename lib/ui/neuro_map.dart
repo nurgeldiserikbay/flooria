@@ -203,7 +203,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
             const _BrandMark(),
             const SizedBox(width: 10),
             const Expanded(child: Text('NEURO PLAYGROUND',
-              style: TextStyle(color: Color(0xFF314064),
+              style: TextStyle(color: Color(0xFFF4F5FF),
                 fontSize: 13, fontWeight: FontWeight.w900,
                 letterSpacing: 1.2))),
             _ProgressPill(value: '${widget.completedNeurons.length} / ${nodes.length}'),
@@ -211,7 +211,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
             IconButton(
               tooltip: 'Settings',
               onPressed: widget.onSettings,
-              icon: const Icon(Icons.tune_rounded, color: Color(0xFF41517A)),
+              icon: const Icon(Icons.tune_rounded, color: Color(0xFFE9EEFF)),
             ),
           ]),
         ),
@@ -389,32 +389,21 @@ class _MapAtmosphere extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [Color(0xFFE8F6FF), Color(0xFFEBECFF), Color(0xFFFFF0E7)],
-    ))),
-    const Positioned(top: -135, left: -100,
-      child: _AtmosphereOrb(size: 310, color: Color(0x6671C9EE))),
-    const Positioned(top: 145, right: -175,
-      child: _AtmosphereOrb(size: 360, color: Color(0x557A78E5))),
-    const Positioned(bottom: -190, left: -115,
-      child: _AtmosphereOrb(size: 360, color: Color(0x55F4BFA9))),
+    Image.asset(
+      'assets/background/neural_hex_mesh.webp',
+      fit: BoxFit.cover,
+      filterQuality: FilterQuality.medium,
+    ),
+    const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x120B1537), Color(0x28110D38)],
+        ),
+      ),
+    ),
   ]);
-}
-
-class _AtmosphereOrb extends StatelessWidget {
-  const _AtmosphereOrb({required this.size, required this.color});
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(child: Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(shape: BoxShape.circle, gradient:
-      RadialGradient(colors: [color, color.withValues(alpha: 0)])),
-  ));
 }
 
 class _BrandMark extends StatelessWidget {
