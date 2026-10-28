@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/neuron_progression.dart';
 import 'game_glyph.dart';
@@ -50,6 +51,15 @@ class _NeuroMapViewState extends State<NeuroMapView>
     ('node_06', 'assets/fog/fog_02.png', .52, .22, .34, .42),
     ('node_08', 'assets/fog/fog_03.png', .58, .24, .42, -.16),
     ('node_12', 'assets/fog/fog_04.png', .56, .23, .36, .31),
+  ];
+
+  // Four separate branch silhouettes soften the map's structure. Their fixed
+  // positions and varied rotations keep the layout organic across rebuilds.
+  static const _dendriteAnchors = <(String, double, double, double, double, double)>[
+    ('assets/dendrites/dendrite_01.svg', .18, .29, .38, .24, -.18),
+    ('assets/dendrites/dendrite_02.svg', .79, .30, .38, .22, .46),
+    ('assets/dendrites/dendrite_03.svg', .20, .68, .38, .23, -.34),
+    ('assets/dendrites/dendrite_04.svg', .80, .67, .38, .25, .28),
   ];
 
   static const _mapPositions = <String, Offset>{
@@ -186,6 +196,26 @@ class _NeuroMapViewState extends State<NeuroMapView>
                         ),
                       ),
                     ),
+                for (final dendrite in _dendriteAnchors)
+                  Positioned(
+                    left: mapWidth * dendrite.$2 - mapWidth * dendrite.$4 / 2,
+                    top: mapHeight * dendrite.$3 - mapWidth * dendrite.$4 / 2,
+                    width: mapWidth * dendrite.$4,
+                    height: mapWidth * dendrite.$4,
+                    child: IgnorePointer(
+                      child: Opacity(
+                        opacity: dendrite.$5,
+                        child: Transform.rotate(
+                          angle: dendrite.$6,
+                          child: SvgPicture.asset(
+                            dendrite.$1,
+                            fit: BoxFit.contain,
+                            clipBehavior: Clip.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 NeuroConnectionSvg(
                   width: mapWidth,
                   height: mapHeight,
