@@ -19,7 +19,7 @@ Neuro Playground is a polished mobile puzzle adventure. The player travels throu
 - Completing a node opens its children. A game type may appear on multiple nodes with a higher level or a different target.
 - Unlocking a game type adds it to the standalone Games library.
 - Standalone progress is stored per game type and resumes at that game's next level.
-- The map, catalog, and game implementations are separate. The catalog starts empty until the game list is approved.
+- The map, catalog, and game implementations are separate. Only approved games are registered (see `lib/games/README.md`).
 
 ## Visual direction
 

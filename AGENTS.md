@@ -3,7 +3,7 @@
 Read [docs/PARALLEL_DEVELOPMENT.md](docs/PARALLEL_DEVELOPMENT.md) before changing code.
 
 ## Product
-The game list has not been approved yet. Do not add a game module, mechanic, scoring rule, or game-specific node until the user approves the list. The English UI should use short copy, a minimal polished visual style, and microanimations. Prefer Flutter-drawn visuals over bundled artwork.
+Approved games are listed in `lib/games/README.md`. Do not add another game module, mechanic, scoring rule, or game-specific node until the user approves it. The English UI should use short copy, a minimal polished visual style, and microanimations. Prefer Flutter-drawn visuals over bundled artwork.
 
 ## Structure
 - `lib/main.dart`: app shell, navigation, local persistence, module dispatch.

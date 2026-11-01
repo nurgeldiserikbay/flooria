@@ -1,7 +1,13 @@
 import 'package:flutter/widgets.dart';
 
-import '../games/pattern_repeat/pattern_repeat_page.dart';
+import '../games/hue_sort/hue_sort_page.dart';
+import '../games/ice_slide/ice_slide_page.dart';
 import '../games/number_hunt/number_hunt_page.dart';
+import '../games/pattern_repeat/pattern_repeat_page.dart';
+import '../games/shape_turn/shape_turn_page.dart';
+import '../games/signal_guard/signal_guard_page.dart';
+import '../games/synapse_link/synapse_link_page.dart';
+import '../games/target_sum/target_sum_page.dart';
 
 enum GamePlayMode { neuron, standalone }
 
@@ -73,6 +79,54 @@ abstract final class GameRegistry {
       skill: 'focus',
       maxLevel: 100,
       buildPage: buildNumberHuntPage,
+    ),
+    GameDefinition(
+      id: 'hue_sort',
+      title: 'Hue Sort',
+      icon: 'hue_sort',
+      skill: 'perception',
+      maxLevel: 100,
+      buildPage: buildHueSortPage,
+    ),
+    GameDefinition(
+      id: 'synapse_link',
+      title: 'Synapse Link',
+      icon: 'synapse_link',
+      skill: 'logic',
+      maxLevel: 100,
+      buildPage: buildSynapseLinkPage,
+    ),
+    GameDefinition(
+      id: 'target_sum',
+      title: 'Target Sum',
+      icon: 'target_sum',
+      skill: 'math',
+      maxLevel: 100,
+      buildPage: buildTargetSumPage,
+    ),
+    GameDefinition(
+      id: 'ice_slide',
+      title: 'Ice Slide',
+      icon: 'ice_slide',
+      skill: 'planning',
+      maxLevel: 100,
+      buildPage: buildIceSlidePage,
+    ),
+    GameDefinition(
+      id: 'shape_turn',
+      title: 'Shape Turn',
+      icon: 'shape_turn',
+      skill: 'spatial',
+      maxLevel: 100,
+      buildPage: buildShapeTurnPage,
+    ),
+    GameDefinition(
+      id: 'signal_guard',
+      title: 'Signal Guard',
+      icon: 'signal_guard',
+      skill: 'control',
+      maxLevel: 100,
+      buildPage: buildSignalGuardPage,
     ),
   ];
 

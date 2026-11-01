@@ -4,7 +4,7 @@
 
 - `lib/main.dart` owns navigation, local preferences, progress persistence, and dispatch to game modules.
 - `lib/core/neuron_progression.dart` owns the branching node graph and progression data. It does not import Flutter.
-- `lib/core/game_registry.dart` owns approved game metadata and one screen factory per module. The catalog is empty until games are approved.
+- `lib/core/game_registry.dart` owns approved game metadata and one screen factory per module. Only approved modules are registered; the list lives in `lib/games/README.md`.
 - `lib/core/skill_progress.dart` stores only explicit 0–100 measurements returned by modules.
 - `lib/ui/neuro_map.dart`, `neuro_hub_pages.dart`, and `skill_radar.dart` render shared navigation and progression UI.
 - Shared UI is drawn with Flutter widgets and CustomPainter. There are no bundled game assets or runtime-loaded code.
