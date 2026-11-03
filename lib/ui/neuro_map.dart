@@ -499,9 +499,8 @@ class _MapAtmosphere extends StatelessWidget {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/background/neural_hex_mesh.jpg'),
-            fit: BoxFit.none,
-            repeat: ImageRepeat.repeat,
-            scale: 1,
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.high,
           ),
         ),
       ),
