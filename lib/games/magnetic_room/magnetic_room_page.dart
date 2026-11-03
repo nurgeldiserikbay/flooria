@@ -50,7 +50,7 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
                 ? const Icon(Icons.circle, color: Color(0xFF8070DB), size: 24)
                 : cell == _engine.goal ? const Icon(Icons.adjust_rounded, color: Color(0xFF65B894), size: 23)
                 : _engine.metal.contains(cell) ? const Icon(Icons.bolt_rounded, color: Color(0xFFE6B34F), size: 18)
-                : _engine.walls.contains(cell) ? const Icon(Icons.square_rounded, color: Color(0xFF656383), size: 11) : null))),
+                : _engine.walls.contains(cell) ? const Icon(Icons.square_rounded, color: Color(0xFF656383), size: 11) : null)))),
         const SizedBox(height: 9),
         _MagnetPad(onPulse: _pulse, disabled: reported),
         if (reported) Padding(padding: const EdgeInsets.all(8), child: LevelResultPanel(palette: _palette, launch: launch,

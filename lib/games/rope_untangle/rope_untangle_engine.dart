@@ -17,7 +17,8 @@ class RopeUntangleEngine {
     var count = 0;
     for (var i = 0; i < edges.length; i++) {
       for (var j = i + 1; j < edges.length; j++) {
-        final (a, b) = edges[i], (c, d) = edges[j];
+        final (a, b) = edges[i];
+        final (c, d) = edges[j];
         if (a == c || a == d || b == c || b == d) continue;
         if (_cross(positions[a], positions[b], positions[c], positions[d])) count++;
       }
@@ -83,7 +84,8 @@ class RopeUntangleEngine {
     var count = 0;
     for (var i = 0; i < edges.length; i++) {
       for (var j = i + 1; j < edges.length; j++) {
-        final (a, b) = edges[i], (c, d) = edges[j];
+        final (a, b) = edges[i];
+        final (c, d) = edges[j];
         if (a == c || a == d || b == c || b == d) continue;
         if (_cross(positions[a], positions[b], positions[c], positions[d])) count++;
       }

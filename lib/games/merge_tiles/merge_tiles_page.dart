@@ -142,7 +142,7 @@ class _TargetBadge extends StatelessWidget {
     decoration: BoxDecoration(color: const Color(0xFFE1EFD9),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: const Color(0xFF9BB88D))),
-    child: Text('GOAL  $target', style: const TextStyle(color: _palette.ink,
+    child: Text('GOAL  $target', style: TextStyle(color: _palette.ink,
       fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: .8)),
   );
 }

@@ -83,7 +83,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
               border: Border.all(color: _palette.edge, width: 2),
               boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
             child: Column(children: [
-              const Text('WHAT COMES NEXT?', style: TextStyle(color: _palette.muted,
+              Text('WHAT COMES NEXT?', style: TextStyle(color: _palette.muted,
                 fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
               const SizedBox(height: 22),
               Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center,
@@ -98,7 +98,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
                     child: ChunkyButton(onPressed: reported ? null : () => _choose(choice),
                       color: const Color(0xFFFFE5BC), edgeColor: _palette.edge,
                       padding: EdgeInsets.zero, child: Text('$choice',
-                        style: const TextStyle(color: _palette.ink,
+                        style: TextStyle(color: _palette.ink,
                           fontSize: 21, fontWeight: FontWeight.w900))))]),
             ]),
           )),

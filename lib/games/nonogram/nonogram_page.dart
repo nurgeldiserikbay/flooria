@@ -71,7 +71,7 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
                 Expanded(child: Center(child: Text(clue.join(' '), textAlign: TextAlign.center,
                   maxLines: 2, overflow: TextOverflow.clip,
                   style: TextStyle(color: _palette.muted, fontSize: 10,
-                    height: 1.05, fontWeight: FontWeight.w900))))]),
+                    height: 1.05, fontWeight: FontWeight.w900))))])),
           ]),
           Row(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(width: 44,

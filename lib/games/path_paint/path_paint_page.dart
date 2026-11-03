@@ -136,7 +136,7 @@ class _MazePainter extends CustomPainter {
         Rect.fromLTWH((i % engine.size) * cell + 2, (i ~/ engine.size) * cell + 2, cell - 4, cell - 4),
         const Radius.circular(5)), visited);
     }
-    final walls = Paint()..color = const Color(0xFF376552)..strokeWidth = max(2.0, cell * .07)..strokeCap = StrokeCap.round;
+    final walls = Paint()..color = const Color(0xFF376552)..strokeWidth = math.max(2.0, cell * .07)..strokeCap = StrokeCap.round;
     for (var i = 0; i < engine.size * engine.size; i++) {
       final x = (i % engine.size) * cell, y = (i ~/ engine.size) * cell;
       final mask = engine.walls[i];

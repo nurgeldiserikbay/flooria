@@ -92,7 +92,7 @@ class _MatchThreePageState extends State<MatchThreePage> with LevelFlow<MatchThr
                             border: Border.all(color: Colors.white.withValues(alpha: .75), width: 2),
                             boxShadow: [BoxShadow(color: color.withValues(alpha: .45), blurRadius: 5)])),
                       )),
-                );
+                ));
               },
             )),
           const SizedBox(height: 14),

@@ -75,7 +75,7 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
               ])),
           ),
           const SizedBox(height: 12),
-          Text('OPEN END  ${_engine.openValue}', style: const TextStyle(
+          Text('OPEN END  ${_engine.openValue}', style: TextStyle(
             color: _palette.muted, fontSize: 11, fontWeight: FontWeight.w900,
             letterSpacing: 1)),
           const SizedBox(height: 16),
