@@ -36,7 +36,7 @@ void main() {
       (tester) async {
     await boot(tester);
     expect(find.byType(NeuroMapView), findsOneWidget);
-    expect(find.text('0 / 50'), findsOneWidget);
+    expect(find.text('0 / 55'), findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('node_01')),
