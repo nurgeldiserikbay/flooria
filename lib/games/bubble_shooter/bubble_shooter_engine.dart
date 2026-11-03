@@ -61,7 +61,6 @@ class BubbleShooterEngine {
       final floating = _notConnectedToCeiling();
       for (final bubble in floating) { board[bubble] = null; }
       popped += floating.length;
-      poppedNow = poppedNow || floating.isNotEmpty;
     }
     isCompleted = popped >= goal;
     if (isCompleted) return BubbleShot.completed;
