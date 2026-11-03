@@ -65,7 +65,7 @@ void main() {
     }
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const ValueKey('level-clear')), findsOneWidget);
-    expect(find.text('BACK TO MAP'), findsOneWidget);
+    expect(find.text('NEXT LEVEL'), findsOneWidget);
     expect(results.single.level, 4);
     expect(results.single.metrics['logic'], 100);
     expect(tester.takeException(), isNull);
