@@ -115,12 +115,18 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       await _showSlotInfo(node);
       return;
     }
-    await _launch(module, level: node.level, mode: GamePlayMode.neuron,
-      neuronId: node.id);
+    final firstLevel = node.level.clamp(1, module.maxLevel).toInt();
+    final lastLevel = (firstLevel + 2).clamp(firstLevel, module.maxLevel).toInt();
+    final isReplay = _progress.availability(node.id) == NeuronAvailability.complete;
+    final level = isReplay
+        ? firstLevel
+        : _progress.nextNeuronLevel(node.id, firstLevel, lastLevel);
+    await _launch(module, level: level, mode: GamePlayMode.neuron,
+      neuronId: node.id, maxLevel: lastLevel);
   }
 
   Future<void> _launch(GameDefinition module, {required int level,
-      required GamePlayMode mode, String? neuronId}) async {
+      required GamePlayMode mode, String? neuronId, int? maxLevel}) async {
     if (mode == GamePlayMode.standalone &&
         !_progress.unlockedModuleIds.contains(module.id)) {
       return;
@@ -130,11 +136,12 @@ class _FlooriaHomeState extends State<FlooriaHome> {
     await Navigator.of(context).push<void>(MaterialPageRoute<void>(
       builder: (context) => module.buildPage(context, GameLaunch(
         level: level,
-        maxLevel: module.maxLevel,
+        maxLevel: maxLevel ?? module.maxLevel,
         mode: mode,
         onComplete: (result) {
           if (neuronId != null) {
-            if (!completedNeuron) {
+            _progress.recordNeuronLevel(neuronId, result.level ?? level);
+            if (result.completesNeuron && !completedNeuron) {
               completedNeuron = true;
               _progress.completeNeuron(neuronId);
             }
@@ -230,7 +237,6 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           onSettings: _showSettings,
         )),
         TickerMode(enabled: _tab == 1, child: NeuroGamesPage(
-          unlockedGameIds: _progress.unlockedModuleIds,
           bestStandaloneLevels: _progress.bestStandaloneLevels,
           favorites: _favorites,
           onFavorite: _toggleFavorite,

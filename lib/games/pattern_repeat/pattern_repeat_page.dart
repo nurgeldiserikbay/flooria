@@ -104,6 +104,8 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
           level: _currentLevel,
           score: _engine.score,
           metrics: {'memory': max(0, 100 - _engine.mistakes * 10)},
+          completesNeuron: widget.launch.mode == GamePlayMode.neuron &&
+              _currentLevel >= widget.launch.maxLevel,
         ));
       }
       return;
@@ -270,7 +272,10 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
                           ),
                           child: Text(
                             _currentLevel >= widget.launch.maxLevel
-                                ? 'FINISH' : 'NEXT LEVEL',
+                                ? widget.launch.mode == GamePlayMode.neuron
+                                    ? 'BACK TO MAP'
+                                    : 'FINISH'
+                                : 'NEXT LEVEL',
                             style: const TextStyle(fontWeight: FontWeight.w900,
                               letterSpacing: 1.1)),
                         ),

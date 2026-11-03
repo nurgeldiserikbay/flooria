@@ -128,19 +128,19 @@ class NeuroShell extends StatelessWidget {
 class NeuroGamesPage extends StatelessWidget {
   const NeuroGamesPage({super.key, required this.onTab, required this.onPlay,
     required this.favorites, required this.onFavorite,
-    required this.unlockedGameIds, required this.bestStandaloneLevels});
+    required this.bestStandaloneLevels});
   final ValueChanged<int> onTab;
   final ValueChanged<String> onPlay;
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
-  final Set<String> unlockedGameIds;
   final Map<String, int> bestStandaloneLevels;
   @override
   Widget build(BuildContext context) => NeuroShell(
     title: 'Games', tab: 1, onTab: onTab,
     child: LayoutBuilder(builder: (context, constraints) {
-      final games = GameRegistry.enabledGames.where((game) =>
-        unlockedGameIds.contains(game.id)).toList();
+      // The Games page is the QA library: show every enabled catalog entry,
+      // even when its neuron has not been reached on the progression map.
+      final games = GameRegistry.enabledGames;
       final width = constraints.maxWidth;
       if (games.isEmpty) {
         return const Center(child: Padding(

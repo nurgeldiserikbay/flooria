@@ -362,7 +362,9 @@ class LevelResultPanel extends StatelessWidget {
   final VoidCallback onReplay;
 
   String get _primaryLabel {
-    if (launch.mode == GamePlayMode.neuron) return 'BACK TO MAP';
+    if (launch.mode == GamePlayMode.neuron) {
+      return level >= launch.maxLevel ? 'BACK TO MAP' : 'NEXT LEVEL';
+    }
     return level >= launch.maxLevel ? 'FINISH' : 'NEXT LEVEL';
   }
 
@@ -534,8 +536,8 @@ class Shake extends StatelessWidget {
   );
 }
 
-/// Common level flow for modules: report a win once, then either return to
-/// the map or move on to the next standalone level.
+/// Common level flow for modules. A map node can contain several levels of its
+/// game before the completed node sends the player back to the map.
 mixin LevelFlow<T extends StatefulWidget> on State<T> {
   GameLaunch get launch;
 
@@ -550,7 +552,13 @@ mixin LevelFlow<T extends StatefulWidget> on State<T> {
   void reportWin({required int score, required Map<String, num> metrics}) {
     if (_reported) return;
     _reported = true;
-    launch.onComplete(GameResult(level: level, score: score, metrics: metrics));
+    launch.onComplete(GameResult(
+      level: level,
+      score: score,
+      metrics: metrics,
+      completesNeuron: launch.mode == GamePlayMode.neuron &&
+          level >= launch.maxLevel,
+    ));
   }
 
   void replayLevel() {
@@ -561,7 +569,7 @@ mixin LevelFlow<T extends StatefulWidget> on State<T> {
   }
 
   void nextLevel() {
-    if (launch.mode == GamePlayMode.neuron || level >= launch.maxLevel) {
+    if (level >= launch.maxLevel) {
       Navigator.of(context).maybePop();
       return;
     }

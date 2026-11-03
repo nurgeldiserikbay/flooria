@@ -57,6 +57,8 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
         level: _currentLevel,
         score: _engine.score,
         metrics: {'focus': max(0, 100 - _engine.mistakes * 8)},
+        completesNeuron: widget.launch.mode == GamePlayMode.neuron &&
+            _currentLevel >= widget.launch.maxLevel,
       ));
     }
   }
@@ -231,7 +233,9 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                           ),
                           child: Text(
                             _currentLevel >= widget.launch.maxLevel
-                                ? 'FINISH'
+                                ? widget.launch.mode == GamePlayMode.neuron
+                                    ? 'BACK TO MAP'
+                                    : 'FINISH'
                                 : 'NEXT LEVEL',
                             style: const TextStyle(
                               fontWeight: FontWeight.w900,

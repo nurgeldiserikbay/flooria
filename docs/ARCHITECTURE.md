@@ -15,7 +15,8 @@ Create `lib/games/<stable_id>/` with a pure Dart rules engine and a Flutter page
 
 - `GameLaunch.level` supplies the node or standalone level.
 - `GameLaunch.mode` distinguishes map challenges from standalone play.
-- `GameLaunch.onComplete(GameResult(...))` records a win once.
+- `GameLaunch.maxLevel` caps the current run: three levels for a map node, or the module limit in standalone play.
+- `GameLaunch.onComplete(GameResult(...))` records each cleared level once. The final map level sets `completesNeuron` so the app can unlock the next node.
 - `GameResult.score` carries the module's score; `metrics` may include an explicitly measured skill on a 0–100 scale.
 - `GameDefinition.maxLevel` caps standalone progression; `skill` selects the optional metric key.
 
@@ -23,4 +24,4 @@ Then add one `GameDefinition` to `GameRegistry.games` and assign its stable ID t
 
 ## Persistence
 
-Map completion and standalone best levels/scores are stored locally in SharedPreferences through `PlayerProgress`. Named skill measurements are stored separately through `SkillProgress`. The app has no account or backend requirement.
+Map completion, the next level within each node, and standalone best levels/scores are stored locally in SharedPreferences through `PlayerProgress`. Leaving a node before its final level preserves progress for the next visit. Named skill measurements are stored separately through `SkillProgress`. The app has no account or backend requirement.

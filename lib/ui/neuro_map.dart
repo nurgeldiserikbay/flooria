@@ -40,8 +40,8 @@ class _NeuroMapViewState extends State<NeuroMapView>
   );
   bool _positioned = false;
 
-  static const double _baseMapWidth = 390;
-  static const double _baseMapHeight = 620;
+  static const double _baseMapWidth = 640;
+  static const double _baseMapHeight = 1900;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
   // Fixed, irregular anchors avoid a repeated pattern and stay stable during rebuilds.
@@ -63,19 +63,61 @@ class _NeuroMapViewState extends State<NeuroMapView>
   ];
 
   static const _mapPositions = <String, Offset>{
-    'node_01': Offset(.50, .06),
-    'node_02': Offset(.22, .20),
-    'node_03': Offset(.78, .22),
-    'node_04': Offset(.08, .37),
-    'node_05': Offset(.40, .39),
-    'node_06': Offset(.91, .37),
-    'node_07': Offset(.10, .55),
-    'node_08': Offset(.31, .57),
-    'node_09': Offset(.69, .56),
-    'node_10': Offset(.91, .58),
-    'node_11': Offset(.31, .76),
-    'node_12': Offset(.70, .78),
-    'node_13': Offset(.50, .94),
+    'node_01': Offset(.50, .05),
+    'node_02': Offset(.22, .10),
+    'node_03': Offset(.78, .11),
+    'node_04': Offset(.08, .16),
+    'node_05': Offset(.40, .17),
+    'node_06': Offset(.91, .16),
+    'node_07': Offset(.10, .22),
+    'node_08': Offset(.31, .23),
+    'node_09': Offset(.69, .23),
+    'node_10': Offset(.91, .24),
+    'node_11': Offset(.31, .30),
+    'node_12': Offset(.70, .30),
+    'node_13': Offset(.50, .37),
+    'node_14': Offset(.22, .43),
+    'node_15': Offset(.78, .43),
+    'node_16': Offset(.50, .49),
+    'node_17': Offset(.23, .55),
+    'node_18': Offset(.77, .55),
+    'node_19': Offset(.08, .61),
+    'node_20': Offset(.29, .61),
+    'node_21': Offset(.50, .61),
+    'node_22': Offset(.71, .61),
+    'node_23': Offset(.92, .61),
+    'node_24': Offset(.08, .67),
+    'node_25': Offset(.29, .67),
+    'node_26': Offset(.50, .67),
+    'node_27': Offset(.71, .67),
+    'node_28': Offset(.92, .67),
+    'node_29': Offset(.08, .73),
+    'node_30': Offset(.29, .73),
+    'node_31': Offset(.50, .73),
+    'node_32': Offset(.71, .73),
+    'node_33': Offset(.92, .73),
+    'node_34': Offset(.08, .79),
+    'node_35': Offset(.29, .79),
+    'node_36': Offset(.50, .79),
+    'node_37': Offset(.71, .79),
+    'node_38': Offset(.92, .79),
+    'node_39': Offset(.08, .85),
+    'node_40': Offset(.29, .85),
+    'node_41': Offset(.50, .85),
+    'node_42': Offset(.71, .85),
+    'node_43': Offset(.92, .85),
+    'node_44': Offset(.08, .84),
+    'node_45': Offset(.29, .84),
+    'node_46': Offset(.50, .84),
+    'node_47': Offset(.71, .84),
+    'node_48': Offset(.92, .84),
+    'node_49': Offset(.08, .93),
+    'node_50': Offset(.29, .93),
+    'node_51': Offset(.50, .93),
+    'node_52': Offset(.71, .93),
+    'node_53': Offset(.92, .93),
+    'node_54': Offset(.37, .99),
+    'node_55': Offset(.63, .99),
   };
 
   Offset _point(NeuronNode node, double width, double height) {
