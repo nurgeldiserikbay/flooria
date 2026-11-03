@@ -26,7 +26,11 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
   void resetLevel() => _engine = TideShiftEngine.forLevel(level);
   void _step(int dr, int dc) {
     final result = _engine.step(dr, dc); setState(() {});
-    if (result == TideMove.flooded) HapticFeedback.heavyImpact(); else HapticFeedback.selectionClick();
+    if (result == TideMove.flooded) {
+      HapticFeedback.heavyImpact();
+    } else {
+      HapticFeedback.selectionClick();
+    }
     if (result == TideMove.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: const {}); }
   }
 

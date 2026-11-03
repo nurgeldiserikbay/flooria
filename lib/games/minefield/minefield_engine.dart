@@ -55,7 +55,9 @@ class MinefieldEngine {
 
   MineAction revealCell(int cell) {
     if (cell < 0 || cell >= cellCount || isCompleted || isFailed ||
-        revealed.contains(cell) || flags.contains(cell)) return MineAction.ignored;
+        revealed.contains(cell) || flags.contains(cell)) {
+      return MineAction.ignored;
+    }
     if (_firstReveal) {
       _firstReveal = false;
       final safeZone = {cell, ..._neighbors(cell)};

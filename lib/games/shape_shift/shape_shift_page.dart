@@ -29,7 +29,11 @@ class _ShapeShiftPageState extends State<ShapeShiftPage> with LevelFlow<ShapeShi
     final result = _engine.choose(shape);
     if (result == ShapeShiftResult.ignored) return;
     setState(() => _message = result == ShapeShiftResult.wrong ? 'WRONG GATE · TRY THE NEXT FORM' : 'NICE FIT!');
-    if (result == ShapeShiftResult.wrong) HapticFeedback.selectionClick(); else HapticFeedback.lightImpact();
+    if (result == ShapeShiftResult.wrong) {
+      HapticFeedback.selectionClick();
+    } else {
+      HapticFeedback.lightImpact();
+    }
     if (result == ShapeShiftResult.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: const {}); }
   }
 

@@ -24,7 +24,9 @@ class ZipRouteEngine {
       final columns = row.isEven
           ? [for (var col = 0; col < side; col++) col]
           : [for (var col = side - 1; col >= 0; col--) col];
-      for (final col in columns) solution.add(row * side + col);
+      for (final col in columns) {
+        solution.add(row * side + col);
+      }
     }
     if (safe.isEven) {
       solution.setAll(0, solution.reversed.toList());

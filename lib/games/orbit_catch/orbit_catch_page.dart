@@ -26,7 +26,11 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
   void resetLevel() => _engine = OrbitCatchEngine.forLevel(level);
   void _act(OrbitAction action) {
     final result = _engine.act(action); setState(() {});
-    if (result == OrbitMove.hitHazard) HapticFeedback.heavyImpact(); else HapticFeedback.selectionClick();
+    if (result == OrbitMove.hitHazard) {
+      HapticFeedback.heavyImpact();
+    } else {
+      HapticFeedback.selectionClick();
+    }
     if (result == OrbitMove.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: const {}); }
   }
 

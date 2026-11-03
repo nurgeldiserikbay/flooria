@@ -31,8 +31,11 @@ class RobotProgramEngine {
     var row = side - 1, col = 0;
     final path = <int>[row * side + col];
     for (final move in moves) {
-      if (move == 0) row--;
-      else col++;
+      if (move == 0) {
+        row--;
+      } else {
+        col++;
+      }
       path.add(row * side + col);
     }
     final walls = {for (var cell = 0; cell < side * side; cell++)

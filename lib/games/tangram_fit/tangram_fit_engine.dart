@@ -92,7 +92,9 @@ class TangramFitEngine {
   TangramMove placeSelected(int boardCell) {
     final selected = selectedPiece;
     if (selected == null || isCompleted || boardCell < 0 ||
-        boardCell >= side * side) return TangramMove.ignored;
+        boardCell >= side * side) {
+      return TangramMove.ignored;
+    }
     final anchor = Point<int>(boardCell % side, boardCell ~/ side);
     final cells = _boardCells(selected, anchor);
     if (cells.any((cell) => !targetCells.contains(cell)) ||

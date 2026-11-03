@@ -21,8 +21,12 @@ class NumberMazeEngine {
     final safe = max(1, level).toInt();
     final random = Random(safe * 27103 + 23);
     final values = [for (var i = 0; i < side * side; i++) random.nextInt(7) - 3];
-    for (var col = 1; col < side; col++) values[col] = 2;
-    for (var row = 1; row < side; row++) values[row * side + side - 1] = 2;
+    for (var col = 1; col < side; col++) {
+      values[col] = 2;
+    }
+    for (var row = 1; row < side; row++) {
+      values[row * side + side - 1] = 2;
+    }
     values[0] = 0;
     return NumberMazeEngine._(
       safe, values, max(2, 9 - (safe - 1) ~/ 12).toInt(), [0]);

@@ -30,7 +30,9 @@ class RailRouterEngine {
 
   RailAction toggle(int train) {
     if (isCompleted || isFailed || train < 0 || train >= 2 || passed[train] ||
-        time >= baseArrival) return RailAction.ignored;
+        time >= baseArrival) {
+      return RailAction.ignored;
+    }
     diverted[train] = !diverted[train];
     return RailAction.switched;
   }

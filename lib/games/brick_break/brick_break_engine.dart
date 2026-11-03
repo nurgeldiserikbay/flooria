@@ -60,7 +60,9 @@ class BrickBreakEngine {
       final row = index ~/ columns, col = index % columns;
       final left = .04 + col * brickWidth, top = .12 + row * (brickHeight + .014);
       if (ballX + radius < left || ballX - radius > left + brickWidth - .012 ||
-          ballY + radius < top || ballY - radius > top + brickHeight) continue;
+          ballY + radius < top || ballY - radius > top + brickHeight) {
+        continue;
+      }
       _alive.remove(index);
       score += 10;
       _vy = -_vy;

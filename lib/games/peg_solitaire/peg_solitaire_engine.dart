@@ -49,7 +49,9 @@ class PegSolitaireEngine {
             final source = sourceRow * side + sourceCol;
             final middle = middleRow * side + middleCol;
             if (!isValidCell(source) || !isValidCell(middle) ||
-                candidate[source] != 0 || candidate[middle] != 0) continue;
+                candidate[source] != 0 || candidate[middle] != 0) {
+              continue;
+            }
             reverseMoves.add((source, middle, dest));
           }
         }
@@ -73,7 +75,9 @@ class PegSolitaireEngine {
 
   PegMove tap(int cell) {
     if (isCompleted || isFailed || cell < 0 || cell >= board.length ||
-        !isValidCell(cell)) return PegMove.ignored;
+        !isValidCell(cell)) {
+      return PegMove.ignored;
+    }
     final source = _selected;
     if (source == null) {
       if (board[cell] == 0) return PegMove.ignored;
@@ -123,7 +127,9 @@ class PegSolitaireEngine {
         final target = nr * side + nc;
         final middle = (row + dr ~/ 2) * side + col + dc ~/ 2;
         if (isValidCell(target) && isValidCell(middle) &&
-            board[target] == 0 && board[middle] == 1) return true;
+            board[target] == 0 && board[middle] == 1) {
+          return true;
+        }
       }
     }
     return false;

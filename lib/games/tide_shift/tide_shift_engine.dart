@@ -20,8 +20,12 @@ class TideShiftEngine {
     final safe = max(1, level).toInt();
     final heights = List<int>.generate(side * side, (i) => ((i * 7 + safe * 3) % 3));
     // A guaranteed raised causeway runs along the bottom, then up the east edge.
-    for (var col = 0; col < side; col++) heights[30 + col] = 4;
-    for (var row = 0; row < side; row++) heights[row * side + 5] = 4;
+    for (var col = 0; col < side; col++) {
+      heights[30 + col] = 4;
+    }
+    for (var row = 0; row < side; row++) {
+      heights[row * side + 5] = 4;
+    }
     return TideShiftEngine._(safe, heights, 30, 5);
   }
 
