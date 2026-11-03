@@ -229,10 +229,21 @@ class _NeuroMapViewState extends State<NeuroMapView>
                           opacity: fog.$5,
                           child: Transform.rotate(
                             angle: fog.$6,
-                            child: Image.asset(
-                              fog.$2,
-                              fit: BoxFit.fill,
-                              filterQuality: FilterQuality.medium,
+                            child: ShaderMask(
+                              blendMode: BlendMode.dstIn,
+                              shaderCallback: (bounds) => RadialGradient(
+                                colors: [
+                                  Colors.white,
+                                  Colors.white.withValues(alpha: .72),
+                                  Colors.transparent,
+                                ],
+                                stops: const [0, .56, 1],
+                              ).createShader(bounds),
+                              child: Image.asset(
+                                fog.$2,
+                                fit: BoxFit.fill,
+                                filterQuality: FilterQuality.medium,
+                              ),
                             ),
                           ),
                         ),
