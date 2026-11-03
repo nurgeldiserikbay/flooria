@@ -231,7 +231,7 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
             padding: const EdgeInsets.symmetric(horizontal: 18),
             scrollDirection: Axis.horizontal,
             itemCount: filters.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final skill = filters[index];
               final selected = _selectedSkill == skill;
