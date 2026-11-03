@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../core/skill_progress.dart';
 import '../core/game_registry.dart';
@@ -125,7 +127,7 @@ class NeuroShell extends StatelessWidget {
   );
 }
 
-class NeuroGamesPage extends StatelessWidget {
+class NeuroGamesPage extends StatefulWidget {
   const NeuroGamesPage({super.key, required this.onTab, required this.onPlay,
     required this.favorites, required this.onFavorite,
     required this.bestStandaloneLevels});
@@ -134,15 +136,47 @@ class NeuroGamesPage extends StatelessWidget {
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
   final Map<String, int> bestStandaloneLevels;
+
+  @override
+  State<NeuroGamesPage> createState() => _NeuroGamesPageState();
+}
+
+class _NeuroGamesPageState extends State<NeuroGamesPage> {
+  String _selectedSkill = 'all';
+
+  static const _skillLabels = <String, String>{
+    'all': 'All games',
+    'memory': 'Memory',
+    'focus': 'Focus',
+    'logic': 'Logic',
+    'math': 'Numbers',
+    'control': 'Reflexes',
+    'planning': 'Strategy',
+    'spatial': 'Shapes',
+    'perception': 'Colors',
+  };
+
+  void _surprise(List<GameDefinition> games) {
+    if (games.isEmpty) {
+      return;
+    }
+    widget.onPlay(games[math.Random().nextInt(games.length)].id);
+  }
+
   @override
   Widget build(BuildContext context) => NeuroShell(
-    title: 'Games', tab: 1, onTab: onTab,
+    title: 'Games', tab: 1, onTab: widget.onTab,
     child: LayoutBuilder(builder: (context, constraints) {
       // The Games page is the QA library: show every enabled catalog entry,
       // even when its neuron has not been reached on the progression map.
-      final games = GameRegistry.enabledGames;
+      final allGames = GameRegistry.enabledGames;
+      final skills = allGames.map((game) => game.skill).toSet().toList()..sort();
+      final filters = ['all', ...skills];
+      final games = _selectedSkill == 'all'
+          ? allGames
+          : allGames.where((game) => game.skill == _selectedSkill).toList();
       final width = constraints.maxWidth;
-      if (games.isEmpty) {
+      if (allGames.isEmpty) {
         return const Center(child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 32),
           child: Text('Games appear here after the game list is approved.',
@@ -150,71 +184,158 @@ class NeuroGamesPage extends StatelessWidget {
             style: TextStyle(color: neuroMuted, fontWeight: FontWeight.w700)),
         ));
       }
-      return GridView.builder(
-        padding: const EdgeInsets.fromLTRB(18, 22, 18, 28),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: width >= 500 ? 3 : 2,
-          mainAxisSpacing: 14, crossAxisSpacing: 14,
-          childAspectRatio: 1.02),
-        itemCount: games.length,
-        itemBuilder: (context, index) {
-          final entry = games[index];
-          final level = (bestStandaloneLevels[entry.id] ?? 0) + 1;
-          final accent = GameGlyphs.colorFor(entry.id);
-          return Semantics(
-            label: '${entry.title}, level $level',
-            button: true,
-            child: Material(
+      return Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+          child: Row(children: [
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Choose a game', style: TextStyle(
+                  color: neuroText, fontSize: 19, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 2),
+                Text('${allGames.length} games to explore', style: const TextStyle(
+                  color: neuroMuted, fontSize: 12, fontWeight: FontWeight.w700)),
+              ],
+            )),
+            Material(
               color: Colors.transparent,
               child: InkWell(
-                borderRadius: BorderRadius.circular(23),
-                onTap: () => onPlay(entry.id),
+                borderRadius: BorderRadius.circular(18),
+                onTap: () => _surprise(games),
                 child: Ink(
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEFFFF),
-                    borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: const Color(0xFFD9E2F3)),
-                    boxShadow: const [BoxShadow(color: Color(0x142D477B),
-                      blurRadius: 14, offset: Offset(0, 5))],
+                    gradient: const LinearGradient(colors: [
+                      Color(0xFFFFE6A8), Color(0xFFFFCBB5),
+                    ]),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFE9B96E)),
+                    boxShadow: const [BoxShadow(color: Color(0x22A96949),
+                      blurRadius: 8, offset: Offset(0, 3))],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(13),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: [
-                          GameGlyph(gameId: entry.id, size: 58),
-                          const Spacer(),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () => onFavorite(entry.id),
-                            icon: Icon(favorites.contains(entry.id)
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                              color: favorites.contains(entry.id)
-                                ? const Color(0xFFE98F9C)
-                                : const Color(0xFFB7C1D4),
-                              size: 20),
-                          ),
+                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.casino_rounded, color: Color(0xFF8A5C37), size: 18),
+                    SizedBox(width: 6),
+                    Text('Surprise me', style: TextStyle(color: Color(0xFF734B32),
+                      fontSize: 12, fontWeight: FontWeight.w900)),
+                  ]),
+                ),
+              ),
+            ),
+          ]),
+        ),
+        SizedBox(
+          height: 42,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            scrollDirection: Axis.horizontal,
+            itemCount: filters.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final skill = filters[index];
+              final selected = _selectedSkill == skill;
+              return ChoiceChip(
+                label: Text(_skillLabels[skill] ?? skill),
+                selected: selected,
+                showCheckmark: false,
+                onSelected: (_) => setState(() => _selectedSkill = skill),
+                labelStyle: TextStyle(
+                  color: selected ? Colors.white : neuroText,
+                  fontSize: 12, fontWeight: FontWeight.w800),
+                backgroundColor: const Color(0xDFFFFFFF),
+                selectedColor: neuroAccent,
+                side: BorderSide(color: selected
+                    ? neuroAccent : const Color(0xFFD6E0F2)),
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(child: GridView.builder(
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: width >= 820 ? 4 : width >= 500 ? 3 : 2,
+            mainAxisSpacing: 14, crossAxisSpacing: 14,
+            childAspectRatio: width >= 820 ? 1.18 : 1.02),
+          itemCount: games.length,
+          itemBuilder: (context, index) {
+            final entry = games[index];
+            final level = (widget.bestStandaloneLevels[entry.id] ?? 0) + 1;
+            final accent = GameGlyphs.colorFor(entry.id);
+            final favorite = widget.favorites.contains(entry.id);
+            return Semantics(
+              label: '${entry.title}, ${_skillLabels[entry.skill] ?? entry.skill}, level $level',
+              button: true,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(25),
+                  onTap: () => widget.onPlay(entry.id),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(begin: Alignment.topLeft,
+                        end: Alignment.bottomRight, colors: [
+                          Colors.white,
+                          Color.alphaBlend(accent.withValues(alpha: .09), Colors.white),
                         ]),
-                        const Spacer(),
-                        Text(entry.title, maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: neuroText,
-                            fontSize: 15, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 5),
-                        Text('LEVEL $level', style: TextStyle(
-                          color: accent, fontSize: 10,
-                          fontWeight: FontWeight.w900, letterSpacing: 1.1)),
-                      ],
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(color: accent.withValues(alpha: .28), width: 1.4),
+                      boxShadow: [BoxShadow(color: accent.withValues(alpha: .10),
+                        blurRadius: 15, offset: const Offset(0, 5))],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(13),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            GameGlyph(gameId: entry.id, size: 62),
+                            const Spacer(),
+                            IconButton(
+                              tooltip: favorite ? 'Remove favorite' : 'Add favorite',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => widget.onFavorite(entry.id),
+                              icon: Icon(favorite
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                                color: favorite
+                                  ? const Color(0xFFE66C8D)
+                                  : const Color(0xFF9BA9C2),
+                                size: 21),
+                            ),
+                          ]),
+                          const Spacer(),
+                          Text(entry.title, maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: neuroText,
+                              fontSize: 15, fontWeight: FontWeight.w900)),
+                          const SizedBox(height: 7),
+                          Row(children: [
+                            Container(width: 7, height: 7,
+                              decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
+                            const SizedBox(width: 5),
+                            Expanded(child: Text(
+                              (_skillLabels[entry.skill] ?? entry.skill).toUpperCase(),
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: neuroMuted, fontSize: 9,
+                                fontWeight: FontWeight.w900, letterSpacing: .8))),
+                            Text('LEVEL $level', style: TextStyle(color: neuroMuted,
+                              fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: .5)),
+                          ]),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        )),
+      ]);
     }),
   );
 }

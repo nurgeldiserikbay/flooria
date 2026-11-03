@@ -178,51 +178,89 @@ class GameScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: palette.ground,
-    body: SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-              child: Row(children: [
-                ChunkyIconButton(
-                  icon: Icons.arrow_back_rounded,
-                  tooltip: 'Back',
-                  palette: palette,
-                  onPressed: () => Navigator.of(context).maybePop(),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(title.toUpperCase(),
-                        key: titleKey,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: palette.ink, fontSize: 16,
-                          fontWeight: FontWeight.w900, letterSpacing: 1.1)),
-                      const SizedBox(height: 2),
-                      Text('LEVEL $level',
-                        style: TextStyle(color: palette.muted, fontSize: 11,
-                          fontWeight: FontWeight.w800, letterSpacing: 1.3)),
-                    ],
+    body: Stack(fit: StackFit.expand, children: [
+      DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [palette.ground, Colors.white, palette.ground],
+      ))),
+      Positioned(top: 74, right: -82,
+        child: _GameOrb(size: 230, color: palette.accent)),
+      Positioned(bottom: 62, left: -84,
+        child: _GameOrb(size: 210, color: palette.success)),
+      SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+                child: Row(children: [
+                  ChunkyIconButton(
+                    icon: Icons.arrow_back_rounded,
+                    tooltip: 'Back',
+                    palette: palette,
+                    onPressed: () => Navigator.of(context).maybePop(),
                   ),
-                ),
-                for (final action in actions) ...[
-                  const SizedBox(width: 8),
-                  action,
-                ],
-              ]),
-            ),
-            Expanded(child: child),
-          ]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(title,
+                          key: titleKey,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: palette.ink, fontSize: 17,
+                            fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: palette.accent.withValues(alpha: .12),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: palette.accent.withValues(alpha: .25)),
+                          ),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(Icons.star_rounded, color: palette.ink, size: 13),
+                            const SizedBox(width: 3),
+                            Text('LEVEL $level', style: TextStyle(
+                              color: palette.ink, fontSize: 9,
+                              fontWeight: FontWeight.w900, letterSpacing: .8)),
+                          ]),
+                        ),
+                      ],
+                    ),
+                  ),
+                  for (final action in actions) ...[
+                    const SizedBox(width: 8),
+                    action,
+                  ],
+                ]),
+              ),
+              Expanded(child: child),
+            ]),
+          ),
         ),
       ),
-    ),
+    ]),
   );
+}
+
+class _GameOrb extends StatelessWidget {
+  const _GameOrb({required this.size, required this.color});
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(child: Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(
+      colors: [color.withValues(alpha: .14), color.withValues(alpha: 0)],
+    )),
+  ));
 }
 
 /// A row of discrete progress segments, one per round or target.
@@ -369,9 +407,27 @@ class LevelResultPanel extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => _PanelShell(
-    palette: palette,
-    child: Column(mainAxisSize: MainAxisSize.min, children: [
+  Widget build(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    alignment: Alignment.center,
+    children: [
+      Positioned(
+        top: -34,
+        left: 0,
+        right: 0,
+        height: 64,
+        child: IgnorePointer(child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 820),
+          curve: Curves.easeOutCubic,
+          builder: (context, progress, _) => CustomPaint(
+            painter: _CelebrationPainter(progress),
+          ),
+        )),
+      ),
+      _PanelShell(
+        palette: palette,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
       Row(mainAxisAlignment: MainAxisAlignment.center, children: [
         for (var i = 0; i < 3; i++)
           Padding(
@@ -424,8 +480,49 @@ class LevelResultPanel extends StatelessWidget {
           ),
         ),
       ]),
-    ]),
+        ]),
+      ),
+    ],
   );
+}
+
+class _CelebrationPainter extends CustomPainter {
+  const _CelebrationPainter(this.progress);
+  final double progress;
+
+  static const _colors = [
+    Color(0xFFFFC857), Color(0xFFFF8D78), Color(0xFF63CDB0),
+    Color(0xFF7E9EFF), Color(0xFFC28BF3),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final opacity = (1 - progress * .8).clamp(0.0, 1.0).toDouble();
+    final origin = Offset(size.width / 2, size.height * .86);
+    for (var i = 0; i < 18; i++) {
+      final side = i.isEven ? -1.0 : 1.0;
+      final spread = (i ~/ 2 + 1) / 9;
+      final dx = side * (8 + size.width * .42 * spread) * progress;
+      final dy = -(12 + (i % 5) * 8) * progress;
+      final center = origin + Offset(dx, dy);
+      final paint = Paint()..color = _colors[i % _colors.length].withValues(alpha: opacity);
+      if (i % 3 == 0) {
+        canvas.drawCircle(center, 2.4 + (i % 2), paint);
+      } else {
+        canvas.save();
+        canvas.translate(center.dx, center.dy);
+        canvas.rotate((i - 8) * .19 * progress);
+        canvas.drawRRect(RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset.zero, width: 4, height: 8),
+          const Radius.circular(1.5)), paint);
+        canvas.restore();
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CelebrationPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 /// Shown when a level can be failed; the player retries the same level.

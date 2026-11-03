@@ -226,7 +226,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
+            constraints: const BoxConstraints(maxWidth: 1040),
             child: IndexedStack(index: _tab, children: [
         TickerMode(enabled: _tab == 0, child: NeuroMapView(
           completedNeurons: _progress.completedNeurons,
