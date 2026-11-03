@@ -223,11 +223,21 @@ class _FlooriaHomeState extends State<FlooriaHome> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1040),
-            child: IndexedStack(index: _tab, children: [
+      body: DecoratedBox(
+        decoration: const BoxDecoration(gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF0F7FF), Color(0xFFF4F0FF), Color(0xFFFFF3EA)],
+        )),
+        child: SafeArea(
+          child: LayoutBuilder(builder: (context, constraints) {
+            final contentWidth = constraints.maxWidth < 1040
+                ? constraints.maxWidth : 1040.0;
+            return Center(
+              child: SizedBox(
+                width: contentWidth,
+                height: constraints.maxHeight,
+                child: IndexedStack(index: _tab, children: [
         TickerMode(enabled: _tab == 0, child: NeuroMapView(
           completedNeurons: _progress.completedNeurons,
           motionEnabled: _motionEnabled,
@@ -254,8 +264,10 @@ class _FlooriaHomeState extends State<FlooriaHome> {
           ratings: _skills.ratings,
           onTab: (index) => setState(() => _tab = index),
         )),
-            ]),
-          ),
+                ]),
+              ),
+            );
+          }),
         ),
       ),
     );
