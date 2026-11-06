@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/game_registry.dart';
+import '../../ui/game_kit.dart';
 import 'pattern_repeat_engine.dart';
 
 const _ink = Color(0xFF273D75);
@@ -263,13 +264,12 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
                       SizedBox(
                         width: double.infinity,
                         height: 54,
-                        child: FilledButton(
+                        child: ChunkyButton(
                           onPressed: _continueAfterLevel,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _accent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18)),
-                          ),
+                          color: _accent,
+                          radius: 18,
+                          padding: EdgeInsets.zero,
+                          semanticLabel: 'Continue after level',
                           child: Text(
                             _currentLevel >= widget.launch.maxLevel
                                 ? widget.launch.mode == GamePlayMode.neuron
@@ -339,18 +339,29 @@ class _PatternPad extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 130),
           decoration: BoxDecoration(
-            color: active ? color : color.withValues(alpha: .48),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.lerp(color, Colors.white, active ? .48 : .28)!,
+                color,
+              ],
+            ),
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
               color: wrong ? const Color(0xFFE35C66)
-                  : active ? Colors.white : color.withValues(alpha: .2),
-              width: wrong || active ? 3 : 1,
+                  : active ? Colors.white : GamePalette.shade(color, .16),
+              width: wrong || active ? 3 : 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: active ? .35 : .11),
-                blurRadius: active ? 18 : 7,
+                color: GamePalette.shade(color, .2).withValues(alpha: .7),
                 offset: const Offset(0, 5),
+              ),
+              if (active) BoxShadow(
+                color: color.withValues(alpha: .35),
+                blurRadius: 18,
+                spreadRadius: 3,
               ),
             ],
           ),
