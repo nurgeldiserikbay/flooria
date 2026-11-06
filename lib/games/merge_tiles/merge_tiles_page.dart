@@ -151,7 +151,7 @@ class _TargetBadge extends StatelessWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.value});
+  const _Tile({super.key, required this.value});
   final int value;
   static Color _color(int value) => switch (value) {
     0 => const Color(0xFFD8CCBD),
