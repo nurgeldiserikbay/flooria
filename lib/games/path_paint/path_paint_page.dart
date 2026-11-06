@@ -102,6 +102,7 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
         const SizedBox(height: 10),
         SizedBox(width: boardSide, height: boardSide,
           child: GestureDetector(
+            key: const ValueKey('path-paint-board'),
             onPanStart: (d) {
               final cell = _cellAt(d.localPosition, boardSide);
               if (cell == _engine.start) {
