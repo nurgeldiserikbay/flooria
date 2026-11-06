@@ -68,12 +68,27 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               StatChip(label: 'TRAINS', value: '${_engine.passed.where((x) => x).length}/2', palette: _palette),
             ])),
           const SizedBox(height: 12),
-          Container(width: size, height: size, padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: const Color(0xFFD8E8E1),
+          Container(
+            key: const ValueKey('rail-board'),
+            width: size, height: size, padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFF0FAF4), Color(0xFFD0E7DF)],
+              ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _palette.edge, width: 2),
               boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-            child: CustomPaint(painter: _RailPainter(_engine)),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: _engine.time.toDouble()),
+              duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                  ? Duration.zero : const Duration(milliseconds: 340),
+              curve: Curves.easeInOutCubic,
+              builder: (context, visualTime, _) => CustomPaint(
+                painter: _RailPainter(_engine, visualTime: visualTime),
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           for (var train = 0; train < 2; train++)
@@ -120,44 +135,128 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
 }
 
 class _RailPainter extends CustomPainter {
-  const _RailPainter(this.engine);
+  const _RailPainter(this.engine, {required this.visualTime});
   final RailRouterEngine engine;
+  final double visualTime;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final rail = Paint()..color = const Color(0xFF73857F)..strokeWidth = 11
+    final rail = Paint()
+      ..color = const Color(0xFF627F75)
+      ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
-    final inner = Paint()..color = const Color(0xFFEAF1ED)..strokeWidth = 4
+    final stripe = Paint()
+      ..color = const Color(0xFFDDECE4)
+      ..strokeWidth = 5
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), rail);
-    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), rail);
-    canvas.drawLine(Offset(0, center.dy), Offset(size.width, center.dy), inner);
-    canvas.drawLine(Offset(center.dx, 0), Offset(center.dx, size.height), inner);
+    final sleeper = Paint()
+      ..color = const Color(0xAA849A89)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    // Sleepers make the crossing read as railway tracks rather than lines.
+    for (var i = 1; i < 12; i++) {
+      final p = i * size.width / 12;
+      canvas.drawLine(Offset(p, center.dy - 9),
+          Offset(p, center.dy + 9), sleeper);
+      canvas.drawLine(Offset(center.dx - 9, p),
+          Offset(center.dx + 9, p), sleeper);
+    }
+    canvas.drawLine(Offset(0, center.dy),
+        Offset(size.width, center.dy), rail);
+    canvas.drawLine(Offset(center.dx, 0),
+        Offset(center.dx, size.height), rail);
+    canvas.drawLine(Offset(0, center.dy),
+        Offset(size.width, center.dy), stripe);
+    canvas.drawLine(Offset(center.dx, 0),
+        Offset(center.dx, size.height), stripe);
+
     final bypass = Path()
       ..moveTo(center.dx, center.dy)
-      ..cubicTo(center.dx + size.width * .28, center.dy - size.height * .36,
-        center.dx + size.width * .28, center.dy + size.height * .36,
+      ..cubicTo(center.dx + size.width * .28,
+        center.dy - size.height * .36,
+        center.dx + size.width * .28,
+        center.dy + size.height * .36,
         center.dx, center.dy);
-    canvas.drawPath(bypass, Paint()..color = const Color(0xFF5AAE92)
-      ..style = PaintingStyle.stroke..strokeWidth = 7);
-    canvas.drawCircle(center, 19, Paint()..color = const Color(0xFFFFD879));
+    canvas.drawPath(bypass, Paint()
+      ..color = const Color(0xFF4AA888)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round);
+    canvas.drawPath(bypass, Paint()
+      ..color = const Color(0xFFC6F0DC)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3);
+    final danger = engine.isFailed;
+    canvas.drawCircle(center, 19,
+        Paint()..color = danger
+            ? const Color(0xFFF5A2A3) : const Color(0xFFFFE6A6));
+    canvas.drawCircle(center, 10,
+        Paint()..color = danger
+            ? const Color(0xFFE55E64) : const Color(0xFFFFC86E));
+
     for (var train = 0; train < 2; train++) {
-      final progress = (engine.time / engine.arrivals[train]).clamp(0.0, 1.0).toDouble();
+      if (engine.passed[train]) continue;
+      final progress = (visualTime / engine.arrivals[train])
+          .clamp(0.0, 1.0).toDouble();
       Offset point;
       if (!engine.diverted[train]) {
         point = train == 0
-          ? Offset(size.width * progress, center.dy)
-          : Offset(center.dx, size.height * progress);
+            ? Offset(size.width * progress, center.dy)
+            : Offset(center.dx, size.height * progress);
       } else if (train == 0) {
-        point = Offset(size.width * progress, center.dy - sin(progress * pi) * size.height * .28);
+        point = Offset(size.width * progress,
+          center.dy - sin(progress * pi) * size.height * .28);
       } else {
-        point = Offset(center.dx + sin(progress * pi) * size.width * .28, size.height * progress);
+        point = Offset(center.dx + sin(progress * pi) * size.width * .28,
+          size.height * progress);
       }
-      canvas.drawCircle(point, 13, Paint()..color = _trainColors[train]);
-      canvas.drawCircle(point, 13, Paint()..color = Colors.white
-        ..style = PaintingStyle.stroke..strokeWidth = 2);
+      canvas.save();
+      canvas.translate(point.dx, point.dy);
+      if (train == 1) canvas.rotate(pi / 2);
+      final wagon = RRect.fromRectAndRadius(
+        const Rect.fromLTWH(-16, -10, 32, 20),
+        const Radius.circular(7),
+      );
+      canvas.drawRRect(
+        wagon.shift(const Offset(0, 3)),
+        Paint()..color = GamePalette.shade(_trainColors[train], .22),
+      );
+      canvas.drawRRect(
+        wagon,
+        Paint()..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(_trainColors[train], Colors.white, .3)!,
+            _trainColors[train],
+          ],
+        ).createShader(wagon.outerRect),
+      );
+      canvas.drawRRect(wagon, Paint()
+        ..color = Colors.white
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke);
+      for (final offset in const [-7.0, 5.0]) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset(offset, -2),
+              width: 8, height: 7),
+            const Radius.circular(2),
+          ),
+          Paint()..color = const Color(0xFFDDF4FF),
+        );
+      }
+      canvas.drawCircle(const Offset(15, 0), 2.4,
+          Paint()..color = const Color(0xFFFFF0A4));
+      canvas.restore();
     }
   }
+
   @override
-  bool shouldRepaint(covariant _RailPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _RailPainter oldDelegate) =>
+      oldDelegate.visualTime != visualTime ||
+      oldDelegate.engine != engine ||
+      engine.time > 0;
 }
