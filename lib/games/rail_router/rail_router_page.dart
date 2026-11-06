@@ -68,7 +68,7 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               StatChip(label: 'TICK', value: '${_engine.time}', palette: _palette),
               StatChip(label: 'TRAINS', value: '${_engine.passed.where((x) => x).length}/2', palette: _palette),
             ])),
-          const SizedBox(height: 9),
+          const SizedBox(height: 6),
           Container(
             key: const ValueKey('rail-board'),
             width: size, height: size, padding: const EdgeInsets.all(12),
@@ -91,10 +91,10 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               ),
             ),
           ),
-          const SizedBox(height: 9),
+          const SizedBox(height: 6),
           if (!reported && !_engine.isFailed)
             for (var train = 0; train < 2; train++)
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 3),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
               child: ChunkyButton(
                 onPressed: reported || _engine.isFailed ? null : () => _switch(train),
                 color: _engine.diverted[train] ? _trainColors[train] : Colors.white,
