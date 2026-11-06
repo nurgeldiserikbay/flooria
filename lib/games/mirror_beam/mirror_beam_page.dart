@@ -99,6 +99,7 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
                             ),
                           )
                         : null),
+                  ),
                 ),
               );
             }),
@@ -117,6 +118,7 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
               ),
             ),
           ]),
+        ),
         const SizedBox(height: 14),
         if (reported)
           Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: LevelResultPanel(palette: _palette,
