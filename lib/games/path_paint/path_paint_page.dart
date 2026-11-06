@@ -27,6 +27,8 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
   bool _drawing = false;
   bool _blocked = false;
   Offset? _lastPoint;
+  final List<int> _stroke = [];
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -37,6 +39,8 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
     _drawing = false;
     _blocked = false;
     _lastPoint = null;
+    _stroke.clear();
+    _blockedPulse = 0;
   }
 
   int? _cellAt(Offset local, double side) {
@@ -51,7 +55,14 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
     if (!_drawing || cell == null || reported) return;
     final result = _engine.moveTo(cell);
     if (result == PaintMove.ignored) return;
-    setState(() => _blocked = result == PaintMove.blocked);
+    setState(() {
+      _blocked = result == PaintMove.blocked;
+      if (_blocked) {
+        _blockedPulse++;
+      } else if (_stroke.isEmpty || _stroke.last != _engine.position) {
+        _stroke.add(_engine.position);
+      }
+    });
     if (result == PaintMove.blocked) {
       HapticFeedback.selectionClick();
     } else if (result == PaintMove.completed) {
@@ -91,20 +102,38 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
           style: TextStyle(color: _palette.muted, fontWeight: FontWeight.w900,
             fontSize: 11, letterSpacing: 1.4)),
         const SizedBox(height: 10),
-        SizedBox(width: boardSide, height: boardSide,
-          child: GestureDetector(
+        Shake(
+          trigger: _blockedPulse,
+          child: SizedBox(
+            width: boardSide,
+            height: boardSide,
+            child: GestureDetector(
             onPanStart: (d) {
               final cell = _cellAt(d.localPosition, boardSide);
               if (cell == _engine.start) {
-                setState(() { _drawing = true; _lastPoint = d.localPosition; });
+                setState(() {
+                  _drawing = true;
+                  _lastPoint = d.localPosition;
+                  _stroke
+                    ..clear()
+                    ..add(_engine.start);
+                });
               }
               _move(cell);
             },
             onPanUpdate: (d) => _trace(d.localPosition, boardSide),
             onPanEnd: (_) => setState(() { _drawing = false; _lastPoint = null; }),
-            child: CustomPaint(painter: _MazePainter(_engine,
-              blocked: _blocked, drawing: _drawing)),
-          )),
+              child: CustomPaint(
+                painter: _MazePainter(
+                  _engine,
+                  blocked: _blocked,
+                  drawing: _drawing,
+                  trace: _stroke,
+                ),
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 14),
         Text(reported ? 'Nice route!' : _blocked ? 'That wall is closed.' : 'Press and keep holding. Paint the path.',
           textAlign: TextAlign.center, style: TextStyle(color: _palette.ink,
@@ -122,19 +151,69 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
 }
 
 class _MazePainter extends CustomPainter {
-  const _MazePainter(this.engine, {required this.blocked, required this.drawing});
+  const _MazePainter(this.engine, {
+    required this.blocked,
+    required this.drawing,
+    required this.trace,
+  });
   final PathPaintEngine engine;
   final bool blocked, drawing;
+  final List<int> trace;
   @override
   void paint(Canvas canvas, Size size) {
     final cell = size.width / engine.size;
-    final bg = Paint()..color = const Color(0xFFDCEDE3);
-    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(16)), bg);
+    final board = Offset.zero & size;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        board.shift(const Offset(0, 4)),
+        const Radius.circular(18),
+      ),
+      Paint()..color = const Color(0xFF9ABCA9),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(board, const Radius.circular(17)),
+      Paint()..shader = const LinearGradient(
+        colors: [Color(0xFFF1FFF3), Color(0xFFD5EBDC)],
+      ).createShader(board),
+    );
     final visited = Paint()..color = const Color(0xFF9DE0BE);
     for (final i in engine.paintedCells) {
       canvas.drawRRect(RRect.fromRectAndRadius(
         Rect.fromLTWH((i % engine.size) * cell + 2, (i ~/ engine.size) * cell + 2, cell - 4, cell - 4),
         const Radius.circular(5)), visited);
+    }
+    if (trace.isNotEmpty) {
+      final path = Path();
+      for (var i = 0; i < trace.length; i++) {
+        final step = trace[i];
+        final center = Offset(
+          (step % engine.size + .5) * cell,
+          (step ~/ engine.size + .5) * cell,
+        );
+        if (i == 0) {
+          path.moveTo(center.dx, center.dy);
+        } else {
+          path.lineTo(center.dx, center.dy);
+        }
+      }
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xAA36BC85)
+          ..strokeWidth = cell * .38
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..style = PaintingStyle.stroke,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0x55FFFFFF)
+          ..strokeWidth = cell * .105
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..style = PaintingStyle.stroke,
+      );
     }
     final walls = Paint()..color = const Color(0xFF376552)..strokeWidth = math.max(2.0, cell * .07)..strokeCap = StrokeCap.round;
     for (var i = 0; i < engine.size * engine.size; i++) {
