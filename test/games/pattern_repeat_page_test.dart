@@ -66,11 +66,13 @@ void main() {
 
     await finishLevel(1);
     expect(completedLevels, [1]);
+    expect(find.byKey(const ValueKey('level-clear')), findsOneWidget);
     expect(find.text('NEXT LEVEL'), findsOneWidget);
 
     await tester.tap(find.text('NEXT LEVEL'));
     await tester.pump();
-    expect(find.text('Pattern  ·  2'), findsOneWidget);
+    expect(find.text('Pattern Repeat'), findsOneWidget);
+    expect(find.text('LEVEL 2'), findsOneWidget);
     expect(find.text('STEP 0 OF 4'), findsOneWidget);
 
     await finishLevel(2);
