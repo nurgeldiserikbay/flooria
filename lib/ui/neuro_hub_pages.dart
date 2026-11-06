@@ -270,12 +270,9 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
             return Semantics(
               label: '${entry.title}, ${_skillLabels[entry.skill] ?? entry.skill}, level $level',
               button: true,
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(25),
-                  onTap: () => widget.onPlay(entry.id),
-                  child: Ink(
+              child: _GameCardPress(
+                onTap: () => widget.onPlay(entry.id),
+                child: Ink(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(begin: Alignment.topLeft,
                         end: Alignment.bottomRight, colors: [
@@ -330,7 +327,6 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                       ),
                     ),
                   ),
-                ),
               ),
             );
           },
@@ -338,6 +334,45 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
       ]);
     }),
   );
+}
+
+/// A small spring response makes choosing a game feel like interacting with
+/// a playful object rather than tapping a static list entry.
+class _GameCardPress extends StatefulWidget {
+  const _GameCardPress({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  State<_GameCardPress> createState() => _GameCardPressState();
+}
+
+class _GameCardPressState extends State<_GameCardPress> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return AnimatedScale(
+      scale: _pressed ? .965 : 1,
+      duration: reduceMotion
+          ? Duration.zero : const Duration(milliseconds: 120),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(25),
+          onHighlightChanged: (pressed) {
+            if (mounted) setState(() => _pressed = pressed);
+          },
+          onTap: widget.onTap,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
 }
 
 class NeuroSkillsPage extends StatelessWidget {
