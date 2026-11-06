@@ -26,6 +26,8 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
   late BrickBreakEngine _engine;
   Timer? _timer;
   DateTime? _lastTick;
+  final List<Offset> _ballTrail = [];
+  double _impactFlash = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -37,6 +39,8 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
     _timer?.cancel();
     _engine = BrickBreakEngine.forLevel(level);
     _lastTick = null;
+    _ballTrail.clear();
+    _impactFlash = 0;
   }
 
   void _start() {
@@ -49,7 +53,18 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
       final now = DateTime.now();
       final dt = _lastTick == null ? .016 : now.difference(_lastTick!).inMicroseconds / 1000000;
       _lastTick = now;
+      final before = _engine.remaining;
+      if (_engine.launched) {
+        _ballTrail.add(Offset(_engine.ballX, _engine.ballY));
+        if (_ballTrail.length > 7) _ballTrail.removeAt(0);
+      }
       final state = _engine.tick(dt);
+      if (_engine.remaining < before) {
+        _impactFlash = 1;
+      } else {
+        _impactFlash = (_impactFlash - .095).clamp(0.0, 1.0).toDouble();
+      }
+      if (state == BrickTick.lifeLost) _ballTrail.clear();
       setState(() {});
       if (state == BrickTick.lifeLost) HapticFeedback.selectionClick();
       if (state == BrickTick.cleared) {
@@ -91,7 +106,13 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
             onTap: _start,
             onPanStart: (d) { _movePaddle(d.localPosition, width); _start(); },
             onPanUpdate: (d) => _movePaddle(d.localPosition, width),
-            child: CustomPaint(painter: _BrickPainter(_engine)),
+            child: CustomPaint(
+              painter: _BrickPainter(
+                _engine,
+                trail: _ballTrail,
+                hitFlash: _impactFlash,
+              ),
+            ),
           )),
         const SizedBox(height: 8),
         Text(_engine.isCompleted ? 'BOARD CLEARED' : _engine.isFailed ? 'TRY AGAIN' : 'MOVE THE PADDLE  ·  TAP TO LAUNCH',
@@ -112,13 +133,37 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
 }
 
 class _BrickPainter extends CustomPainter {
-  const _BrickPainter(this.engine);
+  const _BrickPainter(this.engine, {
+    required this.trail,
+    required this.hitFlash,
+  });
   final BrickBreakEngine engine;
+  final List<Offset> trail;
+  final double hitFlash;
   static const colors = [Color(0xFFFF9D65), Color(0xFFFFC857), Color(0xFF7BCDB3), Color(0xFF77B8E8), Color(0xFFAE92E8), Color(0xFFEC83A7)];
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(bounds, const Radius.circular(22)), Paint()..color = const Color(0xFFFFF9F1));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        bounds.shift(const Offset(0, 4)),
+        const Radius.circular(22),
+      ),
+      Paint()..color = const Color(0xFFD9AF93),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bounds, const Radius.circular(22)),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFFFEBD7)],
+        ).createShader(bounds),
+    );
+    for (var x = 0; x < 7; x++) {
+      final c = Offset(size.width * (x + 1) / 8, size.height * .77);
+      canvas.drawCircle(c, 1.8, Paint()..color = const Color(0x33EF7654));
+    }
     final bw = size.width * .92 / engine.columns;
     final bh = size.height * (engine.rows > 4 ? .044 : .052);
     for (final id in engine.alive) {
@@ -131,8 +176,57 @@ class _BrickPainter extends CustomPainter {
     }
     final paddle = Rect.fromCenter(center: Offset(engine.paddleX*size.width, size.height*.92), width: size.width*.25, height: size.height*.035);
     canvas.drawRRect(RRect.fromRectAndRadius(paddle.shift(const Offset(0, 3)), const Radius.circular(12)), Paint()..color = const Color(0xFFB65342));
-    canvas.drawRRect(RRect.fromRectAndRadius(paddle, const Radius.circular(12)), Paint()..color = const Color(0xFFEF7654));
-    canvas.drawCircle(Offset(engine.ballX*size.width, engine.ballY*size.height), size.width*.018, Paint()..color = const Color(0xFF503A35));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(paddle, const Radius.circular(12)),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFB381), Color(0xFFEC6C50)],
+        ).createShader(paddle),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(paddle.deflate(3), const Radius.circular(9)),
+      Paint()..color = Colors.white.withValues(alpha: .22),
+    );
+    for (var i = 0; i < trail.length; i++) {
+      final past = trail[i];
+      canvas.drawCircle(
+        Offset(past.dx * size.width, past.dy * size.height),
+        size.width * (.006 + .010 * (i + 1) / trail.length),
+        Paint()..color = const Color(0xFFEF7654).withValues(
+          alpha: .10 + .22 * (i + 1) / trail.length,
+        ),
+      );
+    }
+    final ball = Offset(engine.ballX * size.width, engine.ballY * size.height);
+    final glowRadius = size.width * (.065 + hitFlash * .045);
+    canvas.drawCircle(
+      ball,
+      glowRadius,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            Color(0x88FFC857).withValues(alpha: .22 + hitFlash * .38),
+            const Color(0x00FFC857),
+          ],
+        ).createShader(Rect.fromCircle(center: ball, radius: glowRadius)),
+    );
+    canvas.drawCircle(
+      ball.translate(0, size.width * .003),
+      size.width * .019,
+      Paint()..color = const Color(0xFF8B564A),
+    );
+    canvas.drawCircle(
+      ball,
+      size.width * .018,
+      Paint()..color = const Color(0xFFFFF8E7),
+    );
+    canvas.drawCircle(
+      ball.translate(-size.width * .005, -size.width * .005),
+      size.width * .006,
+      Paint()..color = Colors.white,
+    );
   }
   @override
   bool shouldRepaint(covariant _BrickPainter old) => true;
