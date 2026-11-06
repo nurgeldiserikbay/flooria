@@ -78,6 +78,7 @@ class _ChunkyButtonState extends State<ChunkyButton> {
     final enabled = widget.onPressed != null;
     final edge = widget.edgeColor ?? GamePalette.shade(widget.color);
     final travel = _down && enabled ? widget.depth : 0.0;
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -88,29 +89,48 @@ class _ChunkyButtonState extends State<ChunkyButton> {
         onTapUp: enabled ? (_) => _set(false) : null,
         onTapCancel: () => _set(false),
         onTap: widget.onPressed,
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 150),
-          opacity: enabled ? 1 : .35,
-          child: Padding(
-            padding: EdgeInsets.only(bottom: widget.depth),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 70),
-              curve: Curves.easeOut,
-              transform: Matrix4.translationValues(0, travel, 0),
-              padding: widget.padding,
-              decoration: BoxDecoration(
-                color: widget.color,
-                borderRadius: BorderRadius.circular(widget.radius),
-                border: Border.all(color: widget.borderColor ?? edge, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: edge,
-                    offset: Offset(0, widget.depth - travel),
+        child: AnimatedScale(
+          scale: _down && enabled ? .96 : 1,
+          duration: reduceMotion
+              ? Duration.zero : const Duration(milliseconds: 105),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            duration: reduceMotion
+                ? Duration.zero : const Duration(milliseconds: 150),
+            opacity: enabled ? 1 : .35,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: widget.depth),
+              child: AnimatedContainer(
+                duration: reduceMotion
+                    ? Duration.zero : const Duration(milliseconds: 85),
+                curve: Curves.easeOut,
+                transform: Matrix4.translationValues(0, travel, 0),
+                padding: widget.padding,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color.lerp(widget.color, Colors.white, .17)!,
+                      widget.color,
+                    ],
                   ),
-                ],
+                  borderRadius: BorderRadius.circular(widget.radius),
+                  border: Border.all(
+                    color: widget.borderColor ?? edge, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: edge,
+                      offset: Offset(0, widget.depth - travel),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: widget.child,
+                ),
               ),
-              child: Center(widthFactor: 1, heightFactor: 1,
-                child: widget.child),
             ),
           ),
         ),
@@ -184,6 +204,13 @@ class GameScaffold extends StatelessWidget {
         end: Alignment.bottomRight,
         colors: [palette.ground, Colors.white, palette.ground],
       ))),
+      Positioned.fill(
+        child: IgnorePointer(
+          child: CustomPaint(
+            painter: _GameBackdropPainter(color: palette.accent),
+          ),
+        ),
+      ),
       Positioned(top: 74, right: -82,
         child: _GameOrb(size: 230, color: palette.accent)),
       Positioned(bottom: 62, left: -84,
@@ -246,6 +273,44 @@ class GameScaffold extends StatelessWidget {
       ),
     ]),
   );
+}
+
+/// Sparse edge-only sparkles give game screens a sense of place without
+/// competing with the playable board. Entirely drawn in Flutter.
+class _GameBackdropPainter extends CustomPainter {
+  const _GameBackdropPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final dots = Paint()..color = color.withValues(alpha: .12);
+    final shine = Paint()
+      ..color = color.withValues(alpha: .17)
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+
+    const points = <Offset>[
+      Offset(.10, .17), Offset(.88, .12), Offset(.94, .37),
+      Offset(.08, .67), Offset(.86, .81), Offset(.23, .93),
+    ];
+    for (final point in points) {
+      final center = Offset(point.dx * size.width, point.dy * size.height);
+      canvas.drawCircle(center, 3, dots);
+    }
+
+    for (final point in const <Offset>[
+      Offset(.19, .25), Offset(.84, .69), Offset(.10, .90),
+    ]) {
+      final center = Offset(point.dx * size.width, point.dy * size.height);
+      canvas.drawLine(center.translate(-6, 0), center.translate(6, 0), shine);
+      canvas.drawLine(center.translate(0, -6), center.translate(0, 6), shine);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GameBackdropPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _GameOrb extends StatelessWidget {
