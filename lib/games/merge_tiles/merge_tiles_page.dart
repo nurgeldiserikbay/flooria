@@ -83,6 +83,7 @@ class _MergeTilesPageState extends State<MergeTilesPage>
               ])),
           const SizedBox(height: 14),
           GestureDetector(
+            key: const ValueKey('merge-board'),
             onPanStart: (details) {
               _dragStart = details.localPosition;
               _dragCurrent = details.localPosition;
