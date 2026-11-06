@@ -90,6 +90,7 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
           ])),
         SizedBox(width: width, height: height,
           child: GestureDetector(
+            key: const ValueKey('brick-board'),
             behavior: HitTestBehavior.opaque,
             onTap: _start,
             onPanStart: (d) { _movePaddle(d.localPosition, width); _start(); },
