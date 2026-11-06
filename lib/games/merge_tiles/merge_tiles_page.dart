@@ -74,13 +74,28 @@ class _MergeTilesPageState extends State<MergeTilesPage>
           .clamp(210.0, 420.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _TargetBadge(target: _engine.target),
-                StatChip(label: 'SCORE', value: '${_engine.score}', palette: _palette),
-                StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
-              ])),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _TargetBadge(target: _engine.target),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'SCORE',
+                      value: '${_engine.score}', palette: _palette),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'MOVES',
+                      value: '${_engine.moves}', palette: _palette),
+                  ],
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 14),
           GestureDetector(
             key: const ValueKey('merge-board'),
