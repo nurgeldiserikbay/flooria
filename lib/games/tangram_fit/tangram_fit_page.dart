@@ -28,12 +28,16 @@ class TangramFitPage extends StatefulWidget {
 class _TangramFitPageState extends State<TangramFitPage>
     with LevelFlow<TangramFitPage> {
   late TangramFitEngine _engine;
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = TangramFitEngine.forLevel(level);
+  void resetLevel() {
+    _engine = TangramFitEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
 
   void _select(int piece) {
     setState(() => _engine.selectPiece(piece));
@@ -51,6 +55,7 @@ class _TangramFitPageState extends State<TangramFitPage>
     if (result == TangramMove.ignored) return;
     if (result == TangramMove.blocked) {
       HapticFeedback.selectionClick();
+      setState(() => _blockedPulse++);
       return;
     }
     setState(() {});
@@ -87,8 +92,17 @@ class _TangramFitPageState extends State<TangramFitPage>
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          Container(width: boardSize, height: boardSize, padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(color: const Color(0xFFE9D8C3),
+          Shake(
+            trigger: _blockedPulse,
+            child: Container(
+              width: boardSize, height: boardSize,
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFF8E7D0), Color(0xFFE1C8A9)],
+                ),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: _palette.edge, width: 2),
               boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
@@ -100,22 +114,73 @@ class _TangramFitPageState extends State<TangramFitPage>
               itemBuilder: (context, cell) {
                 final piece = placed[cell];
                 final target = _engine.targetCells.contains(cell);
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported ? null : () => _place(cell),
-                    borderRadius: BorderRadius.circular(6),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 120),
-                      decoration: BoxDecoration(
-                        color: piece != null ? _pieceColors[piece]
-                          : target ? const Color(0xFFFFE5B8) : const Color(0xFFF8F5F0),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: target ? const Color(0xFFD5A56E)
-                          : const Color(0xFFE5DCD2))),
-                      child: piece != null ? Center(child: Icon(Icons.check_rounded,
-                        size: cellSize * .48, color: Colors.white)) : null,
-                    )),
+                final color = piece == null
+                    ? (target ? const Color(0xFFFFE5B8)
+                        : const Color(0xFFF8F5F0))
+                    : _pieceColors[piece];
+                final reduceMotion =
+                    MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                return Semantics(
+                  button: true,
+                  label: piece != null ? 'Placed piece'
+                      : target ? 'Target cell' : 'Empty cell',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: ValueKey('tangram-cell-$cell'),
+                      onTap: reported ? null : () => _place(cell),
+                      borderRadius: BorderRadius.circular(6),
+                      child: AnimatedContainer(
+                        duration: reduceMotion
+                            ? Duration.zero
+                            : const Duration(milliseconds: 190),
+                        curve: Curves.easeOutCubic,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color.lerp(color, Colors.white, .26)!,
+                              color,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: target ? const Color(0xFFD5A56E)
+                                : const Color(0xFFE5DCD2),
+                            width: target ? 1.7 : 1,
+                          ),
+                          boxShadow: piece == null ? null : [
+                            BoxShadow(
+                              color: GamePalette.shade(color, .25)
+                                  .withValues(alpha: .6),
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: AnimatedSwitcher(
+                          duration: reduceMotion
+                              ? Duration.zero
+                              : const Duration(milliseconds: 190),
+                          switchInCurve: Curves.easeOutBack,
+                          child: piece == null
+                              ? const SizedBox.shrink(
+                                  key: ValueKey('blank'))
+                              : Icon(
+                                  Icons.check_rounded,
+                                  key: ValueKey('placed-$piece'),
+                                  size: cellSize * .48,
+                                  color: Colors.white,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             )),
+          ),
           const SizedBox(height: 12),
           if (!reported)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -156,18 +221,37 @@ class _PieceButton extends StatelessWidget {
   final List<Point<int>> shape;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 46, height: 49,
-    child: ChunkyButton(onPressed: placed ? null : onTap,
-      color: selected ? color : Colors.white,
-      edgeColor: selected ? GamePalette.shade(color) : _palette.edge,
-      depth: 3, radius: 10, padding: EdgeInsets.zero,
-      child: placed
-        ? Icon(Icons.check_rounded, color: selected ? Colors.white : color, size: 23)
-        : CustomPaint(size: const Size(30, 30),
-            painter: _MiniShapePainter(shape, selected ? Colors.white : color)),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return AnimatedScale(
+      scale: selected ? 1.07 : 1,
+      duration: reducedMotion
+          ? Duration.zero : const Duration(milliseconds: 150),
+      curve: Curves.easeOutBack,
+      child: SizedBox(
+        width: 46,
+        height: 49,
+        child: ChunkyButton(
+          onPressed: placed ? null : onTap,
+          color: selected ? color : Colors.white,
+          edgeColor: selected ? GamePalette.shade(color) : _palette.edge,
+          depth: 3,
+          radius: 10,
+          padding: EdgeInsets.zero,
+          semanticLabel: 'Shape ${piece + 1}',
+          child: placed
+              ? Icon(Icons.check_rounded,
+                  color: selected ? Colors.white : color, size: 23)
+              : CustomPaint(
+                  size: const Size(30, 30),
+                  painter: _MiniShapePainter(
+                    shape, selected ? Colors.white : color),
+                ),
+        ),
+      ),
+    );
+  }
 }
 
 class _MiniShapePainter extends CustomPainter {
