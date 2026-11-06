@@ -66,6 +66,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
               ])),
           const SizedBox(height: 14),
           GestureDetector(
+            key: const ValueKey('rope-board'),
             onPanStart: (details) {
               if (reported) return;
               final point = details.localPosition;
@@ -78,16 +79,24 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
                 final distance = sqrt(dx * dx + dy * dy);
                 if (distance < closest) { closest = distance; selected = index; }
               }
-              _dragged = closest <= side * .11 ? selected : null;
+              setState(() => _dragged =
+                  closest <= side * .11 ? selected : null);
             },
             onPanUpdate: (details) => _move(details.localPosition, Size.square(side)),
-            onPanEnd: (_) => _dragged = null,
+            onPanEnd: (_) => setState(() => _dragged = null),
             child: Container(width: side, height: side,
-              decoration: BoxDecoration(color: const Color(0xFFEEE8F1),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFF8FF), Color(0xFFE6DEF0)],
+                ),
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: _palette.edge, width: 2),
                 boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-              child: CustomPaint(painter: _RopePainter(_engine)),
+              child: CustomPaint(
+                painter: _RopePainter(_engine, selectedNode: _dragged),
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -105,33 +114,81 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
 }
 
 class _RopePainter extends CustomPainter {
-  const _RopePainter(this.engine);
+  const _RopePainter(this.engine, {this.selectedNode});
   final RopeUntangleEngine engine;
+  final int? selectedNode;
+
   @override
   void paint(Canvas canvas, Size size) {
     final crossed = engine.crossingCount > 0;
-    final line = Paint()
-      ..color = crossed ? const Color(0xFFE38A7D) : const Color(0xFF71B486)
-      ..strokeWidth = 4
+    final ropeColor = crossed
+        ? const Color(0xFFE58B87) : const Color(0xFF69B58D);
+    final stroke = Paint()
+      ..color = ropeColor
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    final ropeShadow = Paint()
+      ..color = GamePalette.shade(ropeColor, .24)
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+    final ropeShine = Paint()
+      ..color = Colors.white.withValues(alpha: .43)
+      ..strokeWidth = 1.2
       ..strokeCap = StrokeCap.round;
     for (final (a, b) in engine.edges) {
       final first = engine.positions[a], second = engine.positions[b];
-      canvas.drawLine(Offset(first.x * size.width, first.y * size.height),
-        Offset(second.x * size.width, second.y * size.height), line);
+      final start = Offset(first.x * size.width, first.y * size.height);
+      final end = Offset(second.x * size.width, second.y * size.height);
+      canvas.drawLine(start.translate(0, 2), end.translate(0, 2), ropeShadow);
+      canvas.drawLine(start, end, stroke);
+      canvas.drawLine(start.translate(0, -1), end.translate(0, -1), ropeShine);
     }
-    final nodePaint = Paint()..color = const Color(0xFF9A70C5);
-    final border = Paint()..color = _palette.ink..style = PaintingStyle.stroke..strokeWidth = 2;
+
+    final radius = (size.width * .046).clamp(12.0, 19.0).toDouble();
     for (var i = 0; i < engine.positions.length; i++) {
       final point = engine.positions[i];
       final center = Offset(point.x * size.width, point.y * size.height);
-      canvas.drawCircle(center, size.width * .042, nodePaint);
-      canvas.drawCircle(center, size.width * .042, border);
-      final text = TextPainter(text: TextSpan(text: '${i + 1}', style: TextStyle(
-        color: Colors.white, fontSize: size.width * .031, fontWeight: FontWeight.w900)),
-        textDirection: TextDirection.ltr)..layout();
-      text.paint(canvas, center - Offset(text.width / 2, text.height / 2));
+      final selected = selectedNode == i;
+      if (selected) {
+        canvas.drawCircle(center, radius * 1.7,
+          Paint()..color = const Color(0x449A70C5));
+      }
+      canvas.drawCircle(center.translate(0, 3), radius,
+          Paint()..color = const Color(0xFF584265));
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..shader = RadialGradient(
+            center: const Alignment(-.4, -.55),
+            colors: [
+              selected ? const Color(0xFFE5D2FF)
+                  : const Color(0xFFD5BAF3),
+              selected ? const Color(0xFFAD83E1)
+                  : const Color(0xFF9061BD),
+            ],
+          ).createShader(Rect.fromCircle(center: center, radius: radius)),
+      );
+      canvas.drawCircle(center, radius,
+        Paint()
+          ..color = const Color(0xFF51465C)
+          ..strokeWidth = 1.7
+          ..style = PaintingStyle.stroke);
+      final number = TextPainter(
+        text: TextSpan(
+          text: '${i + 1}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: size.width * .032,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      number.paint(canvas, center - Offset(number.width / 2, number.height / 2));
     }
   }
+
   @override
   bool shouldRepaint(covariant _RopePainter oldDelegate) => true;
 }

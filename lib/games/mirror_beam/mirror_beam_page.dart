@@ -52,23 +52,73 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
         Container(width: side, height: side, padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(color: const Color(0xFFE9D7B8), borderRadius: BorderRadius.circular(22),
             border: Border.all(color: _palette.edge, width: 2), boxShadow: const [BoxShadow(color: Color(0xFFBDA783), offset: Offset(0, 5))]),
-          child: GridView.builder(physics: const NeverScrollableScrollPhysics(), itemCount: 25,
+          child: Stack(children: [
+            GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: 25,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 4, mainAxisSpacing: 4),
             itemBuilder: (context, cell) {
               final isMirror = _engine.mirrors.containsKey(cell);
               final slash = _engine.mirrors[cell];
-              return GestureDetector(onTap: isMirror && !reported ? () => _rotate(cell) : null,
+              return Semantics(
+                button: isMirror,
+                label: isMirror ? 'Turn mirror' : null,
+                child: GestureDetector(
+                  key: ValueKey('mirror-cell-$cell'),
+                  onTap: isMirror && !reported ? () => _rotate(cell) : null,
                 child: AnimatedContainer(duration: const Duration(milliseconds: 160),
                   decoration: BoxDecoration(color: lit.contains(cell) ? const Color(0xFFFFD45D) : const Color(0xFFFFFAEF),
                     borderRadius: BorderRadius.circular(8), border: Border.all(color: _palette.edge.withValues(alpha: .25))),
                   child: Center(child: cell == MirrorBeamEngine.emitter
                     ? const Icon(Icons.flash_on_rounded, color: Color(0xFFEF8841), size: 27)
                     : cell == MirrorBeamEngine.receiver
-                      ? Icon(Icons.adjust_rounded, color: lit.contains(cell) ? Colors.deepOrange : const Color(0xFF5EAA8B), size: 26)
-                      : isMirror ? Text(slash! ? '/' : r'\', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Color(0xFF66543E)))
-                      : null),
-                ));
-            })),
+                      ? Icon(Icons.adjust_rounded,
+                          color: lit.contains(cell) ? Colors.deepOrange : const Color(0xFF5EAA8B),
+                          size: 26)
+                      : isMirror
+                        ? AnimatedRotation(
+                            turns: slash! ? -.125 : .125,
+                            duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                                ? Duration.zero : const Duration(milliseconds: 190),
+                            curve: Curves.easeOutCubic,
+                            child: Container(
+                              width: 31, height: 7,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFB6AF9F), Colors.white,
+                                    Color(0xFF806D57)],
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFF76634D)),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0x557D6041),
+                                    offset: Offset(0, 2)),
+                                ],
+                              ),
+                            ),
+                          )
+                        : null),
+                  ),
+                ),
+              );
+            }),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: TweenAnimationBuilder<double>(
+                  key: ValueKey(_engine.beamCells.join('-')),
+                  tween: Tween(begin: 0, end: 1),
+                  duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                      ? Duration.zero : const Duration(milliseconds: 320),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, progress, child) => CustomPaint(
+                    painter: _LightBeamPainter(_engine.beamCells, progress),
+                  ),
+                ),
+              ),
+            ),
+          ]),
+        ),
         const SizedBox(height: 14),
         if (reported)
           Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: LevelResultPanel(palette: _palette,
@@ -79,4 +129,55 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
       ]));
     }),
   );
+}
+
+class _LightBeamPainter extends CustomPainter {
+  const _LightBeamPainter(this.cells, this.progress);
+  final List<int> cells;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (cells.isEmpty || progress <= 0) return;
+    const count = MirrorBeamEngine.side;
+    const gap = 4.0;
+    final tile = (size.width - gap * (count - 1)) / count;
+    Offset center(int cell) {
+      final row = cell ~/ count;
+      final column = cell % count;
+      return Offset(
+        column * (tile + gap) + tile / 2,
+        row * (tile + gap) + tile / 2,
+      );
+    }
+
+    final source = center(MirrorBeamEngine.emitter);
+    final path = Path()..moveTo(source.dx, source.dy);
+    for (final cell in cells) {
+      final target = center(cell);
+      path.lineTo(target.dx, target.dy);
+    }
+    final glow = Paint()
+      ..color = const Color(0x66FFCF69)
+      ..strokeWidth = 13
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    final beam = Paint()
+      ..color = const Color(0xFFFFA92C)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..style = PaintingStyle.stroke;
+    for (final metric in path.computeMetrics()) {
+      final drawn = metric.extractPath(0, metric.length * progress);
+      canvas.drawPath(drawn, glow);
+      canvas.drawPath(drawn, beam);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LightBeamPainter oldDelegate) =>
+      progress != oldDelegate.progress ||
+      cells.join(',') != oldDelegate.cells.join(',');
 }
