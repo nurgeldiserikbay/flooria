@@ -116,3 +116,23 @@ are authoritative only after they finish on the final PR commit.
 These are targeted code-level improvements, not a substitute for visual
 inspection on a real touch device. Future work should prioritize snapshots,
 screen recording and frame pacing across the full 50-game catalog.
+
+## Wave 4 implementation (6 November 2026)
+
+This wave focuses on spatial reasoning, routing and placement; it does not
+alter the pure Dart game engines, registry, scores or persisted progression.
+
+| Game | Gameplay-specific feedback |
+| --- | --- |
+| Mirror Beam | Animated light-beam route, gradual mirror rotation, glossy reflective pieces |
+| Rope Untangle | Thick shaded cords, shiny numbered nodes, selected-knot halo |
+| Gravity Shift | Rolling orb animates between grid stops, wall bump shakes the board |
+| Knight's Tour | Knight slides between legal chess cells; readable visited / target / available states |
+| Rail Router | Train wagons move along rails, visible sleepers, colored junction and bypass |
+| Tangram Fit | Colorful raised puzzle pieces, selected-piece pop, clear placement and blocked-move feedback |
+
+The wave includes mobile widget smoke coverage for levels 1 and 90 at 360×640
+and 390×844, plus interaction checks for each game. All visual animations
+should respect reduced motion. A CI green result is not equivalent to a
+real-device visual QA; specifically review small control targets,
+frame pacing, accessibility and win-panel fit on Android.
