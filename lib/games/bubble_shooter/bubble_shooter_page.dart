@@ -85,21 +85,40 @@ class _BubbleShooterPageState extends State<BubbleShooterPage> with LevelFlow<Bu
                       decoration: BoxDecoration(color: const Color(0xFFE7F1F7),
                         borderRadius: BorderRadius.circular(7),
                         border: Border.all(color: const Color(0xFFD3E2EB))),
-                      child: bubble == null ? null : Center(child: Container(
-                        width: width / 10, height: width / 10,
-                        decoration: BoxDecoration(color: _bubbles[bubble], shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                          boxShadow: [BoxShadow(color: _bubbles[bubble].withValues(alpha: .35), blurRadius: 4)]))),
+                      child: Center(
+                        child: AnimatedSwitcher(
+                          duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                              ? Duration.zero
+                              : const Duration(milliseconds: 240),
+                          switchInCurve: Curves.easeOutBack,
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(scale: animation, child: child),
+                          child: bubble == null
+                              ? const SizedBox.shrink(key: ValueKey('empty'))
+                              : _GlossyBubble(
+                                  key: ValueKey('bubble-$bubble'),
+                                  color: _bubbles[bubble],
+                                  size: width / 10,
+                                ),
+                        ),
+                      ),
                     )),
                 );
               },
             )),
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(width: 42, height: 42,
-              decoration: BoxDecoration(color: _bubbles[_engine.currentColor],
-                shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3),
-                boxShadow: [BoxShadow(color: _palette.edge.withValues(alpha: .25), offset: const Offset(0, 3))])),
+            AnimatedSwitcher(
+              duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                  ? Duration.zero : const Duration(milliseconds: 220),
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
+              child: _GlossyBubble(
+                key: ValueKey('next-${_engine.currentColor}'),
+                color: _bubbles[_engine.currentColor],
+                size: 42,
+              ),
+            ),
           ]),
           const HintLine('TAP A COLUMN TO SHOOT', palette: _palette),
           const SizedBox(height: 10),
@@ -115,5 +134,52 @@ class _BubbleShooterPageState extends State<BubbleShooterPage> with LevelFlow<Bu
                 detail: 'Clear matching groups to make room.', onRetry: replayLevel))
         ]));
     }),
+  );
+}
+
+class _GlossyBubble extends StatelessWidget {
+  const _GlossyBubble({super.key, required this.color, required this.size});
+
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: size,
+    height: size,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          center: const Alignment(-.34, -.48),
+          radius: 1.05,
+          colors: [
+            Color.lerp(color, Colors.white, .52)!,
+            color,
+            GamePalette.shade(color, .22),
+          ],
+          stops: const [0, .62, 1],
+        ),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: .42),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Align(
+        alignment: const Alignment(-.38, -.40),
+        child: Container(
+          width: size * .24,
+          height: size * .12,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .80),
+            borderRadius: BorderRadius.circular(size * .1),
+          ),
+        ),
+      ),
+    ),
   );
 }
