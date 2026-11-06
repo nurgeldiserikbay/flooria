@@ -109,7 +109,7 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
               itemBuilder: (context, index) => _MemoryCard(
-                key: ValueKey('pair-card-$index-${_engine.revealed.contains(index)}-${_engine.matched.contains(index)}'),
+                key: ValueKey('pair-card-$index'),
                 symbol: _engine.symbols[index],
                 open: _engine.revealed.contains(index) || _engine.matched.contains(index),
                 matched: _engine.matched.contains(index),
@@ -137,33 +137,92 @@ class _MemoryCard extends StatelessWidget {
   final bool open, matched;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(15),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          gradient: open
-              ? LinearGradient(colors: [Colors.white, _symbolColors[symbol].withValues(alpha: .18)])
-              : const LinearGradient(colors: [Color(0xFFF0C4D2), Color(0xFFE7AFC1)]),
+  Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return Semantics(
+      button: true,
+      label: matched ? 'Matched card' : open ? 'Revealed card' : 'Hidden card',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: matched ? const Color(0xFF66B88E) : _palette.edge,
-            width: matched ? 2.5 : 1.5),
-          boxShadow: const [BoxShadow(color: Color(0x224B3340),
-            offset: Offset(0, 3))],
-        ),
-        alignment: Alignment.center,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 140),
-          child: open
-              ? Icon(_symbols[symbol], key: ValueKey(symbol),
-                  size: 30, color: _symbolColors[symbol])
-              : const Icon(Icons.auto_awesome_rounded, key: ValueKey('hidden'),
-                  size: 25, color: Colors.white),
+          onTap: matched ? null : onTap,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: open ? 1 : 0),
+            duration: reduceMotion
+                ? Duration.zero : const Duration(milliseconds: 320),
+            curve: Curves.easeInOutCubic,
+            builder: (context, turn, _) {
+              final front = turn >= .5;
+              final angle = front ? (turn - 1) * pi : turn * pi;
+              return Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, .001)
+                  ..rotateY(angle),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: front
+                        ? LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white,
+                              _symbolColors[symbol].withValues(alpha: .19),
+                            ],
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFFD6E2),
+                              Color(0xFFE8A8C3),
+                            ],
+                          ),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: matched
+                          ? const Color(0xFF62B890)
+                          : _palette.edge,
+                      width: matched ? 2.5 : 1.6,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: matched
+                            ? const Color(0x4462B890)
+                            : const Color(0x334B3340),
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        front ? _symbols[symbol] : Icons.auto_awesome_rounded,
+                        size: front ? 31 : 26,
+                        color: front ? _symbolColors[symbol] : Colors.white,
+                      ),
+                      if (front && matched)
+                        const Positioned(
+                          top: 5,
+                          right: 5,
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 15,
+                            color: Color(0xFF59AD85),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
