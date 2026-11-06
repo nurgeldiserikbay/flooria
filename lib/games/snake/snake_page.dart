@@ -95,6 +95,7 @@ class _SnakePageState extends State<SnakePage> with LevelFlow<SnakePage> {
               ])),
           const SizedBox(height: 10),
           GestureDetector(
+            key: const ValueKey('snake-board'),
             onPanStart: (_) => _drag = Offset.zero,
             onPanUpdate: (details) {
               _drag += details.delta;
