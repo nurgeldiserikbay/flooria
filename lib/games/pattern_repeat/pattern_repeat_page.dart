@@ -11,7 +11,14 @@ import 'pattern_repeat_engine.dart';
 const _ink = Color(0xFF273D75);
 const _muted = Color(0xFF7887A8);
 const _accent = Color(0xFF776BE0);
-const _paper = Color(0xFFF4F6FF);
+const _palette = GamePalette(
+  ground: Color(0xFFF4F6FF),
+  surface: Colors.white,
+  ink: _ink,
+  muted: _muted,
+  accent: _accent,
+  edge: Color(0xFF273D75),
+);
 
 const _padColors = <Color>[
   Color(0xFF5C9FE8),
@@ -133,6 +140,17 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
     unawaited(_showPattern());
   }
 
+  void _replayLevel() {
+    setState(() {
+      _engine = PatternRepeatEngine.forLevel(_currentLevel);
+      _complete = false;
+      _wrongTap = false;
+      _reported = false;
+      _activeCell = null;
+    });
+    unawaited(_showPattern());
+  }
+
   Future<void> _wait(Duration duration) {
     final completer = Completer<void>();
     _delayCompleter = completer;
@@ -166,27 +184,15 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
                 ? 'Watch once more'
                 : 'Your turn';
 
-    return Scaffold(
-      backgroundColor: _paper,
-      appBar: AppBar(
-        backgroundColor: _paper,
-        foregroundColor: _ink,
-        elevation: 0,
-        titleSpacing: 4,
-        title: Text('Pattern  ·  $_currentLevel',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 18),
-            child: Center(child: _LevelPill(level: _currentLevel)),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: LayoutBuilder(builder: (context, constraints) {
-          final boardSide = (constraints.maxWidth - 44)
-              .clamp(240.0, 420.0).toDouble();
+    return GameScaffold(
+      palette: _palette,
+      title: 'Pattern Repeat',
+      level: _currentLevel,
+      child: LayoutBuilder(builder: (context, constraints) {
+          final boardSide = min(
+            constraints.maxWidth - 44,
+            constraints.maxHeight - (_complete ? 320 : 200),
+          ).clamp(170.0, 420.0).toDouble();
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 500),
@@ -261,24 +267,15 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
                     ),
                     const Spacer(),
                     if (_complete)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ChunkyButton(
-                          onPressed: _continueAfterLevel,
-                          color: _accent,
-                          radius: 18,
-                          padding: EdgeInsets.zero,
-                          semanticLabel: 'Continue after level',
-                          child: Text(
-                            _currentLevel >= widget.launch.maxLevel
-                                ? widget.launch.mode == GamePlayMode.neuron
-                                    ? 'BACK TO MAP'
-                                    : 'FINISH'
-                                : 'NEXT LEVEL',
-                            style: const TextStyle(fontWeight: FontWeight.w900,
-                              letterSpacing: 1.1)),
-                        ),
+                      LevelResultPanel(
+                        palette: _palette,
+                        launch: widget.launch,
+                        level: _currentLevel,
+                        stars: _engine.mistakes == 0
+                            ? 3 : _engine.mistakes <= 2 ? 2 : 1,
+                        detail: 'You remembered every step!',
+                        onNext: _continueAfterLevel,
+                        onReplay: _replayLevel,
                       )
                     else
                       Text(
@@ -295,25 +292,8 @@ class _PatternRepeatPageState extends State<PatternRepeatPage> {
             ),
           );
         }),
-      ),
     );
   }
-}
-
-class _LevelPill extends StatelessWidget {
-  const _LevelPill({required this.level});
-  final int level;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-    decoration: BoxDecoration(
-      color: _accent.withValues(alpha: .1),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Text('LV $level', style: const TextStyle(
-      color: _accent, fontSize: 11, fontWeight: FontWeight.w900)),
-  );
 }
 
 class _PatternPad extends StatelessWidget {

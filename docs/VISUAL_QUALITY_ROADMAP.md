@@ -75,3 +75,20 @@ every list card; use animated map ambience sparingly.
 - [ ] No unnecessary text, popups, stale timers or distracting idle motion.
 - [ ] Uses common chrome; own palette and board personality.
 - [ ] Rule tests, widget viewport tests and real-device inspection complete.
+
+## Wave 2 implementation (6 November 2026)
+
+Polish work shipped **to a review branch**, not automatically considered
+released or device-verified:
+
+| Game | Improvements | Quality still to verify |
+| --- | --- | --- |
+| Pattern Repeat | Shared game chrome, star celebration, replay and Next | Small-screen victory layout; timed playback and accessibility |
+| Pair Match | 3D card flip, matched-card glow/check, retained widget state | Mismatch flip timing; reduced motion |
+| Lights Out | Animated brightness, gradient tiles, glow and accessibility labels | Dense grid touch targets and contrast |
+| Water Sort | Animated liquid layers, glass shading, selected-tube lift, blocked action shake | Tubes across narrow devices; pour legibility and performance |
+
+The next review round should capture screenshots and interaction recordings
+at 360×640 and 390×844, then apply the same quality criteria to spatial,
+arcade and route-finding games. No claims about all 50 game screens can be made
+until they are reviewed individually.
