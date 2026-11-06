@@ -106,7 +106,10 @@ class _MergeTilesPageState extends State<MergeTilesPage>
                 itemCount: 16,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4, crossAxisSpacing: 7, mainAxisSpacing: 7),
-                itemBuilder: (context, index) => _Tile(value: _engine.board[index]),
+                itemBuilder: (context, index) => _Tile(
+                  key: ValueKey('merge-tile-$index'),
+                  value: _engine.board[index],
+                ),
               ),
             ),
           ),
@@ -165,18 +168,69 @@ class _Tile extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 120),
-    decoration: BoxDecoration(color: _color(value),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.white.withValues(alpha: .5))),
-    alignment: Alignment.center,
-    child: value == 0 ? const SizedBox.shrink() : FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Padding(padding: const EdgeInsets.all(3),
-        child: Text('$value', style: TextStyle(
-          color: value <= 4 ? const Color(0xFF76695B) : Colors.white,
-          fontSize: 23, fontWeight: FontWeight.w900))),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final duration = reducedMotion
+        ? Duration.zero : const Duration(milliseconds: 190);
+    final base = _color(value);
+    return AnimatedContainer(
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(base, Colors.white, value == 0 ? .03 : .20)!,
+            base,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: value == 0 ? .18 : .65),
+          width: 1.5,
+        ),
+        boxShadow: value == 0
+            ? null
+            : [BoxShadow(
+                color: GamePalette.shade(base, .18).withValues(alpha: .5),
+                offset: const Offset(0, 3),
+              )],
+      ),
+      alignment: Alignment.center,
+      child: AnimatedSwitcher(
+        duration: duration,
+        switchInCurve: Curves.easeOutBack,
+        switchOutCurve: Curves.easeIn,
+        transitionBuilder: (child, animation) =>
+            ScaleTransition(scale: animation, child: child),
+        child: value == 0
+            ? const SizedBox.shrink(key: ValueKey('empty'))
+            : FittedBox(
+                key: ValueKey(value),
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Text(
+                    '$value',
+                    style: TextStyle(
+                      color: value <= 4
+                          ? const Color(0xFF76695B)
+                          : Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w900,
+                      shadows: value <= 4
+                          ? null
+                          : const [Shadow(
+                              color: Color(0x55000000),
+                              offset: Offset(0, 1),
+                            )],
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
 }
