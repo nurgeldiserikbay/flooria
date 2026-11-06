@@ -87,6 +87,7 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
               children: [
                 for (var index = 0; index < _engine.tubes.length; index++)
                   _Tube(
+                    key: ValueKey('water-tube-$index'),
                     tube: _engine.tubes[index],
                     selected: _engine.selectedTube == index,
                     height: tubeHeight,
@@ -110,8 +111,8 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
 }
 
 class _Tube extends StatelessWidget {
-  const _Tube({required this.tube, required this.selected, required this.height,
-    required this.onTap});
+  const _Tube({super.key, required this.tube, required this.selected,
+    required this.height, required this.onTap});
   final List<int> tube;
   final bool selected;
   final double height;
