@@ -186,7 +186,9 @@ class _TangramFitPageState extends State<TangramFitPage>
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               for (var piece = 0; piece < 4; piece++) ...[
                 if (piece > 0) const SizedBox(width: 8),
-                _PieceButton(piece: piece, selected: _engine.selectedPiece == piece,
+                _PieceButton(
+                  key: ValueKey('tangram-piece-$piece'),
+                  piece: piece, selected: _engine.selectedPiece == piece,
                   placed: _engine.anchorOf(piece) != null,
                   color: _pieceColors[piece], shape: _engine.shapeCells(piece),
                   onTap: () => _select(piece)),
@@ -211,7 +213,7 @@ class _TangramFitPageState extends State<TangramFitPage>
 }
 
 class _PieceButton extends StatelessWidget {
-  const _PieceButton({required this.piece, required this.selected,
+  const _PieceButton({super.key, required this.piece, required this.selected,
     required this.placed, required this.color, required this.shape,
     required this.onTap});
   final int piece;
