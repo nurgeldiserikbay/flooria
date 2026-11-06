@@ -27,7 +27,7 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
   bool _drawing = false;
   bool _blocked = false;
   Offset? _lastPoint;
-  final List<int> _stroke = [];
+  final List<int> _trail = [];
   int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
@@ -36,11 +36,13 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
   @override
   void resetLevel() {
     _engine = PathPaintEngine.forLevel(level);
+    _trail
+      ..clear()
+      ..add(_engine.start);
     _drawing = false;
     _blocked = false;
-    _lastPoint = null;
-    _stroke.clear();
     _blockedPulse = 0;
+    _lastPoint = null;
   }
 
   int? _cellAt(Offset local, double side) {
@@ -57,10 +59,9 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
     if (result == PaintMove.ignored) return;
     setState(() {
       _blocked = result == PaintMove.blocked;
-      if (_blocked) {
-        _blockedPulse++;
-      } else if (_stroke.isEmpty || _stroke.last != _engine.position) {
-        _stroke.add(_engine.position);
+      if (_blocked) _blockedPulse++;
+      if (result == PaintMove.moved || result == PaintMove.completed) {
+        _trail.add(_engine.position);
       }
     });
     if (result == PaintMove.blocked) {
@@ -102,38 +103,47 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
           style: TextStyle(color: _palette.muted, fontWeight: FontWeight.w900,
             fontSize: 11, letterSpacing: 1.4)),
         const SizedBox(height: 10),
-        Shake(
-          trigger: _blockedPulse,
-          child: SizedBox(
-            width: boardSide,
-            height: boardSide,
-            child: GestureDetector(
+        SizedBox(width: boardSide, height: boardSide,
+          child: GestureDetector(
+            key: const ValueKey('path-paint-board'),
             onPanStart: (d) {
               final cell = _cellAt(d.localPosition, boardSide);
               if (cell == _engine.start) {
-                setState(() {
-                  _drawing = true;
-                  _lastPoint = d.localPosition;
-                  _stroke
-                    ..clear()
-                    ..add(_engine.start);
-                });
+                setState(() { _drawing = true; _lastPoint = d.localPosition; });
               }
               _move(cell);
             },
             onPanUpdate: (d) => _trace(d.localPosition, boardSide),
             onPanEnd: (_) => setState(() { _drawing = false; _lastPoint = null; }),
-              child: CustomPaint(
-                painter: _MazePainter(
-                  _engine,
-                  blocked: _blocked,
-                  drawing: _drawing,
-                  trace: _stroke,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: _blocked ? const Color(0xFFE66B65) : _palette.edge,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (_blocked ? const Color(0xFFE66B65)
+                        : _palette.accent).withValues(alpha: .24),
+                    blurRadius: 11,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Shake(
+                trigger: _blockedPulse,
+                child: CustomPaint(
+                  painter: _MazePainter(
+                    _engine,
+                    trail: _trail,
+                    blocked: _blocked,
+                    drawing: _drawing,
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          )),
         const SizedBox(height: 14),
         Text(reported ? 'Nice route!' : _blocked ? 'That wall is closed.' : 'Press and keep holding. Paint the path.',
           textAlign: TextAlign.center, style: TextStyle(color: _palette.ink,
@@ -152,85 +162,122 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
 
 class _MazePainter extends CustomPainter {
   const _MazePainter(this.engine, {
+    required this.trail,
     required this.blocked,
     required this.drawing,
-    required this.trace,
   });
+
   final PathPaintEngine engine;
+  final List<int> trail;
   final bool blocked, drawing;
-  final List<int> trace;
+
   @override
   void paint(Canvas canvas, Size size) {
     final cell = size.width / engine.size;
     final board = Offset.zero & size;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        board.shift(const Offset(0, 4)),
-        const Radius.circular(18),
-      ),
-      Paint()..color = const Color(0xFF9ABCA9),
+      RRect.fromRectAndRadius(board, const Radius.circular(16)),
+      Paint()..color = const Color(0xFFF3FBF5),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(board, const Radius.circular(17)),
-      Paint()..shader = const LinearGradient(
-        colors: [Color(0xFFF1FFF3), Color(0xFFD5EBDC)],
-      ).createShader(board),
-    );
-    final visited = Paint()..color = const Color(0xFF9DE0BE);
+
+    final visited = Paint()..color = const Color(0xFFC3EFD1);
+    final tileShine = Paint()
+      ..color = Colors.white.withValues(alpha: .48);
     for (final i in engine.paintedCells) {
-      canvas.drawRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH((i % engine.size) * cell + 2, (i ~/ engine.size) * cell + 2, cell - 4, cell - 4),
-        const Radius.circular(5)), visited);
+      final rect = Rect.fromLTWH(
+        (i % engine.size) * cell + 2,
+        (i ~/ engine.size) * cell + 2,
+        cell - 4, cell - 4,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(6)),
+        visited,
+      );
+      canvas.drawLine(
+        rect.topLeft + const Offset(4, 3),
+        rect.topRight + const Offset(-4, 3),
+        tileShine..strokeWidth = 1.5,
+      );
     }
-    if (trace.isNotEmpty) {
-      final path = Path();
-      for (var i = 0; i < trace.length; i++) {
-        final step = trace[i];
-        final center = Offset(
-          (step % engine.size + .5) * cell,
-          (step ~/ engine.size + .5) * cell,
-        );
-        if (i == 0) {
-          path.moveTo(center.dx, center.dy);
-        } else {
-          path.lineTo(center.dx, center.dy);
-        }
+
+    Offset center(int i) => Offset(
+      (i % engine.size + .5) * cell,
+      (i ~/ engine.size + .5) * cell,
+    );
+
+    if (trail.isNotEmpty) {
+      final path = Path()..moveTo(center(trail.first).dx, center(trail.first).dy);
+      for (final index in trail.skip(1)) {
+        final position = center(index);
+        path.lineTo(position.dx, position.dy);
       }
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = const Color(0xAA36BC85)
-          ..strokeWidth = cell * .38
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..style = PaintingStyle.stroke,
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = const Color(0x55FFFFFF)
-          ..strokeWidth = cell * .105
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..style = PaintingStyle.stroke,
-      );
+      final outline = Paint()
+        ..color = const Color(0x779FE4C1)
+        ..strokeWidth = cell * .48
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke;
+      final inner = Paint()
+        ..color = const Color(0xFF58BF91)
+        ..strokeWidth = cell * .22
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke;
+      canvas.drawPath(path, outline);
+      canvas.drawPath(path, inner);
     }
-    final walls = Paint()..color = const Color(0xFF376552)..strokeWidth = math.max(2.0, cell * .07)..strokeCap = StrokeCap.round;
+
+    final walls = Paint()
+      ..color = const Color(0xFF376552)
+      ..strokeWidth = math.max(2.0, cell * .075)
+      ..strokeCap = StrokeCap.round;
     for (var i = 0; i < engine.size * engine.size; i++) {
-      final x = (i % engine.size) * cell, y = (i ~/ engine.size) * cell;
+      final x = (i % engine.size) * cell;
+      final y = (i ~/ engine.size) * cell;
       final mask = engine.walls[i];
-      if (mask & 1 != 0) canvas.drawLine(Offset(x,y), Offset(x+cell,y), walls);
-      if (mask & 8 != 0) canvas.drawLine(Offset(x,y), Offset(x,y+cell), walls);
-      if (mask & 2 != 0) canvas.drawLine(Offset(x+cell,y), Offset(x+cell,y+cell), walls);
-      if (mask & 4 != 0) canvas.drawLine(Offset(x,y+cell), Offset(x+cell,y+cell), walls);
+      if (mask & 1 != 0) {
+        canvas.drawLine(Offset(x, y), Offset(x + cell, y), walls);
+      }
+      if (mask & 8 != 0) {
+        canvas.drawLine(Offset(x, y), Offset(x, y + cell), walls);
+      }
+      if (mask & 2 != 0) {
+        canvas.drawLine(Offset(x + cell, y), Offset(x + cell, y + cell), walls);
+      }
+      if (mask & 4 != 0) {
+        canvas.drawLine(Offset(x, y + cell), Offset(x + cell, y + cell), walls);
+      }
     }
-    final start = Offset(cell*.5, cell*.5), goal = Offset(size.width-cell*.5, size.height-cell*.5);
-    canvas.drawCircle(start, cell*.22, Paint()..color = const Color(0xFF36A77B));
-    canvas.drawCircle(goal, cell*.22, Paint()..color = const Color(0xFFFFA45B));
-    final current = Offset((engine.position % engine.size + .5)*cell, (engine.position ~/ engine.size + .5)*cell);
-    canvas.drawCircle(current, cell*.16, Paint()..color = blocked ? const Color(0xFFE66B65) : Colors.white);
-    canvas.drawCircle(current, cell*.16, Paint()..style = PaintingStyle.stroke..strokeWidth = 3..color = const Color(0xFF36A77B));
+
+    final start = center(engine.start);
+    final goal = center(engine.goal);
+    canvas.drawCircle(start, cell * .25,
+        Paint()..color = const Color(0xFF2DA979));
+    canvas.drawCircle(start, cell * .12, Paint()..color = Colors.white);
+    canvas.drawCircle(goal, cell * .29,
+        Paint()..color = const Color(0xFFFFE2A3));
+    canvas.drawCircle(goal, cell * .19,
+        Paint()..color = const Color(0xFFFFA45B));
+    canvas.drawCircle(goal, cell * .075,
+        Paint()..color = Colors.white);
+    final current = center(engine.position);
+    canvas.drawCircle(current, cell * .21,
+      Paint()..color = (blocked
+          ? const Color(0xFFE66B65) : const Color(0xFF36A77B))
+          .withValues(alpha: .22));
+    canvas.drawCircle(current, cell * .15,
+        Paint()..color = Colors.white);
+    canvas.drawCircle(
+      current,
+      cell * .15,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = blocked
+            ? const Color(0xFFE66B65) : const Color(0xFF36A77B),
+    );
   }
+
   @override
   bool shouldRepaint(covariant _MazePainter old) => true;
 }

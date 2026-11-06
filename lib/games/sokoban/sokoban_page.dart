@@ -80,14 +80,18 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFFF3E2BD), Color(0xFFD8BD91)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFECDDBE), Color(0xFFCBB89A)],
                 ),
-                borderRadius: BorderRadius.circular(17),
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: _palette.edge, width: 2),
-                boxShadow: [BoxShadow(
-                  color: _palette.edge.withValues(alpha: .55),
-                  offset: const Offset(0, 5),
-                )],
+                boxShadow: [
+                  BoxShadow(
+                    color: _palette.edge.withValues(alpha: .55),
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
@@ -124,77 +128,90 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({super.key, required this.wall, required this.crate,
-    required this.goal, required this.player});
+  const _Cell({
+    super.key,
+    required this.wall,
+    required this.crate,
+    required this.goal,
+    required this.player,
+  });
 
   final bool wall, crate, goal, player;
 
   @override
   Widget build(BuildContext context) {
-    final reducedMotion =
+    final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final duration = reducedMotion
-        ? Duration.zero : const Duration(milliseconds: 190);
-    final color = wall ? const Color(0xFF92785E)
-        : crate && goal ? const Color(0xFFA5CE9A)
-        : const Color(0xFFFFF9E9);
+    final duration = reduceMotion
+        ? Duration.zero : const Duration(milliseconds: 175);
+    final top = wall ? const Color(0xFFAC967D)
+        : goal ? const Color(0xFFFFE6A1) : const Color(0xFFF6ECDD);
+    final bottom = wall ? const Color(0xFF85705C)
+        : goal ? const Color(0xFFEED18B) : const Color(0xFFE9DCC7);
     return Semantics(
-      label: wall ? 'Wall' : player ? 'Player' :
-          crate && goal ? 'Crate on goal' : crate ? 'Crate' :
-          goal ? 'Goal' : 'Floor',
+      label: wall ? 'Wall' : crate && goal ? 'Crate on goal'
+          : crate ? 'Crate' : player ? 'Player'
+          : goal ? 'Goal' : 'Floor',
       child: AnimatedContainer(
         duration: duration,
-        curve: Curves.easeOutCubic,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color.lerp(color, Colors.white, wall ? .08 : .2)!, color],
+            colors: [top, bottom],
           ),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: wall ? const Color(0xFF745D49) :
-                const Color(0xFFD8C6AA),
+            color: wall ? const Color(0xFF78654F) : const Color(0xFFD7CBB7),
           ),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
             if (goal)
-              AnimatedScale(
-                scale: crate ? .78 : 1,
-                duration: duration,
-                child: Icon(
-                  Icons.radio_button_checked_rounded,
-                  size: 19,
-                  color: crate ? const Color(0xFF5E9C67) :
-                      const Color(0xFFE8AF49),
-                ),
-              ),
+              Icon(Icons.radio_button_checked_rounded,
+                size: 17, color: crate
+                    ? const Color(0xFF52866B) : const Color(0xFFB58B36)),
             AnimatedSwitcher(
               duration: duration,
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
+              transitionBuilder: (child, animation) => ScaleTransition(
+                scale: animation,
+                child: FadeTransition(opacity: animation, child: child),
+              ),
               child: crate
-                  ? Icon(
-                      Icons.inventory_2_rounded,
+                  ? Container(
                       key: const ValueKey('crate'),
-                      size: 22,
-                      color: crate && goal
-                          ? const Color(0xFF477C55)
-                          : const Color(0xFFAE743A),
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [
+                          Color(0xFFF3B972), Color(0xFFC88947),
+                        ]),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                          color: const Color(0xFF8B592E), width: 1.5),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x55875A33),
+                            offset: Offset(0, 2)),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.inventory_2_rounded,
+                        size: 15, color: Color(0xFF754926),
+                      ),
                     )
                   : const SizedBox.shrink(key: ValueKey('no-crate')),
             ),
             AnimatedSwitcher(
               duration: duration,
+              transitionBuilder: (child, animation) => ScaleTransition(
+                scale: animation,
+                child: child,
+              ),
               child: player
-                  ? const Icon(
-                      Icons.person_pin_circle_rounded,
+                  ? const Icon(Icons.face_rounded,
                       key: ValueKey('player'),
-                      size: 23,
-                      color: Color(0xFF39775C),
-                    )
+                      size: 23, color: Color(0xFF368B69))
                   : const SizedBox.shrink(key: ValueKey('no-player')),
             ),
           ],
@@ -222,20 +239,22 @@ class _DirectionPad extends StatelessWidget {
 
 class _Arrow extends StatelessWidget {
   const _Arrow({required this.icon, required this.onTap});
+
   final IconData icon;
   final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 46,
-    height: 42,
+    width: 44,
+    height: 44,
     child: ChunkyButton(
       onPressed: onTap,
       color: _palette.surface,
       edgeColor: _palette.edge,
-      radius: 12,
       depth: 3,
+      radius: 12,
       padding: EdgeInsets.zero,
-      child: Icon(icon, size: 30, color: _palette.accent),
+      child: Icon(icon, size: 29, color: _palette.accent),
     ),
   );
 }

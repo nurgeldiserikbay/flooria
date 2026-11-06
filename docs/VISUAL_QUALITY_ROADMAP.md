@@ -93,22 +93,26 @@ at 360×640 and 390×844, then apply the same quality criteria to spatial,
 arcade and route-finding games. No claims about all 50 game screens can be made
 until they are reviewed individually.
 
-## Wave 3: playful boards for six existing games (6 November 2026)
+## Wave 3 implementation (6 November 2026)
 
-Only Flutter presentation modules were edited; no game rules or progression
-contracts were changed.
+A further six distinct mini-games were visually polished without touching
+their deterministic rules engines, scoring, catalog, or progress persistence.
 
-| Game | Visual improvement |
+| Module | Changes |
 | --- | --- |
-| Snake | Shaded character body, expressive eyes, fruit highlight, food-growth pop |
-| Brick Break | Soft ball trail, collision flash, richer paddle and playfield |
-| Path Paint | Drawn route line with highlights, softer maze colors, blocked-motion feedback |
-| Sokoban | Animated crates, goals and player, tactile directions, blocked-move feedback |
-| Merge 2048 | Bright shaded tile faces and per-value pop transitions |
-| Bubble Shooter | Glossy bubble highlights and spawn/pop scale transitions |
+| Merge 2048 | Animated number changes, tile depth, contrast and stable board/cell keys |
+| Sokoban | Animated crates and player, deeper floor/goal cues, wall-block feedback and tactile 44px arrow controls |
+| Bubble Shooter | Glossy bubbles and animated appearance/pop, clearer next projectile and blocked-shot feedback |
+| Path Paint | Visible illuminated continuous trail, differentiated start/goal and blocked-trace state |
+| Snake | Fruit-spawn pop, dimensional character segments, directional eyes and food shading |
+| Brick Break | Ball motion trail, glint/halo, brighter paddle and playfield polish |
 
-All six have smoke checks at 360×640 and 390×844. Further device reviews
-must ensure controls and overlays do not crowd the playable board. Full
-frame-by-frame motion review, Web and Android performance checks, and audio
-feedback tuning remain separate work. The CI status should be checked on
-the corresponding feature PR before merge.
+Game feel animations must remain short, optional under reduced motion, and
+must never delay the game engine or next-level transition. A six-game smoke
+suite exercises level 1 and level 90 on 360x640 and 390x844 screens, plus
+basic swiping, tapping, dragging and arcade timer lifecycle. CI results
+are authoritative only after they finish on the final PR commit.
+
+These are targeted code-level improvements, not a substitute for visual
+inspection on a real touch device. Future work should prioritize snapshots,
+screen recording and frame pacing across the full 50-game catalog.

@@ -74,15 +74,31 @@ class _MergeTilesPageState extends State<MergeTilesPage>
           .clamp(210.0, 420.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _TargetBadge(target: _engine.target),
-                StatChip(label: 'SCORE', value: '${_engine.score}', palette: _palette),
-                StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
-              ])),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _TargetBadge(target: _engine.target),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'SCORE',
+                      value: '${_engine.score}', palette: _palette),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'MOVES',
+                      value: '${_engine.moves}', palette: _palette),
+                  ],
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 14),
           GestureDetector(
+            key: const ValueKey('merge-board'),
             onPanStart: (details) {
               _dragStart = details.localPosition;
               _dragCurrent = details.localPosition;
@@ -172,64 +188,59 @@ class _Tile extends StatelessWidget {
     final reducedMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final duration = reducedMotion
-        ? Duration.zero : const Duration(milliseconds: 190);
-    final base = _color(value);
-    return AnimatedContainer(
-      duration: duration,
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(base, Colors.white, value == 0 ? .03 : .20)!,
-            base,
+        ? Duration.zero : const Duration(milliseconds: 180);
+    final color = _color(value);
+    return Semantics(
+      label: value == 0 ? 'Empty tile' : 'Tile $value',
+      child: AnimatedContainer(
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(color, Colors.white, .22)!,
+              color,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: .7)),
+          boxShadow: value == 0 ? null : [
+            BoxShadow(
+              color: GamePalette.shade(color, .23).withValues(alpha: .65),
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: value == 0 ? .18 : .65),
-          width: 1.5,
-        ),
-        boxShadow: value == 0
-            ? null
-            : [BoxShadow(
-                color: GamePalette.shade(base, .18).withValues(alpha: .5),
-                offset: const Offset(0, 3),
-              )],
-      ),
-      alignment: Alignment.center,
-      child: AnimatedSwitcher(
-        duration: duration,
-        switchInCurve: Curves.easeOutBack,
-        switchOutCurve: Curves.easeIn,
-        transitionBuilder: (child, animation) =>
-            ScaleTransition(scale: animation, child: child),
-        child: value == 0
-            ? const SizedBox.shrink(key: ValueKey('empty'))
-            : FittedBox(
-                key: ValueKey(value),
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: Text(
-                    '$value',
-                    style: TextStyle(
-                      color: value <= 4
-                          ? const Color(0xFF76695B)
-                          : Colors.white,
-                      fontSize: 23,
-                      fontWeight: FontWeight.w900,
-                      shadows: value <= 4
-                          ? null
-                          : const [Shadow(
-                              color: Color(0x55000000),
-                              offset: Offset(0, 1),
-                            )],
+        alignment: Alignment.center,
+        child: AnimatedSwitcher(
+          duration: duration,
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: Tween<double>(begin: .65, end: 1).animate(animation),
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+          child: value == 0
+              ? const SizedBox.shrink(key: ValueKey<int>(0))
+              : FittedBox(
+                  key: ValueKey<int>(value),
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(3),
+                    child: Text(
+                      '$value',
+                      style: TextStyle(
+                        color: value <= 4
+                            ? const Color(0xFF76695B) : Colors.white,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }

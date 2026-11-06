@@ -26,7 +26,7 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
   late BrickBreakEngine _engine;
   Timer? _timer;
   DateTime? _lastTick;
-  final List<Offset> _ballTrail = [];
+  Offset? _previousBall;
   double _impactFlash = 0;
   @override
   GameLaunch get launch => widget.launch;
@@ -39,7 +39,7 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
     _timer?.cancel();
     _engine = BrickBreakEngine.forLevel(level);
     _lastTick = null;
-    _ballTrail.clear();
+    _previousBall = null;
     _impactFlash = 0;
   }
 
@@ -53,19 +53,14 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
       final now = DateTime.now();
       final dt = _lastTick == null ? .016 : now.difference(_lastTick!).inMicroseconds / 1000000;
       _lastTick = now;
-      final before = _engine.remaining;
-      if (_engine.launched) {
-        _ballTrail.add(Offset(_engine.ballX, _engine.ballY));
-        if (_ballTrail.length > 7) _ballTrail.removeAt(0);
-      }
+      final before = Offset(_engine.ballX, _engine.ballY);
+      final bricksBefore = _engine.remaining;
       final state = _engine.tick(dt);
-      if (_engine.remaining < before) {
-        _impactFlash = 1;
-      } else {
-        _impactFlash = (_impactFlash - .095).clamp(0.0, 1.0).toDouble();
-      }
-      if (state == BrickTick.lifeLost) _ballTrail.clear();
-      setState(() {});
+      setState(() {
+        _previousBall = before;
+        _impactFlash = _engine.remaining < bricksBefore
+            ? 1 : (_impactFlash - .10).clamp(0.0, 1.0).toDouble();
+      });
       if (state == BrickTick.lifeLost) HapticFeedback.selectionClick();
       if (state == BrickTick.cleared) {
         _timer?.cancel();
@@ -102,16 +97,14 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
           ])),
         SizedBox(width: width, height: height,
           child: GestureDetector(
+            key: const ValueKey('brick-board'),
             behavior: HitTestBehavior.opaque,
             onTap: _start,
             onPanStart: (d) { _movePaddle(d.localPosition, width); _start(); },
             onPanUpdate: (d) => _movePaddle(d.localPosition, width),
             child: CustomPaint(
-              painter: _BrickPainter(
-                _engine,
-                trail: _ballTrail,
-                hitFlash: _impactFlash,
-              ),
+              painter: _BrickPainter(_engine,
+                previousBall: _previousBall, hitFlash: _impactFlash),
             ),
           )),
         const SizedBox(height: 8),
@@ -133,37 +126,27 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
 }
 
 class _BrickPainter extends CustomPainter {
-  const _BrickPainter(this.engine, {
-    required this.trail,
-    required this.hitFlash,
-  });
+  const _BrickPainter(this.engine, {this.previousBall, this.hitFlash = 0});
   final BrickBreakEngine engine;
-  final List<Offset> trail;
+  final Offset? previousBall;
   final double hitFlash;
   static const colors = [Color(0xFFFF9D65), Color(0xFFFFC857), Color(0xFF7BCDB3), Color(0xFF77B8E8), Color(0xFFAE92E8), Color(0xFFEC83A7)];
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = Offset.zero & size;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        bounds.shift(const Offset(0, 4)),
-        const Radius.circular(22),
-      ),
+      RRect.fromRectAndRadius(bounds.shift(const Offset(0, 4)),
+          const Radius.circular(22)),
       Paint()..color = const Color(0xFFD9AF93),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(bounds, const Radius.circular(22)),
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFFFFF), Color(0xFFFFEBD7)],
-        ).createShader(bounds),
+      Paint()..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFFFF), Color(0xFFFFEBD7)],
+      ).createShader(bounds),
     );
-    for (var x = 0; x < 7; x++) {
-      final c = Offset(size.width * (x + 1) / 8, size.height * .77);
-      canvas.drawCircle(c, 1.8, Paint()..color = const Color(0x33EF7654));
-    }
     final bw = size.width * .92 / engine.columns;
     final bh = size.height * (engine.rows > 4 ? .044 : .052);
     for (final id in engine.alive) {
@@ -174,58 +157,75 @@ class _BrickPainter extends CustomPainter {
       canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(6)), Paint()..color = color);
       canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(3), const Radius.circular(4)), Paint()..color = Colors.white.withValues(alpha: .18));
     }
-    final paddle = Rect.fromCenter(center: Offset(engine.paddleX*size.width, size.height*.92), width: size.width*.25, height: size.height*.035);
-    canvas.drawRRect(RRect.fromRectAndRadius(paddle.shift(const Offset(0, 3)), const Radius.circular(12)), Paint()..color = const Color(0xFFB65342));
+    final paddle = Rect.fromCenter(
+      center: Offset(engine.paddleX * size.width, size.height * .92),
+      width: size.width * .25,
+      height: size.height * .035,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(paddle.shift(const Offset(0, 4)),
+        const Radius.circular(12)),
+      Paint()..color = const Color(0xFFB65342),
+    );
     canvas.drawRRect(
       RRect.fromRectAndRadius(paddle, const Radius.circular(12)),
       Paint()
         ..shader = const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFB381), Color(0xFFEC6C50)],
+          colors: [Color(0xFFFFA17A), Color(0xFFEF7654)],
         ).createShader(paddle),
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(paddle.deflate(3), const Radius.circular(9)),
-      Paint()..color = Colors.white.withValues(alpha: .22),
-    );
-    for (var i = 0; i < trail.length; i++) {
-      final past = trail[i];
-      canvas.drawCircle(
-        Offset(past.dx * size.width, past.dy * size.height),
-        size.width * (.006 + .010 * (i + 1) / trail.length),
-        Paint()..color = const Color(0xFFEF7654).withValues(
-          alpha: .10 + .22 * (i + 1) / trail.length,
-        ),
-      );
-    }
-    final ball = Offset(engine.ballX * size.width, engine.ballY * size.height);
-    final glowRadius = size.width * (.065 + hitFlash * .045);
-    canvas.drawCircle(
-      ball,
-      glowRadius,
+    canvas.drawLine(
+      paddle.topLeft.translate(12, 4),
+      paddle.topRight.translate(-12, 4),
       Paint()
-        ..shader = RadialGradient(
-          colors: [
-            Color(0x88FFC857).withValues(alpha: .22 + hitFlash * .38),
-            const Color(0x00FFC857),
-          ],
-        ).createShader(Rect.fromCircle(center: ball, radius: glowRadius)),
+        ..color = Colors.white.withValues(alpha: .48)
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round,
     );
-    canvas.drawCircle(
-      ball.translate(0, size.width * .003),
-      size.width * .019,
-      Paint()..color = const Color(0xFF8B564A),
-    );
+
+    final ball = Offset(engine.ballX * size.width, engine.ballY * size.height);
+    final radius = size.width * .018;
+    final previous = previousBall;
+    if (previous != null && engine.launched) {
+      final delta = ball - Offset(
+        previous.dx * size.width, previous.dy * size.height);
+      if (delta.distance > .05 && delta.distance < size.width * .12) {
+        canvas.drawLine(
+          ball - delta * 4,
+          ball,
+          Paint()
+            ..color = const Color(0x77FFB764)
+            ..strokeCap = StrokeCap.round
+            ..strokeWidth = radius * 1.55,
+        );
+      }
+    }
+    canvas.drawCircle(ball, radius * 2.4,
+      Paint()..color = const Color(0x44FFB96D));
+    if (hitFlash > 0) {
+      canvas.drawCircle(ball, radius * (2.8 + hitFlash * 3.8),
+        Paint()..color = const Color(0xFFFFD784)
+            .withValues(alpha: hitFlash * .30));
+    }
     canvas.drawCircle(
       ball,
-      size.width * .018,
-      Paint()..color = const Color(0xFFFFF8E7),
+      radius,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-.35, -.35),
+          colors: [
+            Color(0xFFFFFFFF),
+            Color(0xFFFFD47E),
+            Color(0xFFDC814E),
+          ],
+        ).createShader(Rect.fromCircle(center: ball, radius: radius)),
     );
     canvas.drawCircle(
-      ball.translate(-size.width * .005, -size.width * .005),
-      size.width * .006,
-      Paint()..color = Colors.white,
+      ball.translate(-radius * .27, -radius * .25),
+      radius * .24,
+      Paint()..color = Colors.white.withValues(alpha: .85),
     );
   }
   @override

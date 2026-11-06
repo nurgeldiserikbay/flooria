@@ -35,7 +35,11 @@ class _BubbleShooterPageState extends State<BubbleShooterPage> with LevelFlow<Bu
 
   void _shoot(int column) {
     final result = _engine.shootAt(column);
-    if (result == BubbleShot.ignored || result == BubbleShot.blocked) return;
+    if (result == BubbleShot.ignored) return;
+    if (result == BubbleShot.blocked) {
+      HapticFeedback.selectionClick();
+      return;
+    }
     setState(() {});
     if (result == BubbleShot.completed) {
       HapticFeedback.mediumImpact();
@@ -78,45 +82,60 @@ class _BubbleShooterPageState extends State<BubbleShooterPage> with LevelFlow<Bu
               itemBuilder: (context, cell) {
                 final bubble = _engine.board[cell];
                 final col = cell % BubbleShooterEngine.columns;
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported || _engine.isFailed ? null : () => _shoot(col),
+                final reduceMotion =
+                    MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                final duration = reduceMotion
+                    ? Duration.zero : const Duration(milliseconds: 240);
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: ValueKey('bubble-column-$cell'),
+                    onTap: reported || _engine.isFailed
+                        ? null : () => _shoot(col),
                     borderRadius: BorderRadius.circular(7),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 130),
-                      decoration: BoxDecoration(color: const Color(0xFFE7F1F7),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7F1F7),
                         borderRadius: BorderRadius.circular(7),
-                        border: Border.all(color: const Color(0xFFD3E2EB))),
-                      child: Center(
-                        child: AnimatedSwitcher(
-                          duration: MediaQuery.maybeOf(context)?.disableAnimations == true
-                              ? Duration.zero
-                              : const Duration(milliseconds: 240),
-                          switchInCurve: Curves.easeOutBack,
-                          transitionBuilder: (child, animation) =>
-                              ScaleTransition(scale: animation, child: child),
-                          child: bubble == null
-                              ? const SizedBox.shrink(key: ValueKey('empty'))
-                              : _GlossyBubble(
-                                  key: ValueKey('bubble-$bubble'),
-                                  color: _bubbles[bubble],
-                                  size: width / 10,
-                                ),
-                        ),
+                        border: Border.all(
+                          color: const Color(0xFFD3E2EB)),
                       ),
-                    )),
+                      child: AnimatedSwitcher(
+                        duration: duration,
+                        switchInCurve: Curves.easeOutBack,
+                        switchOutCurve: Curves.easeInBack,
+                        transitionBuilder: (child, animation) =>
+                            ScaleTransition(
+                          scale: animation,
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        ),
+                        child: bubble == null
+                            ? const SizedBox.shrink(
+                                key: ValueKey('empty-bubble'))
+                            : Center(
+                                key: ValueKey('bubble-$bubble'),
+                                child: _GlossyBubble(
+                                  color: _bubbles[bubble],
+                                  diameter: width / 10,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
                 );
               },
             )),
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             AnimatedSwitcher(
-              duration: MediaQuery.maybeOf(context)?.disableAnimations == true
-                  ? Duration.zero : const Duration(milliseconds: 220),
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
+              duration: const Duration(milliseconds: 180),
               child: _GlossyBubble(
-                key: ValueKey('next-${_engine.currentColor}'),
+                key: ValueKey('current-bubble-${_engine.currentColor}-${_engine.shots}'),
                 color: _bubbles[_engine.currentColor],
-                size: 42,
+                diameter: 42,
               ),
             ),
           ]),
@@ -138,45 +157,49 @@ class _BubbleShooterPageState extends State<BubbleShooterPage> with LevelFlow<Bu
 }
 
 class _GlossyBubble extends StatelessWidget {
-  const _GlossyBubble({super.key, required this.color, required this.size});
+  const _GlossyBubble({
+    super.key,
+    required this.color,
+    required this.diameter,
+  });
 
   final Color color;
-  final double size;
+  final double diameter;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: size,
-    height: size,
+    width: diameter,
+    height: diameter,
     child: DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          center: const Alignment(-.34, -.48),
-          radius: 1.05,
+          center: const Alignment(-.35, -.45),
+          radius: .94,
           colors: [
             Color.lerp(color, Colors.white, .52)!,
             color,
-            GamePalette.shade(color, .22),
+            GamePalette.shade(color, .16),
           ],
-          stops: const [0, .62, 1],
+          stops: const [0, .55, 1],
         ),
         border: Border.all(color: Colors.white, width: 2),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: .42),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: color.withValues(alpha: .32),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Align(
-        alignment: const Alignment(-.38, -.40),
+        alignment: const Alignment(-.4, -.45),
         child: Container(
-          width: size * .24,
-          height: size * .12,
+          width: diameter * .2,
+          height: diameter * .11,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .80),
-            borderRadius: BorderRadius.circular(size * .1),
+            color: Colors.white.withValues(alpha: .78),
+            borderRadius: BorderRadius.circular(diameter),
           ),
         ),
       ),
