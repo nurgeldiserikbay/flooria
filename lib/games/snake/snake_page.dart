@@ -198,8 +198,25 @@ class _SnakePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cell = size.width / engine.size;
     final board = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(18)),
-      Paint()..color = const Color(0xFFF4FAF4));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(board, const Radius.circular(18)),
+      Paint()..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFF8FFF7), Color(0xFFDCF1E0)],
+      ).createShader(board),
+    );
+    // Restrained checker pattern makes movement easier to follow.
+    for (var y = 0; y < engine.size; y++) {
+      for (var x = 0; x < engine.size; x++) {
+        if ((x + y).isEven) {
+          canvas.drawRect(
+            Rect.fromLTWH(x * cell, y * cell, cell, cell),
+            Paint()..color = const Color(0x0C4D9975),
+          );
+        }
+      }
+    }
     final gridPaint = Paint()..color = const Color(0x1F5B8766)..strokeWidth = 1;
     for (var i = 1; i < engine.size; i++) {
       final p = i * cell;

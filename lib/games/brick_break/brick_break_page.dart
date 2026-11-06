@@ -27,6 +27,7 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
   Timer? _timer;
   DateTime? _lastTick;
   Offset? _previousBall;
+  double _impactFlash = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -39,6 +40,7 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
     _engine = BrickBreakEngine.forLevel(level);
     _lastTick = null;
     _previousBall = null;
+    _impactFlash = 0;
   }
 
   void _start() {
@@ -52,8 +54,13 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
       final dt = _lastTick == null ? .016 : now.difference(_lastTick!).inMicroseconds / 1000000;
       _lastTick = now;
       final before = Offset(_engine.ballX, _engine.ballY);
+      final bricksBefore = _engine.remaining;
       final state = _engine.tick(dt);
-      setState(() => _previousBall = before);
+      setState(() {
+        _previousBall = before;
+        _impactFlash = _engine.remaining < bricksBefore
+            ? 1 : (_impactFlash - .10).clamp(0.0, 1.0).toDouble();
+      });
       if (state == BrickTick.lifeLost) HapticFeedback.selectionClick();
       if (state == BrickTick.cleared) {
         _timer?.cancel();
@@ -96,7 +103,8 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
             onPanStart: (d) { _movePaddle(d.localPosition, width); _start(); },
             onPanUpdate: (d) => _movePaddle(d.localPosition, width),
             child: CustomPaint(
-              painter: _BrickPainter(_engine, previousBall: _previousBall),
+              painter: _BrickPainter(_engine,
+                previousBall: _previousBall, hitFlash: _impactFlash),
             ),
           )),
         const SizedBox(height: 8),
@@ -118,14 +126,27 @@ class _BrickBreakPageState extends State<BrickBreakPage> with LevelFlow<BrickBre
 }
 
 class _BrickPainter extends CustomPainter {
-  const _BrickPainter(this.engine, {this.previousBall});
+  const _BrickPainter(this.engine, {this.previousBall, this.hitFlash = 0});
   final BrickBreakEngine engine;
   final Offset? previousBall;
+  final double hitFlash;
   static const colors = [Color(0xFFFF9D65), Color(0xFFFFC857), Color(0xFF7BCDB3), Color(0xFF77B8E8), Color(0xFFAE92E8), Color(0xFFEC83A7)];
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(bounds, const Radius.circular(22)), Paint()..color = const Color(0xFFFFF9F1));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bounds.shift(const Offset(0, 4)),
+          const Radius.circular(22)),
+      Paint()..color = const Color(0xFFD9AF93),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(bounds, const Radius.circular(22)),
+      Paint()..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFFFFFF), Color(0xFFFFEBD7)],
+      ).createShader(bounds),
+    );
     final bw = size.width * .92 / engine.columns;
     final bh = size.height * (engine.rows > 4 ? .044 : .052);
     for (final id in engine.alive) {
@@ -183,6 +204,11 @@ class _BrickPainter extends CustomPainter {
     }
     canvas.drawCircle(ball, radius * 2.4,
       Paint()..color = const Color(0x44FFB96D));
+    if (hitFlash > 0) {
+      canvas.drawCircle(ball, radius * (2.8 + hitFlash * 3.8),
+        Paint()..color = const Color(0xFFFFD784)
+            .withValues(alpha: hitFlash * .30));
+    }
     canvas.drawCircle(
       ball,
       radius,

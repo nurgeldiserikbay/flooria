@@ -28,6 +28,7 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
   bool _blocked = false;
   Offset? _lastPoint;
   final List<int> _trail = [];
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -40,6 +41,7 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
       ..add(_engine.start);
     _drawing = false;
     _blocked = false;
+    _blockedPulse = 0;
     _lastPoint = null;
   }
 
@@ -57,6 +59,7 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
     if (result == PaintMove.ignored) return;
     setState(() {
       _blocked = result == PaintMove.blocked;
+      if (_blocked) _blockedPulse++;
       if (result == PaintMove.moved || result == PaintMove.completed) {
         _trail.add(_engine.position);
       }
@@ -128,12 +131,15 @@ class _PathPaintPageState extends State<PathPaintPage> with LevelFlow<PathPaintP
                   ),
                 ],
               ),
-              child: CustomPaint(
-                painter: _MazePainter(
-                  _engine,
-                  trail: _trail,
-                  blocked: _blocked,
-                  drawing: _drawing,
+              child: Shake(
+                trigger: _blockedPulse,
+                child: CustomPaint(
+                  painter: _MazePainter(
+                    _engine,
+                    trail: _trail,
+                    blocked: _blocked,
+                    drawing: _drawing,
+                  ),
                 ),
               ),
             ),
