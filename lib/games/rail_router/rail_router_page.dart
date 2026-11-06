@@ -57,9 +57,10 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
     actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
+      // Leave room for both switches and the advance button on short phones.
       final size = min(constraints.maxWidth - 36,
-        constraints.maxHeight - (reported || _engine.isFailed ? 280 : 225))
-        .clamp(240.0, 360.0).toDouble();
+        constraints.maxHeight - (reported || _engine.isFailed ? 300 : 280))
+        .clamp(180.0, 360.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -67,7 +68,7 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               StatChip(label: 'TICK', value: '${_engine.time}', palette: _palette),
               StatChip(label: 'TRAINS', value: '${_engine.passed.where((x) => x).length}/2', palette: _palette),
             ])),
-          const SizedBox(height: 12),
+          const SizedBox(height: 9),
           Container(
             key: const ValueKey('rail-board'),
             width: size, height: size, padding: const EdgeInsets.all(12),
@@ -90,9 +91,10 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          for (var train = 0; train < 2; train++)
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 3),
+          const SizedBox(height: 9),
+          if (!reported && !_engine.isFailed)
+            for (var train = 0; train < 2; train++)
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 3),
               child: ChunkyButton(
                 onPressed: reported || _engine.isFailed ? null : () => _switch(train),
                 color: _engine.diverted[train] ? _trainColors[train] : Colors.white,
@@ -109,7 +111,7 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
                       fontSize: 11, fontWeight: FontWeight.w900)),
                 ]),
               )),
-          const SizedBox(height: 7),
+          const SizedBox(height: 3),
           if (!reported && !_engine.isFailed)
             SizedBox(width: 220, height: 48,
               child: ChunkyButton(onPressed: _advance, color: _palette.accent,
