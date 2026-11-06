@@ -24,17 +24,24 @@ class SokobanPage extends StatefulWidget {
 
 class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
   late SokobanEngine _engine;
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = SokobanEngine.forLevel(level);
+  void resetLevel() {
+    _engine = SokobanEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
 
   void _move(CrateDirection direction) {
     final result = _engine.move(direction);
     if (result == SokobanMove.ignored || result == SokobanMove.blocked) {
-      if (result == SokobanMove.blocked) HapticFeedback.selectionClick();
+      if (result == SokobanMove.blocked) {
+        HapticFeedback.selectionClick();
+        setState(() => _blockedPulse++);
+      }
       return;
     }
     setState(() {});
@@ -65,21 +72,42 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          Container(width: side, height: side, padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: const Color(0xFFDACBAF),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: SokobanEngine.side * SokobanEngine.side,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: SokobanEngine.side, crossAxisSpacing: 3, mainAxisSpacing: 3),
-              itemBuilder: (context, cell) => _Cell(
-                wall: _engine.isWall(cell), crate: _engine.crates.contains(cell),
-                goal: _engine.goals.contains(cell), player: _engine.player == cell),
-            )),
+          Shake(
+            trigger: _blockedPulse,
+            child: Container(
+              width: side,
+              height: side,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF3E2BD), Color(0xFFD8BD91)],
+                ),
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: _palette.edge, width: 2),
+                boxShadow: [BoxShadow(
+                  color: _palette.edge.withValues(alpha: .55),
+                  offset: const Offset(0, 5),
+                )],
+              ),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: SokobanEngine.side * SokobanEngine.side,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: SokobanEngine.side,
+                  crossAxisSpacing: 3,
+                  mainAxisSpacing: 3,
+                ),
+                itemBuilder: (context, cell) => _Cell(
+                  key: ValueKey('sokoban-cell-$cell'),
+                  wall: _engine.isWall(cell),
+                  crate: _engine.crates.contains(cell),
+                  goal: _engine.goals.contains(cell),
+                  player: _engine.player == cell,
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           if (!reported) _DirectionPad(onMove: _move),
           if (reported)
@@ -96,24 +124,82 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
 }
 
 class _Cell extends StatelessWidget {
-  const _Cell({required this.wall, required this.crate, required this.goal,
-    required this.player});
+  const _Cell({super.key, required this.wall, required this.crate,
+    required this.goal, required this.player});
+
   final bool wall, crate, goal, player;
+
   @override
   Widget build(BuildContext context) {
-    final color = wall ? const Color(0xFF8D7963)
-      : crate && goal ? const Color(0xFF8AAF70)
-      : crate ? const Color(0xFFC98945)
-      : const Color(0xFFEDE6D9);
-    return Container(
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: wall ? const Color(0xFF78654F) : const Color(0xFFD7CBB7))),
-      child: Stack(alignment: Alignment.center, children: [
-        if (goal) Icon(Icons.circle, size: 13, color: crate
-          ? const Color(0xFF557B5B) : const Color(0xFFF0C35F)),
-        if (crate) const Icon(Icons.inventory_2_rounded, size: 17, color: Color(0xFF684520)),
-        if (player) const Icon(Icons.person_pin_circle_rounded, size: 20, color: Color(0xFF3F6A53)),
-      ]),
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final duration = reducedMotion
+        ? Duration.zero : const Duration(milliseconds: 190);
+    final color = wall ? const Color(0xFF92785E)
+        : crate && goal ? const Color(0xFFA5CE9A)
+        : const Color(0xFFFFF9E9);
+    return Semantics(
+      label: wall ? 'Wall' : player ? 'Player' :
+          crate && goal ? 'Crate on goal' : crate ? 'Crate' :
+          goal ? 'Goal' : 'Floor',
+      child: AnimatedContainer(
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.lerp(color, Colors.white, wall ? .08 : .2)!, color],
+          ),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: wall ? const Color(0xFF745D49) :
+                const Color(0xFFD8C6AA),
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (goal)
+              AnimatedScale(
+                scale: crate ? .78 : 1,
+                duration: duration,
+                child: Icon(
+                  Icons.radio_button_checked_rounded,
+                  size: 19,
+                  color: crate ? const Color(0xFF5E9C67) :
+                      const Color(0xFFE8AF49),
+                ),
+              ),
+            AnimatedSwitcher(
+              duration: duration,
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
+              child: crate
+                  ? Icon(
+                      Icons.inventory_2_rounded,
+                      key: const ValueKey('crate'),
+                      size: 22,
+                      color: crate && goal
+                          ? const Color(0xFF477C55)
+                          : const Color(0xFFAE743A),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('no-crate')),
+            ),
+            AnimatedSwitcher(
+              duration: duration,
+              child: player
+                  ? const Icon(
+                      Icons.person_pin_circle_rounded,
+                      key: ValueKey('player'),
+                      size: 23,
+                      color: Color(0xFF39775C),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('no-player')),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -139,7 +225,17 @@ class _Arrow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => SizedBox(width: 42, height: 36,
-    child: IconButton(onPressed: onTap, padding: EdgeInsets.zero,
-      icon: Icon(icon, size: 34, color: _palette.ink)));
+  Widget build(BuildContext context) => SizedBox(
+    width: 46,
+    height: 42,
+    child: ChunkyButton(
+      onPressed: onTap,
+      color: _palette.surface,
+      edgeColor: _palette.edge,
+      radius: 12,
+      depth: 3,
+      padding: EdgeInsets.zero,
+      child: Icon(icon, size: 30, color: _palette.accent),
+    ),
+  );
 }
