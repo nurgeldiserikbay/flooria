@@ -92,3 +92,23 @@ The next review round should capture screenshots and interaction recordings
 at 360×640 and 390×844, then apply the same quality criteria to spatial,
 arcade and route-finding games. No claims about all 50 game screens can be made
 until they are reviewed individually.
+
+## Wave 3: playful boards for six existing games (6 November 2026)
+
+Only Flutter presentation modules were edited; no game rules or progression
+contracts were changed.
+
+| Game | Visual improvement |
+| --- | --- |
+| Snake | Shaded character body, expressive eyes, fruit highlight, food-growth pop |
+| Brick Break | Soft ball trail, collision flash, richer paddle and playfield |
+| Path Paint | Drawn route line with highlights, softer maze colors, blocked-motion feedback |
+| Sokoban | Animated crates, goals and player, tactile directions, blocked-move feedback |
+| Merge 2048 | Bright shaded tile faces and per-value pop transitions |
+| Bubble Shooter | Glossy bubble highlights and spawn/pop scale transitions |
+
+All six have smoke checks at 360×640 and 390×844. Further device reviews
+must ensure controls and overlays do not crowd the playable board. Full
+frame-by-frame motion review, Web and Android performance checks, and audio
+feedback tuning remain separate work. The CI status should be checked on
+the corresponding feature PR before merge.
