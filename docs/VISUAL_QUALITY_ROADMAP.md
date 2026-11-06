@@ -92,3 +92,27 @@ The next review round should capture screenshots and interaction recordings
 at 360×640 and 390×844, then apply the same quality criteria to spatial,
 arcade and route-finding games. No claims about all 50 game screens can be made
 until they are reviewed individually.
+
+## Wave 3 implementation (6 November 2026)
+
+A further six distinct mini-games were visually polished without touching
+their deterministic rules engines, scoring, catalog, or progress persistence.
+
+| Module | Changes |
+| --- | --- |
+| Merge 2048 | Animated number changes, tile depth, contrast and stable board/cell keys |
+| Sokoban | Animated crates and player, deeper floor/goal cues, wall-block feedback and tactile 44px arrow controls |
+| Bubble Shooter | Glossy bubbles and animated appearance/pop, clearer next projectile and blocked-shot feedback |
+| Path Paint | Visible illuminated continuous trail, differentiated start/goal and blocked-trace state |
+| Snake | Fruit-spawn pop, dimensional character segments, directional eyes and food shading |
+| Brick Break | Ball motion trail, glint/halo, brighter paddle and playfield polish |
+
+Game feel animations must remain short, optional under reduced motion, and
+must never delay the game engine or next-level transition. A six-game smoke
+suite exercises level 1 and level 90 on 360x640 and 390x844 screens, plus
+basic swiping, tapping, dragging and arcade timer lifecycle. CI results
+are authoritative only after they finish on the final PR commit.
+
+These are targeted code-level improvements, not a substitute for visual
+inspection on a real touch device. Future work should prioritize snapshots,
+screen recording and frame pacing across the full 50-game catalog.

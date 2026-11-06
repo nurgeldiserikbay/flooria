@@ -74,15 +74,31 @@ class _MergeTilesPageState extends State<MergeTilesPage>
           .clamp(210.0, 420.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _TargetBadge(target: _engine.target),
-                StatChip(label: 'SCORE', value: '${_engine.score}', palette: _palette),
-                StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
-              ])),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _TargetBadge(target: _engine.target),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'SCORE',
+                      value: '${_engine.score}', palette: _palette),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'MOVES',
+                      value: '${_engine.moves}', palette: _palette),
+                  ],
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 14),
           GestureDetector(
+            key: const ValueKey('merge-board'),
             onPanStart: (details) {
               _dragStart = details.localPosition;
               _dragCurrent = details.localPosition;
@@ -106,7 +122,10 @@ class _MergeTilesPageState extends State<MergeTilesPage>
                 itemCount: 16,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 4, crossAxisSpacing: 7, mainAxisSpacing: 7),
-                itemBuilder: (context, index) => _Tile(value: _engine.board[index]),
+                itemBuilder: (context, index) => _Tile(
+                  key: ValueKey('merge-tile-$index'),
+                  value: _engine.board[index],
+                ),
               ),
             ),
           ),
@@ -148,7 +167,7 @@ class _TargetBadge extends StatelessWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile({required this.value});
+  const _Tile({super.key, required this.value});
   final int value;
   static Color _color(int value) => switch (value) {
     0 => const Color(0xFFD8CCBD),
@@ -165,18 +184,64 @@ class _Tile extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 120),
-    decoration: BoxDecoration(color: _color(value),
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.white.withValues(alpha: .5))),
-    alignment: Alignment.center,
-    child: value == 0 ? const SizedBox.shrink() : FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Padding(padding: const EdgeInsets.all(3),
-        child: Text('$value', style: TextStyle(
-          color: value <= 4 ? const Color(0xFF76695B) : Colors.white,
-          fontSize: 23, fontWeight: FontWeight.w900))),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final duration = reducedMotion
+        ? Duration.zero : const Duration(milliseconds: 180);
+    final color = _color(value);
+    return Semantics(
+      label: value == 0 ? 'Empty tile' : 'Tile $value',
+      child: AnimatedContainer(
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(color, Colors.white, .22)!,
+              color,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: .7)),
+          boxShadow: value == 0 ? null : [
+            BoxShadow(
+              color: GamePalette.shade(color, .23).withValues(alpha: .65),
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: AnimatedSwitcher(
+          duration: duration,
+          switchInCurve: Curves.easeOutBack,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => ScaleTransition(
+            scale: Tween<double>(begin: .65, end: 1).animate(animation),
+            child: FadeTransition(opacity: animation, child: child),
+          ),
+          child: value == 0
+              ? const SizedBox.shrink(key: ValueKey<int>(0))
+              : FittedBox(
+                  key: ValueKey<int>(value),
+                  fit: BoxFit.scaleDown,
+                  child: Padding(
+                    padding: const EdgeInsets.all(3),
+                    child: Text(
+                      '$value',
+                      style: TextStyle(
+                        color: value <= 4
+                            ? const Color(0xFF76695B) : Colors.white,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
 }
