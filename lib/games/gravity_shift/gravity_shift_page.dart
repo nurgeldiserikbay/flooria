@@ -24,17 +24,24 @@ class GravityShiftPage extends StatefulWidget {
 
 class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<GravityShiftPage> {
   late GravityShiftEngine _engine;
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = GravityShiftEngine.forLevel(level);
+  void resetLevel() {
+    _engine = GravityShiftEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
 
   void _tilt(GravityDirection direction) {
     final result = _engine.tilt(direction);
     if (result == GravityMove.ignored || result == GravityMove.blocked) {
-      HapticFeedback.selectionClick();
+      if (result == GravityMove.blocked) {
+        HapticFeedback.selectionClick();
+        setState(() => _blockedPulse++);
+      }
       return;
     }
     setState(() {});
@@ -63,35 +70,119 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
               StatChip(label: 'WALLS', value: '${_engine.walls.length}', palette: _palette),
             ])),
           const SizedBox(height: 14),
-          Container(width: side, height: side, padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: const Color(0xFFD8D7EE),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(), padding: EdgeInsets.zero,
-              itemCount: GravityShiftEngine.side * GravityShiftEngine.side,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: GravityShiftEngine.side, crossAxisSpacing: 4, mainAxisSpacing: 4),
-              itemBuilder: (context, cell) {
-                final wall = _engine.walls.contains(cell);
-                final ball = _engine.ball == cell;
-                final goal = _engine.goal == cell;
-                return AnimatedContainer(duration: const Duration(milliseconds: 140),
-                  decoration: BoxDecoration(
-                    color: wall ? const Color(0xFF69688E) : const Color(0xFFF7F6FF),
-                    borderRadius: BorderRadius.circular(7),
-                    border: Border.all(color: wall ? _palette.edge : const Color(0xFFDDDCF0))),
-                  child: Center(child: ball
-                    ? Container(width: side / 11, height: side / 11,
-                        decoration: BoxDecoration(color: const Color(0xFF78BDE0), shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                          boxShadow: const [BoxShadow(color: Color(0x8878BDE0), blurRadius: 7)]))
-                    : goal ? const Icon(Icons.flag_rounded, color: Color(0xFF67AE83))
-                    : wall ? const Icon(Icons.square_rounded, size: 12, color: Color(0xFF9291B1)) : null),
-                );
-              },
-            )),
+          Shake(
+            trigger: _blockedPulse,
+            child: Container(
+              width: side,
+              height: side,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFEAE8FF), Color(0xFFC7C4EB)],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _palette.edge, width: 2),
+                boxShadow: [
+                  BoxShadow(color: _palette.edge.withValues(alpha: .55),
+                    offset: const Offset(0, 5)),
+                ],
+              ),
+              child: LayoutBuilder(builder: (context, boardBounds) {
+                const sideCount = GravityShiftEngine.side;
+                const gap = 4.0;
+                final cellSide =
+                    (boardBounds.maxWidth - gap * (sideCount - 1)) / sideCount;
+                final cellStep = cellSide + gap;
+                final reducedMotion =
+                    MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                return Stack(children: [
+                  GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.zero,
+                    itemCount: sideCount * sideCount,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: sideCount,
+                      crossAxisSpacing: gap,
+                      mainAxisSpacing: gap,
+                    ),
+                    itemBuilder: (context, cell) {
+                      final wall = _engine.walls.contains(cell);
+                      final goal = _engine.goal == cell;
+                      return Container(
+                        key: ValueKey('gravity-cell-$cell'),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: wall
+                                ? [
+                                    const Color(0xFF8D8BAD),
+                                    const Color(0xFF67648F),
+                                  ]
+                                : [
+                                    Colors.white,
+                                    const Color(0xFFE9E8FA),
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(7),
+                          border: Border.all(
+                            color: wall ? _palette.edge
+                                : const Color(0xFFDDDCF0),
+                          ),
+                        ),
+                        child: Center(child: wall
+                            ? const Icon(Icons.square_rounded,
+                                size: 12, color: Color(0xFFB0AEC9))
+                            : goal
+                                ? const Icon(Icons.flag_rounded,
+                                    color: Color(0xFF67AE83))
+                                : null),
+                      );
+                    },
+                  ),
+                  AnimatedPositioned(
+                    duration: reducedMotion
+                        ? Duration.zero : const Duration(milliseconds: 210),
+                    curve: Curves.easeInOutCubic,
+                    left: (_engine.ball % sideCount) * cellStep,
+                    top: (_engine.ball ~/ sideCount) * cellStep,
+                    width: cellSide,
+                    height: cellSide,
+                    child: IgnorePointer(
+                      child: Center(
+                        child: Container(
+                          key: const ValueKey('gravity-ball'),
+                          width: cellSide * .62,
+                          height: cellSide * .62,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const RadialGradient(
+                              center: Alignment(-.45, -.48),
+                              colors: [
+                                Color(0xFFD7F5FF),
+                                Color(0xFF78BDE0),
+                                Color(0xFF458DBB),
+                              ],
+                              stops: [0, .55, 1],
+                            ),
+                            border: Border.all(
+                              color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x7778BDE0),
+                                blurRadius: 9, spreadRadius: 2),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ]);
+              }),
+            ),
+          ),
           const SizedBox(height: 10),
           if (!reported && !_engine.isFailed)
             Column(mainAxisSize: MainAxisSize.min, children: [
@@ -124,7 +215,7 @@ class _DirectionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => SizedBox(width: 46, height: 41,
+  Widget build(BuildContext context) => SizedBox(width: 46, height: 44,
     child: ChunkyButton(onPressed: onTap, color: Colors.white, edgeColor: _palette.edge,
       depth: 3, radius: 10, padding: EdgeInsets.zero,
       child: Icon(icon, color: _palette.ink, size: 27)));
