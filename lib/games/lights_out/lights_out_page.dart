@@ -76,22 +76,74 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
                 crossAxisSpacing: 7, mainAxisSpacing: 7),
               itemBuilder: (context, cell) {
                 final lit = _engine.lights[cell];
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported ? null : () => _press(cell),
-                    borderRadius: BorderRadius.circular(12),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 150),
-                      decoration: BoxDecoration(
-                        color: lit ? const Color(0xFFFFD875) : const Color(0xFFEAF0F4),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: lit ? const Color(0xFFE4AE43)
-                          : const Color(0xFFCAD6DD), width: 1.5),
-                        boxShadow: lit ? const [BoxShadow(color: Color(0x66F5C766),
-                          blurRadius: 8, spreadRadius: 1)] : null,
+                final reducedMotion =
+                    MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                final duration = reducedMotion
+                    ? Duration.zero : const Duration(milliseconds: 190);
+                return Semantics(
+                  label: lit ? 'Light on' : 'Light off',
+                  button: true,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: ValueKey('lights-cell-$cell'),
+                      onTap: reported ? null : () => _press(cell),
+                      borderRadius: BorderRadius.circular(12),
+                      child: AnimatedScale(
+                        scale: lit ? 1.025 : .97,
+                        duration: duration,
+                        curve: Curves.easeOutBack,
+                        child: AnimatedContainer(
+                          duration: duration,
+                          curve: Curves.easeOutCubic,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: lit
+                                  ? [
+                                      const Color(0xFFFFF2B9),
+                                      const Color(0xFFFFCD63),
+                                    ]
+                                  : [
+                                      const Color(0xFFF7FBFD),
+                                      const Color(0xFFD6E4EE),
+                                    ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: lit ? const Color(0xFFE9B34E)
+                                  : const Color(0xFFC4D2DE),
+                              width: lit ? 2 : 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: lit ? const Color(0x88FFD56E)
+                                    : const Color(0x22495B6E),
+                                blurRadius: lit ? 13 : 0,
+                                spreadRadius: lit ? 1 : 0,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: AnimatedSwitcher(
+                              duration: duration,
+                              switchInCurve: Curves.easeOutBack,
+                              child: Icon(
+                                lit ? Icons.lightbulb_rounded
+                                    : Icons.lightbulb_outline_rounded,
+                                key: ValueKey(lit),
+                                size: side / 13,
+                                color: lit ? const Color(0xFFB47B22)
+                                    : const Color(0xFF8EA0AE),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      child: Icon(lit ? Icons.lightbulb_rounded : Icons.lightbulb_outline_rounded,
-                        size: side / 14, color: lit ? const Color(0xFFB47B22)
-                          : const Color(0xFF9BAAB4)),
-                    )),
+                    ),
+                  ),
                 );
               },
             )),
