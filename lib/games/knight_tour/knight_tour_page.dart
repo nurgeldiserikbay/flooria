@@ -66,44 +66,126 @@ class _KnightTourPageState extends State<KnightTourPage> with LevelFlow<KnightTo
                 StatChip(label: 'MOVES', value: '${_engine.path.length - 1}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          Container(width: board, height: board, padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(color: const Color(0xFFD7CFBD),
+          Container(
+            width: board,
+            height: board,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFEDE5D4), Color(0xFFC8BDA8)],
+              ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: _engine.goal,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: _engine.size, crossAxisSpacing: 3, mainAxisSpacing: 3),
-              itemBuilder: (context, cell) {
-                final row = cell ~/ _engine.size, col = cell % _engine.size;
-                final isLight = (row + col).isEven;
-                final current = _engine.current == cell;
-                final visited = _engine.visited.contains(cell);
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported ? null : () => _move(cell),
-                    borderRadius: BorderRadius.circular(5),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 110),
-                      decoration: BoxDecoration(color: current
-                        ? const Color(0xFFFFD66E)
-                        : visited ? const Color(0xFF88B890)
-                        : legal.contains(cell) ? const Color(0xFFB7D8AA)
-                        : isLight ? const Color(0xFFF2E9D8) : const Color(0xFF9EAD9B),
-                        borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: current ? _palette.edge
-                          : const Color(0x55706A5D), width: current ? 2 : 1)),
-                      child: current ? Text('♞', style: TextStyle(
-                        fontSize: board / _engine.size * .58, color: _palette.ink,
-                        fontWeight: FontWeight.w900))
-                        : visited ? const Icon(Icons.circle, size: 7, color: Colors.white)
-                        : legal.contains(cell) ? const Icon(Icons.circle, size: 9,
-                          color: Color(0xFF5E9B64)) : null,
+              boxShadow: [
+                BoxShadow(color: _palette.edge.withValues(alpha: .55),
+                  offset: const Offset(0, 5)),
+              ],
+            ),
+            child: LayoutBuilder(builder: (context, bounds) {
+              const gap = 3.0;
+              final cellSize = (bounds.maxWidth
+                  - gap * (_engine.size - 1)) / _engine.size;
+              final stride = cellSize + gap;
+              final reducedMotion =
+                  MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+              return Stack(children: [
+                GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: _engine.goal,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: _engine.size,
+                    crossAxisSpacing: gap,
+                    mainAxisSpacing: gap,
+                  ),
+                  itemBuilder: (context, cell) {
+                    final row = cell ~/ _engine.size;
+                    final col = cell % _engine.size;
+                    final isLight = (row + col).isEven;
+                    final current = _engine.current == cell;
+                    final visited = _engine.visited.contains(cell);
+                    final available = legal.contains(cell);
+                    return Semantics(
+                      button: available,
+                      label: current ? 'Knight' : visited ? 'Visited square'
+                          : available ? 'Possible knight move' : 'Square',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          key: ValueKey('knight-cell-$cell'),
+                          onTap: reported ? null : () => _move(cell),
+                          borderRadius: BorderRadius.circular(5),
+                          child: AnimatedContainer(
+                            duration: reducedMotion ? Duration.zero
+                                : const Duration(milliseconds: 160),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: current
+                                    ? [const Color(0xFFFFF0A8),
+                                        const Color(0xFFF9C85E)]
+                                    : visited
+                                        ? [const Color(0xFFC0DFC0),
+                                            const Color(0xFF8DBD94)]
+                                        : available
+                                            ? [const Color(0xFFE1F3D2),
+                                                const Color(0xFFB6DDAA)]
+                                            : isLight
+                                                ? [const Color(0xFFFFF9E9),
+                                                    const Color(0xFFF0E4CF)]
+                                                : [const Color(0xFFC7D0B8),
+                                                    const Color(0xFFA0B29D)],
+                              ),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: current
+                                  ? _palette.edge
+                                  : const Color(0x55706A5D),
+                                  width: current ? 2 : 1),
+                            ),
+                            alignment: Alignment.center,
+                            child: current ? null
+                                : visited
+                                    ? const Icon(Icons.check_rounded,
+                                        size: 14, color: Colors.white)
+                                    : available
+                                        ? const Icon(
+                                            Icons.radio_button_checked_rounded,
+                                            size: 15, color: Color(0xFF5E9B64))
+                                        : null,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                AnimatedPositioned(
+                  duration: reducedMotion ? Duration.zero
+                      : const Duration(milliseconds: 260),
+                  curve: Curves.easeInOutCubic,
+                  left: (_engine.current % _engine.size) * stride,
+                  top: (_engine.current ~/ _engine.size) * stride,
+                  width: cellSize,
+                  height: cellSize,
+                  child: IgnorePointer(
+                    child: Center(child: Text(
+                      '♞',
+                      key: const ValueKey('knight-piece'),
+                      style: TextStyle(
+                        fontSize: cellSize * .66,
+                        height: 1,
+                        color: _palette.ink,
+                        shadows: const [
+                          Shadow(color: Color(0x99524330),
+                            offset: Offset(1, 3), blurRadius: 2),
+                        ],
+                      ),
                     )),
-                );
-              },
-            )),
+                  ),
+                ),
+              ]);
+            }),
+          ),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
