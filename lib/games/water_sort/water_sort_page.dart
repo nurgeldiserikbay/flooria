@@ -28,12 +28,16 @@ class WaterSortPage extends StatefulWidget {
 
 class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortPage> {
   late WaterSortEngine _engine;
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = WaterSortEngine.forLevel(level);
+  void resetLevel() {
+    _engine = WaterSortEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
 
   void _tap(int tube) {
     final result = _engine.tapTube(tube);
@@ -43,6 +47,7 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
     }
     if (result == PourAction.blocked) {
       HapticFeedback.selectionClick();
+      setState(() => _blockedPulse++);
       return;
     }
     setState(() {});
@@ -73,10 +78,23 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 26),
-          Wrap(alignment: WrapAlignment.center, spacing: 12, runSpacing: 28,
-            children: [for (var index = 0; index < _engine.tubes.length; index++)
-              _Tube(tube: _engine.tubes[index], selected: _engine.selectedTube == index,
-                height: tubeHeight, onTap: reported ? null : () => _tap(index))]),
+          Shake(
+            trigger: _blockedPulse,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 28,
+              children: [
+                for (var index = 0; index < _engine.tubes.length; index++)
+                  _Tube(
+                    tube: _engine.tubes[index],
+                    selected: _engine.selectedTube == index,
+                    height: tubeHeight,
+                    onTap: reported ? null : () => _tap(index),
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -98,31 +116,93 @@ class _Tube extends StatelessWidget {
   final bool selected;
   final double height;
   final VoidCallback? onTap;
+  Widget _liquidLayer(int slot, bool reduceMotion) {
+    final filled = slot < tube.length;
+    final liquid = filled ? _colors[tube[slot]] : Colors.transparent;
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: AnimatedContainer(
+          duration: reduceMotion
+              ? Duration.zero : const Duration(milliseconds: 240),
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: filled ? null : Colors.transparent,
+            gradient: filled
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color.lerp(liquid, Colors.white, .28)!,
+                      liquid,
+                      GamePalette.shade(liquid, .12),
+                    ],
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(5),
+            border: filled
+                ? Border.all(color: Colors.white.withValues(alpha: .35))
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
-      transform: Matrix4.translationValues(0, selected ? -8 : 0, 0),
-      width: 44,
-      height: height,
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(color: const Color(0xFFF9FFFF),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(15),
-          top: Radius.circular(8)),
-        border: Border.all(color: selected ? _palette.accent : const Color(0xFF91B8B9),
-          width: selected ? 3 : 2),
-        boxShadow: [BoxShadow(color: selected ? const Color(0x5548A5A0)
-          : const Color(0x22506060), offset: const Offset(0, 4))]),
-      child: Column(children: [
-        for (var slot = WaterSortEngine.capacity - 1; slot >= 0; slot--)
-          Expanded(child: Padding(padding: const EdgeInsets.symmetric(vertical: 1),
-            child: Container(
-              decoration: BoxDecoration(
-                color: slot < tube.length ? _colors[tube[slot]] : Colors.transparent,
-                borderRadius: BorderRadius.circular(5)),
-            ))),
-      ]),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return Semantics(
+      button: true,
+      label: selected ? 'Selected water tube' : 'Water tube',
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedScale(
+          scale: selected ? 1.06 : 1,
+          duration: reduceMotion
+              ? Duration.zero : const Duration(milliseconds: 170),
+          curve: Curves.easeOutBack,
+          child: AnimatedContainer(
+            duration: reduceMotion
+                ? Duration.zero : const Duration(milliseconds: 170),
+            transform: Matrix4.translationValues(0, selected ? -9 : 0, 0),
+            width: 48,
+            height: height,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFFFFF), Color(0xFFD9F4F7)],
+              ),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(17),
+                top: Radius.circular(9),
+              ),
+              border: Border.all(
+                color: selected
+                    ? _palette.accent : const Color(0xFF8BAEB7),
+                width: selected ? 3 : 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: selected
+                      ? const Color(0x5548A5A0) : const Color(0x22506060),
+                  blurRadius: selected ? 12 : 3,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                for (var slot = WaterSortEngine.capacity - 1; slot >= 0; slot--)
+                  _liquidLayer(slot, reduceMotion),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
