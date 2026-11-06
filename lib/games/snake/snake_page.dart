@@ -105,8 +105,21 @@ class _SnakePageState extends State<SnakePage> with LevelFlow<SnakePage> {
             },
             onPanEnd: (_) => _drag = Offset.zero,
             onTap: _started ? null : _start,
-            child: SizedBox(width: boardSide, height: boardSide,
-              child: CustomPaint(painter: _SnakePainter(_engine))),
+            child: SizedBox(
+              width: boardSide,
+              height: boardSide,
+              child: TweenAnimationBuilder<double>(
+                key: ValueKey('snake-food-${_engine.length}'),
+                tween: Tween(begin: .965, end: 1),
+                duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                    ? Duration.zero
+                    : const Duration(milliseconds: 260),
+                curve: Curves.easeOutBack,
+                builder: (context, scale, child) =>
+                    Transform.scale(scale: scale, child: child),
+                child: CustomPaint(painter: _SnakePainter(_engine)),
+              ),
+            ),
           ),
           const SizedBox(height: 8),
           if (showControls) ...[
@@ -184,8 +197,30 @@ class _SnakePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cell = size.width / engine.size;
     final board = Offset.zero & size;
-    canvas.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(18)),
-      Paint()..color = const Color(0xFFF4FAF4));
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(board.shift(const Offset(0, 3)),
+          const Radius.circular(19)),
+      Paint()..color = const Color(0xFFAACDB4),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(board, const Radius.circular(18)),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF8FFF7), Color(0xFFDCF1E0)],
+        ).createShader(board),
+    );
+    // Quiet checkerboard areas give the snake more readable movement depth.
+    for (var y = 0; y < engine.size; y++) {
+      for (var x = 0; x < engine.size; x++) {
+        if ((x + y).isEven) {
+          final square = Rect.fromLTWH(x * cell, y * cell, cell, cell);
+          canvas.drawRect(square,
+              Paint()..color = const Color(0x0C4D9975));
+        }
+      }
+    }
     final gridPaint = Paint()..color = const Color(0x1F5B8766)..strokeWidth = 1;
     for (var i = 1; i < engine.size; i++) {
       final p = i * cell;
@@ -195,9 +230,28 @@ class _SnakePainter extends CustomPainter {
     if (engine.food >= 0) {
       final foodCenter = Offset((engine.food % engine.size + .5) * cell,
           (engine.food ~/ engine.size + .5) * cell);
-      canvas.drawCircle(foodCenter, cell * .3, Paint()..color = const Color(0xFFFF8F63));
-      canvas.drawCircle(foodCenter.translate(cell*.1, -cell*.12), cell*.07,
-          Paint()..color = Colors.white.withValues(alpha: .8));
+      canvas.drawCircle(foodCenter, cell * .38,
+          Paint()..color = const Color(0x33FF8F63));
+      canvas.drawCircle(foodCenter.translate(0, cell * .035), cell * .29,
+          Paint()..color = const Color(0xFFD85B48));
+      canvas.drawCircle(foodCenter, cell * .28,
+          Paint()..color = const Color(0xFFFF9770));
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: foodCenter.translate(-cell * .09, -cell * .10),
+          width: cell * .13,
+          height: cell * .08,
+        ),
+        Paint()..color = Colors.white.withValues(alpha: .83),
+      );
+      canvas.drawLine(
+        foodCenter.translate(0, -cell * .22),
+        foodCenter.translate(cell * .045, -cell * .36),
+        Paint()
+          ..color = const Color(0xFF477C54)
+          ..strokeWidth = cell * .065
+          ..strokeCap = StrokeCap.round,
+      );
     }
     for (var i = engine.body.length - 1; i >= 0; i--) {
       final position = engine.body[i];
@@ -208,8 +262,29 @@ class _SnakePainter extends CustomPainter {
       final color = i == 0 ? const Color(0xFF287B52)
           : Color.lerp(const Color(0xFF4DA875), const Color(0xFFA7D9AE),
               i / engine.body.length)!;
-      canvas.drawRRect(RRect.fromRectAndRadius(rect,
-        Radius.circular(cell * .24)), Paint()..color = color);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          rect.shift(Offset(0, cell * .055)),
+          Radius.circular(cell * .24),
+        ),
+        Paint()..color = GamePalette.shade(color, .16),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, Radius.circular(cell * .24)),
+        Paint()
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.lerp(color, Colors.white, .2)!, color],
+          ).createShader(rect),
+      );
+      if (i > 0) {
+        canvas.drawCircle(
+          rect.topLeft + Offset(rect.width * .25, rect.height * .21),
+          cell * .045,
+          Paint()..color = Colors.white.withValues(alpha: .35),
+        );
+      }
     }
     if (engine.body.isNotEmpty) {
       final head = engine.body.first;
@@ -222,9 +297,18 @@ class _SnakePainter extends CustomPainter {
         SnakeDirection.down => Offset(0, cell*.12),
         SnakeDirection.left => Offset(-cell*.12, 0),
       };
-      canvas.drawCircle(center + offset, cell*.07, eyePaint);
-      canvas.drawCircle(center + offset + Offset(cell*.035, 0), cell*.03,
-          Paint()..color = const Color(0xFF294E3A));
+      final sideways = switch (engine.direction) {
+        SnakeDirection.up || SnakeDirection.down => Offset(cell * .12, 0),
+        SnakeDirection.left || SnakeDirection.right => Offset(0, cell * .12),
+      };
+      for (final eye in [center + offset - sideways, center + offset + sideways]) {
+        canvas.drawCircle(eye, cell * .072, eyePaint);
+        canvas.drawCircle(
+          eye + Offset(cell * .02, cell * .015),
+          cell * .033,
+          Paint()..color = const Color(0xFF294E3A),
+        );
+      }
     }
   }
   @override
