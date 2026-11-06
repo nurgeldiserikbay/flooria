@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flooria/core/game_registry.dart';
+import 'package:flooria/ui/game_kit.dart';
 
 const _gameIds = [
   'merge_tiles',
@@ -67,7 +68,14 @@ void main() {
     expect(find.byKey(const ValueKey('sokoban-cell-39')), findsOneWidget);
     await tester.tap(find.byIcon(Icons.keyboard_arrow_right_rounded));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('1'), findsOneWidget);
+    final movesChip = find.ancestor(
+      of: find.text('MOVES'),
+      matching: find.byType(StatChip),
+    );
+    expect(
+      find.descendant(of: movesChip, matching: find.text('1')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
