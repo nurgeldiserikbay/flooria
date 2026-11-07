@@ -9,14 +9,21 @@ void _screen(WidgetTester tester, Size size) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
-Future<void> _showMap(WidgetTester tester, {bool reducedMotion = false}) async {
+Future<void> _showMap(WidgetTester tester, {
+  bool reducedMotion = false,
+  bool motionEnabled = true,
+  double fontScale = 1,
+}) async {
   await tester.pumpWidget(MaterialApp(
     home: MediaQuery(
-      data: MediaQueryData(disableAnimations: reducedMotion),
+      data: MediaQueryData(
+        disableAnimations: reducedMotion,
+        textScaler: TextScaler.linear(fontScale),
+      ),
       child: Scaffold(
         body: NeuroMapView(
           completedNeurons: const {},
-          motionEnabled: true,
+          motionEnabled: motionEnabled,
           onNodeTap: (_) {},
           onGames: () {},
           onAnalytics: () {},
@@ -80,6 +87,23 @@ void main() {
         .decoration as BoxDecoration;
     expect(decoration.image!.repeat, ImageRepeat.repeat);
     expect(decoration.image!.fit, BoxFit.none);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('large text scales without obscuring the world',
+      (tester) async {
+    _screen(tester, const Size(360, 640));
+    await _showMap(tester, reducedMotion: true, fontScale: 1.5);
+    expect(find.text('Flooria'), findsOneWidget);
+    expect(find.text('0 / 55'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ambient-motion switch settles without ticker activity',
+      (tester) async {
+    _screen(tester, const Size(390, 844));
+    await _showMap(tester, motionEnabled: false);
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
