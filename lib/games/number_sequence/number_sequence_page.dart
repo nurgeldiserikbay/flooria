@@ -26,31 +26,39 @@ class _NumberSequencePageState extends State<NumberSequencePage>
     with LevelFlow<NumberSequencePage> {
   late NumberSequenceEngine _engine;
   int _wrongPulse = 0;
+  int? _wrongChoice;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = NumberSequenceEngine.forLevel(level);
+  void resetLevel() {
+    _engine = NumberSequenceEngine.forLevel(level);
+    _wrongPulse = 0;
+    _wrongChoice = null;
+  }
 
   void _choose(int value) {
     final result = _engine.choose(value);
     if (result == SequenceAnswer.ignored) return;
     if (result == SequenceAnswer.wrong) {
       HapticFeedback.selectionClick();
-      setState(() => _wrongPulse++);
+      setState(() {
+        _wrongPulse++;
+        _wrongChoice = value;
+      });
       return;
     }
     HapticFeedback.lightImpact();
     if (result == SequenceAnswer.completed) {
-      setState(() {});
+      setState(() => _wrongChoice = null);
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: {'math':
         ((_engine.correct / (_engine.correct + _engine.mistakes)) * 100).round()});
       return;
     }
     setState(() {
-      // The engine has advanced itself to the next generated sequence.
+      _wrongChoice = null; // New round starts with clean feedback.
     });
   }
 
@@ -63,6 +71,8 @@ class _NumberSequencePageState extends State<NumberSequencePage>
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
       final cardSide = min(constraints.maxWidth - 36, 390.0).toDouble();
+      final reducedMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
       return Center(child: SingleChildScrollView(child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -78,28 +88,69 @@ class _NumberSequencePageState extends State<NumberSequencePage>
           Shake(trigger: _wrongPulse, child: Container(
             width: cardSide,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            decoration: BoxDecoration(color: _palette.surface,
+            decoration: BoxDecoration(
+              color: _palette.surface,
               borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
+              border: Border.all(
+                color: const Color(0xFFEEDCC5),
+                width: 1,
+              ),
+              boxShadow: const [
+                BoxShadow(color: Color(0x29554332),
+                  blurRadius: 16, offset: Offset(0, 5)),
+              ],
+            ),
             child: Column(children: [
               Text('WHAT COMES NEXT?', style: TextStyle(color: _palette.muted,
                 fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
               const SizedBox(height: 22),
-              Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8, runSpacing: 12, children: [
-                  for (final term in _engine.terms) _TermTile(value: '$term'),
-                  const _TermTile(value: '?', highlighted: true),
-                ]),
+              AnimatedSwitcher(
+                duration: reducedMotion ? Duration.zero
+                    : const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                child: Wrap(
+                  key: ValueKey('sequence-round-${_engine.round}'),
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8, runSpacing: 12,
+                  children: [
+                    for (final term in _engine.terms)
+                      _TermTile(value: '$term'),
+                    const _TermTile(value: '?', highlighted: true),
+                  ],
+                ),
+              ),
               const SizedBox(height: 26),
               Wrap(alignment: WrapAlignment.center, spacing: 10, runSpacing: 10,
                 children: [for (final choice in _engine.choices)
                   SizedBox(width: (cardSide - 54) / 2, height: 56,
-                    child: ChunkyButton(onPressed: reported ? null : () => _choose(choice),
-                      color: const Color(0xFFFFE5BC), edgeColor: _palette.edge,
-                      padding: EdgeInsets.zero, child: Text('$choice',
-                        style: TextStyle(color: _palette.ink,
-                          fontSize: 21, fontWeight: FontWeight.w900))))]),
+                    child: ChunkyButton(
+                      key: ValueKey('sequence-choice-$choice'),
+                      onPressed: reported ? null : () => _choose(choice),
+                      color: _wrongChoice == choice
+                          ? const Color(0xFFFFDCDD)
+                          : const Color(0xFFFFE5BC),
+                      edgeColor: _wrongChoice == choice
+                          ? const Color(0xFFD46D73)
+                          : const Color(0xFFCBA773),
+                      semanticLabel: 'Answer $choice',
+                      padding: EdgeInsets.zero,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_wrongChoice == choice) ...[
+                            const Icon(Icons.close_rounded,
+                              color: Color(0xFFA94C59), size: 19),
+                            const SizedBox(width: 3),
+                          ],
+                          Text('$choice', style: TextStyle(
+                            color: _wrongChoice == choice
+                                ? const Color(0xFFA94C59) : _palette.ink,
+                            fontSize: 21, fontWeight: FontWeight.w900,
+                          )),
+                        ],
+                      ),
+                    ))]),
             ]),
           )),
           const SizedBox(height: 14),
@@ -110,8 +161,12 @@ class _NumberSequencePageState extends State<NumberSequencePage>
                 detail: 'Solved five number patterns.', onReplay: replayLevel,
                 onNext: nextLevel))
           else
-            const HintLine('PICK THE VALUE THAT CONTINUES THE PATTERN',
-              palette: _palette),
+            HintLine(
+              _wrongChoice == null
+                  ? 'PICK THE VALUE THAT CONTINUES THE PATTERN'
+                  : 'NOT QUITE — LOOK AT THE DIFFERENCE',
+              palette: _palette,
+            ),
         ],
       )));
     }),
@@ -125,12 +180,29 @@ class _TermTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: 54, height: 58,
-    decoration: BoxDecoration(color: highlighted ? const Color(0xFFFFE5BC)
-        : const Color(0xFFFFF8EF), borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: highlighted ? _palette.accent : const Color(0xFFE5D8C8),
-        width: highlighted ? 2 : 1.5)),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: highlighted
+            ? const [Color(0xFFFFF0D5), Color(0xFFFFD893)]
+            : const [Colors.white, Color(0xFFFFF4E7)],
+      ),
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(
+        color: highlighted ? _palette.accent
+            : const Color(0xFFEADACA),
+        width: highlighted ? 2 : 1,
+      ),
+      boxShadow: highlighted ? const [
+        BoxShadow(color: Color(0x36E79D43),
+          blurRadius: 9, offset: Offset(0, 3)),
+      ] : null,
+    ),
     alignment: Alignment.center,
-    child: Text(value, style: TextStyle(color: highlighted ? _palette.accent : _palette.ink,
-      fontSize: 18, fontWeight: FontWeight.w900)),
+    child: Text(value, style: TextStyle(
+      color: highlighted ? _palette.accent : _palette.ink,
+      fontSize: 18, fontWeight: FontWeight.w900,
+    )),
   );
 }
