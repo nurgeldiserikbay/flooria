@@ -25,17 +25,47 @@ class PegSolitairePage extends StatefulWidget {
 class _PegSolitairePageState extends State<PegSolitairePage>
     with LevelFlow<PegSolitairePage> {
   late PegSolitaireEngine _engine;
+  int _blockedPulse = 0;
+
+  bool _isLegalDestination(int index) {
+    final source = _engine.selectedCell;
+    if (source == null || _engine.board[index] != 0 ||
+        !PegSolitaireEngine.isValidCell(index)) {
+      return false;
+    }
+    final sr = source ~/ PegSolitaireEngine.side;
+    final sc = source % PegSolitaireEngine.side;
+    final tr = index ~/ PegSolitaireEngine.side;
+    final tc = index % PegSolitaireEngine.side;
+    if (!((sr == tr && (sc - tc).abs() == 2) ||
+        (sc == tc && (sr - tr).abs() == 2))) {
+      return false;
+    }
+    final mid = ((sr + tr) ~/ 2) * PegSolitaireEngine.side +
+        (sc + tc) ~/ 2;
+    return _engine.board[mid] == 1;
+  }
+
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = PegSolitaireEngine.forLevel(level);
+  void resetLevel() {
+    _engine = PegSolitaireEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
 
   void _tap(int index) {
     final result = _engine.tap(index);
-    if (result == PegMove.ignored) return;
-    setState(() {});
+    if (result == PegMove.ignored) {
+      // Tapping the selected peg deselects it; repaint immediately.
+      setState(() {});
+      return;
+    }
+    setState(() {
+      if (result == PegMove.blocked) _blockedPulse++;
+    });
     if (result == PegMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: {'remainingPegs': _engine.pegCount});
@@ -54,6 +84,10 @@ class _PegSolitairePageState extends State<PegSolitairePage>
     actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
+      final reducedMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      final motion = reducedMotion
+          ? Duration.zero : const Duration(milliseconds: 175);
       final side = min(constraints.maxWidth - 26,
         constraints.maxHeight - (reported || _engine.isFailed ? 275 : 190))
         .clamp(245.0, 430.0).toDouble();
@@ -66,12 +100,20 @@ class _PegSolitairePageState extends State<PegSolitairePage>
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          Container(width: side, height: side, padding: const EdgeInsets.all(7),
-            decoration: BoxDecoration(color: const Color(0xFFC7DEC9),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
+          Container(
+            width: side, height: side,
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD7E9DA),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFAACDB5)),
+              boxShadow: const [
+                BoxShadow(color: Color(0x26315845),
+                  blurRadius: 16, offset: Offset(0, 5)),
+              ],
+            ),
             child: GridView.builder(
+              key: const ValueKey('peg-board'),
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
               itemCount: PegSolitaireEngine.side * PegSolitaireEngine.side,
@@ -79,30 +121,120 @@ class _PegSolitairePageState extends State<PegSolitairePage>
                 crossAxisCount: PegSolitaireEngine.side,
                 crossAxisSpacing: 3, mainAxisSpacing: 3),
               itemBuilder: (context, index) {
-                if (!PegSolitaireEngine.isValidCell(index)) return const SizedBox();
+                if (!PegSolitaireEngine.isValidCell(index)) {
+                  return const SizedBox.shrink();
+                }
                 final selected = _engine.selectedCell == index;
                 final occupied = _engine.board[index] == 1;
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported ? null : () => _tap(index),
-                    borderRadius: BorderRadius.circular(8),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 130),
-                      decoration: BoxDecoration(
-                        color: selected ? const Color(0xFFFFD66B)
-                          : occupied ? const Color(0xFF75B989) : const Color(0xFFDDEBDD),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: selected ? _palette.edge
-                          : const Color(0xFFB7D0B9), width: selected ? 2 : 1)),
-                      child: occupied ? Center(child: Container(
-                        width: side / 15, height: side / 15,
-                        decoration: BoxDecoration(color: selected
-                          ? const Color(0xFF8A6422) : const Color(0xFF315845),
-                          shape: BoxShape.circle,
-                          boxShadow: const [BoxShadow(color: Color(0x44315845),
-                            offset: Offset(0, 2))]))) : null,
-                    )),
+                final destination = _isLegalDestination(index);
+                return Semantics(
+                  key: ValueKey('peg-cell-$index'),
+                  button: true,
+                  enabled: !reported && !_engine.isFailed,
+                  selected: selected,
+                  label: 'Row ${index ~/ PegSolitaireEngine.side + 1}, '
+                      'column ${index % PegSolitaireEngine.side + 1}, '
+                      '${occupied ? 'peg' : 'empty hole'}'
+                      '${selected ? ', selected' : ''}'
+                      '${destination ? ', legal landing' : ''}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: reported || _engine.isFailed
+                          ? null : () => _tap(index),
+                      borderRadius: BorderRadius.circular(9),
+                      child: AnimatedScale(
+                        scale: selected ? .94 : 1,
+                        duration: motion,
+                        curve: Curves.easeOutBack,
+                        child: AnimatedContainer(
+                          duration: motion,
+                          curve: Curves.easeOutCubic,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: selected
+                                  ? const [Color(0xFFFFEAAF), Color(0xFFFFD46B)]
+                                  : destination
+                                      ? const [
+                                          Color(0xFFF1FFF2),
+                                          Color(0xFFBBE7CA),
+                                        ]
+                                      : occupied
+                                          ? const [
+                                              Color(0xFFC9EACA),
+                                              Color(0xFF89C69B),
+                                            ]
+                                          : const [
+                                              Color(0xFFEFF7EF),
+                                              Color(0xFFD9E9DC),
+                                            ],
+                            ),
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(
+                              color: selected
+                                  ? const Color(0xFFD29F40)
+                                  : destination
+                                      ? const Color(0xFF53A875)
+                                      : const Color(0xFFB6CEBA),
+                              width: selected || destination ? 2 : 1,
+                            ),
+                            boxShadow: destination ? const [
+                              BoxShadow(color: Color(0x3553A875),
+                                blurRadius: 8, offset: Offset(0, 2)),
+                            ] : null,
+                          ),
+                          child: Center(
+                            child: AnimatedSwitcher(
+                              duration: motion,
+                              child: occupied
+                                  ? Container(
+                                      key: const ValueKey('peg-piece'),
+                                      width: side / 15,
+                                      height: side / 15,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: selected
+                                              ? const [
+                                                  Color(0xFFA78339),
+                                                  Color(0xFF795323),
+                                                ]
+                                              : const [
+                                                  Color(0xFF5D9C70),
+                                                  Color(0xFF315845),
+                                                ],
+                                        ),
+                                        shape: BoxShape.circle,
+                                        boxShadow: const [
+                                          BoxShadow(color: Color(0x44315845),
+                                            blurRadius: 5,
+                                            offset: Offset(0, 2)),
+                                        ],
+                                      ),
+                                    )
+                                  : Icon(
+                                      destination
+                                          ? Icons.radio_button_unchecked_rounded
+                                          : Icons.circle_outlined,
+                                      key: ValueKey('peg-empty-$destination'),
+                                      color: destination
+                                          ? const Color(0xFF53A875)
+                                          : const Color(0x6682A58C),
+                                      size: destination ? 21 : 13,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
-            )),
+            ),
+          ),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -115,7 +247,11 @@ class _PegSolitairePageState extends State<PegSolitairePage>
               child: RetryPanel(palette: _palette, title: 'NO MOVES LEFT',
                 detail: 'Start again and plan each jump.', onRetry: replayLevel))
           else
-            const HintLine('JUMP OVER A PEG TO REMOVE IT', palette: _palette),
+            Shake(
+              trigger: _blockedPulse,
+              child: const HintLine(
+                'JUMP OVER A PEG TO REMOVE IT', palette: _palette),
+            ),
         ]));
     }),
   );
