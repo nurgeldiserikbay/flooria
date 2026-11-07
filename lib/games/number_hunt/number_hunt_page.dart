@@ -4,12 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/game_registry.dart';
+import '../../ui/game_kit.dart';
 import 'number_hunt_engine.dart';
 
 const _ink = Color(0xFF273D75);
 const _muted = Color(0xFF7887A8);
 const _accent = Color(0xFF4FAEAD);
-const _paper = Color(0xFFF4F6FF);
+const _palette = GamePalette(
+  ground: Color(0xFFF4F6FF),
+  surface: Colors.white,
+  ink: _ink,
+  muted: _muted,
+  accent: _accent,
+  edge: _ink,
+);
 
 Widget buildNumberHuntPage(BuildContext context, GameLaunch launch) =>
     NumberHuntPage(launch: launch);
@@ -76,29 +84,32 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
     });
   }
 
+  void _restartLevel() {
+    if (_complete) return;
+    setState(() {
+      _engine = NumberHuntEngine.forLevel(_currentLevel);
+      _feedbackIndex = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final round = _engine.currentRound;
-    final roundNumber = _complete ? _engine.rounds.length : _engine.roundIndex + 1;
-    return Scaffold(
-      backgroundColor: _paper,
-      appBar: AppBar(
-        backgroundColor: _paper,
-        foregroundColor: _ink,
-        elevation: 0,
-        titleSpacing: 4,
-        title: Text('Find the Number  ·  $_currentLevel',
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 18),
-            child: Center(child: _LevelPill(level: _currentLevel)),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: LayoutBuilder(builder: (context, constraints) {
+    final roundNumber =
+        _complete ? _engine.rounds.length : _engine.roundIndex + 1;
+    return GameScaffold(
+      palette: _palette,
+      title: 'Find the Number',
+      level: _currentLevel,
+      actions: [
+        ChunkyIconButton(
+          icon: Icons.refresh_rounded,
+          tooltip: 'Restart',
+          palette: _palette,
+          onPressed: _complete ? null : _restartLevel,
+        ),
+      ],
+      child: LayoutBuilder(builder: (context, constraints) {
           const gap = 7.0;
           final boardWidth = (constraints.maxWidth - 44)
               .clamp(260.0, 420.0).toDouble();
@@ -223,14 +234,10 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                       SizedBox(
                         width: double.infinity,
                         height: 52,
-                        child: FilledButton(
+                        child: ChunkyButton(
                           onPressed: _continueAfterLevel,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: _accent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                          ),
+                          color: _accent,
+                          padding: EdgeInsets.zero,
                           child: Text(
                             _currentLevel >= widget.launch.maxLevel
                                 ? widget.launch.mode == GamePlayMode.neuron
@@ -238,8 +245,9 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                                     : 'FINISH'
                                 : 'NEXT LEVEL',
                             style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.1,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
@@ -258,25 +266,8 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
             ),
           );
         }),
-      ),
     );
   }
-}
-
-class _LevelPill extends StatelessWidget {
-  const _LevelPill({required this.level});
-  final int level;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-    decoration: BoxDecoration(
-      color: _accent.withValues(alpha: .1),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Text('LV $level', style: const TextStyle(
-      color: _accent, fontSize: 11, fontWeight: FontWeight.w900)),
-  );
 }
 
 class _NumberCell extends StatelessWidget {
@@ -295,7 +286,8 @@ class _NumberCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 120),
+    duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 120),
     decoration: BoxDecoration(
       color: wrong ? const Color(0xFFFFE2E3) : Colors.white,
       borderRadius: BorderRadius.circular(15),
