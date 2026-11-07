@@ -184,6 +184,26 @@ class NeuroGamesPage extends StatefulWidget {
 
 class _NeuroGamesPageState extends State<NeuroGamesPage> {
   String _selectedSkill = 'all';
+  String _query = '';
+  bool _searchOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _searchOpen = !_searchOpen;
+      if (!_searchOpen) {
+        _searchController.clear();
+        _query = '';
+      }
+    });
+  }
 
   static const _skillLabels = <String, String>{
     'all': 'All games',
@@ -213,9 +233,16 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
       final allGames = GameRegistry.enabledGames;
       final skills = allGames.map((game) => game.skill).toSet().toList()..sort();
       final filters = ['all', ...skills];
-      final games = _selectedSkill == 'all'
-          ? allGames
-          : allGames.where((game) => game.skill == _selectedSkill).toList();
+      final games = allGames.where((game) {
+        final matchesSkill =
+            _selectedSkill == 'all' || game.skill == _selectedSkill;
+        final search = _query.trim().toLowerCase();
+        final matchesSearch = search.isEmpty ||
+            game.title.toLowerCase().contains(search) ||
+            (_skillLabels[game.skill] ?? game.skill)
+                .toLowerCase().contains(search);
+        return matchesSkill && matchesSearch;
+      }).toList();
       final width = constraints.maxWidth;
       if (allGames.isEmpty) {
         return const Center(child: Padding(
@@ -235,12 +262,32 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                 const Text('Explore', style: TextStyle(
                   color: neuroText, fontSize: 24, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
-                Text('${allGames.length} games · Pick your next challenge',
+                Text('${allGames.length} games to explore',
                   style: const TextStyle(
                     color: neuroMuted, fontSize: 12,
                     fontWeight: FontWeight.w500)),
               ],
             )),
+            Tooltip(
+              message: _searchOpen ? 'Close search' : 'Search games',
+              child: Material(
+                color: Colors.white.withValues(alpha: .88),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  key: const ValueKey('toggle-game-search'),
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: _toggleSearch,
+                  child: SizedBox(
+                    width: 42, height: 46,
+                    child: Icon(
+                      _searchOpen ? Icons.close_rounded : Icons.search_rounded,
+                      color: neuroText, size: 23,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             Tooltip(
               message: 'Surprise me',
               child: Material(
@@ -248,7 +295,7 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                 borderRadius: BorderRadius.circular(18),
                 child: InkWell(
                   key: const ValueKey('random-game'),
-                  onTap: () => _surprise(games),
+                  onTap: games.isEmpty ? null : () => _surprise(games),
                   borderRadius: BorderRadius.circular(18),
                   child: const SizedBox(
                     width: 48, height: 46,
@@ -260,6 +307,49 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
             ),
           ]),
         ),
+        if (_searchOpen)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+            child: TextField(
+              key: const ValueKey('game-search-field'),
+              controller: _searchController,
+              autofocus: false,
+              textInputAction: TextInputAction.search,
+              onChanged: (value) => setState(() => _query = value),
+              style: const TextStyle(
+                color: neuroText, fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Find a game...',
+                hintStyle: const TextStyle(color: neuroMuted),
+                filled: true,
+                fillColor: Colors.white,
+                isDense: true,
+                prefixIcon: const Icon(
+                  Icons.search_rounded, size: 20, color: neuroAccent,
+                ),
+                suffixIcon: _query.isEmpty ? null : IconButton(
+                  tooltip: 'Clear search',
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _query = '');
+                  },
+                  icon: const Icon(Icons.close_rounded,
+                    size: 20, color: neuroMuted),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(17),
+                  borderSide: const BorderSide(color: Color(0xFFE6EAF3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(17),
+                  borderSide: const BorderSide(
+                    color: neuroAccent, width: 1.5),
+                ),
+              ),
+            ),
+          ),
         SizedBox(
           height: 42,
           child: ListView.separated(
@@ -290,12 +380,32 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
           ),
         ),
         const SizedBox(height: 8),
-        Expanded(child: GridView.builder(
+        Expanded(child: games.isEmpty
+          ? Center(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.search_off_rounded,
+                  size: 33, color: neuroMuted),
+                SizedBox(height: 8),
+                Text('No games found', style: TextStyle(
+                  color: neuroText, fontSize: 15,
+                  fontWeight: FontWeight.w700)),
+                SizedBox(height: 4),
+                Text('Try a different name or category',
+                  style: TextStyle(color: neuroMuted, fontSize: 12)),
+              ],
+            ))
+          : GridView.builder(
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: width >= 820 ? 4 : width >= 500 ? 3 : 2,
             mainAxisSpacing: 12, crossAxisSpacing: 12,
-            childAspectRatio: width >= 820 ? 1.22 : 1.10),
+            // A fixed vertical extent avoids text-scale overflows in cards
+            // while keeping the catalogue phone-first and scrollable.
+            mainAxisExtent: width >= 820 ? 172
+                : width >= 500 ? 174
+                : MediaQuery.textScalerOf(context).scale(1) > 1.25
+                    ? 190 : 166),
           itemCount: games.length,
           itemBuilder: (context, index) {
             final entry = games[index];

@@ -142,16 +142,45 @@ class GameGlyph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = GameGlyphs.colorFor(gameId);
-    return Container(
+    return SizedBox(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .13),
-        borderRadius: BorderRadius.circular(size * .28),
-        border: Border.all(color: color.withValues(alpha: .25)),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withValues(alpha: .08),
+              color.withValues(alpha: .20),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(size * .27),
+          border: Border.all(color: color.withValues(alpha: .16)),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: size * .14,
+              right: size * .15,
+              child: Container(
+                width: size * .15,
+                height: size * .15,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: .47),
+                ),
+              ),
+            ),
+            Icon(
+              GameGlyphs.iconFor(gameId),
+              size: size * .52,
+              color: color,
+            ),
+          ],
+        ),
       ),
-      alignment: Alignment.center,
-      child: Icon(GameGlyphs.iconFor(gameId), size: size * .52, color: color),
     );
   }
 }

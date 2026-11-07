@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../core/game_registry.dart';
 
-/// Per-game colour set. Every module picks its own ground; the shared parts
-/// are edges: visible borders and hard offset shadows instead of blur.
+/// Per-game colour set. Each module keeps its own identity; shared controls
+/// use quiet tactile depth instead of hard borders and offset slabs.
 @immutable
 class GamePalette {
   const GamePalette({
@@ -37,7 +37,8 @@ class GamePalette {
   }
 }
 
-/// A pressable block that sits on a solid edge and travels down when pressed.
+/// Tactile, accessible control with a soft edge that follows the finger.
+
 class ChunkyButton extends StatefulWidget {
   const ChunkyButton({
     super.key,
@@ -117,10 +118,14 @@ class _ChunkyButtonState extends State<ChunkyButton> {
                   ),
                   borderRadius: BorderRadius.circular(widget.radius),
                   border: Border.all(
-                    color: widget.borderColor ?? edge, width: 2),
+                    color: widget.borderColor ??
+                        edge.withValues(alpha: .30),
+                    width: 1.3,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: edge,
+                      color: edge.withValues(alpha: .22),
+                      blurRadius: 3,
                       offset: Offset(0, widget.depth - travel),
                     ),
                   ],
@@ -167,7 +172,7 @@ class ChunkyIconButton extends StatelessWidget {
         color: palette.surface,
         edgeColor: palette.edge,
         depth: 3,
-        radius: 12,
+        radius: 14,
         padding: EdgeInsets.zero,
         semanticLabel: tooltip,
         child: Icon(icon, color: palette.ink, size: size * .48),
@@ -202,7 +207,13 @@ class GameScaffold extends StatelessWidget {
       DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [palette.ground, Colors.white, palette.ground],
+        // Blend toward each game's own surface. White would wash out
+        // dark boards such as Synapse Link and conceal their atmosphere.
+        colors: [
+          palette.ground,
+          Color.lerp(palette.ground, palette.surface, .64)!,
+          palette.ground,
+        ],
       ))),
       Positioned(top: 74, right: -82,
         child: _GameOrb(size: 230, color: palette.accent)),
@@ -305,14 +316,18 @@ class SegmentBar extends StatelessWidget {
       if (i > 0) const SizedBox(width: 5),
       Expanded(
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
+          duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+              ? Duration.zero : const Duration(milliseconds: 220),
           height: 8,
           decoration: BoxDecoration(
             color: failed.contains(i)
                 ? palette.danger
                 : i < done ? palette.accent : palette.surface,
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(color: palette.edge, width: 1.5),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+              color: palette.edge.withValues(alpha: .13),
+              width: 1,
+            ),
           ),
         ),
       ),
@@ -433,20 +448,24 @@ class LevelResultPanel extends StatelessWidget {
     clipBehavior: Clip.none,
     alignment: Alignment.center,
     children: [
-      Positioned(
-        top: -34,
-        left: 0,
-        right: 0,
-        height: 64,
-        child: IgnorePointer(child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 820),
-          curve: Curves.easeOutCubic,
-          builder: (context, progress, _) => CustomPaint(
-            painter: _CelebrationPainter(progress),
+      if (MediaQuery.maybeOf(context)?.disableAnimations != true)
+        Positioned(
+          top: -34,
+          left: 0,
+          right: 0,
+          height: 64,
+          child: IgnorePointer(
+            child: TweenAnimationBuilder<double>(
+              key: const ValueKey('level-confetti'),
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 820),
+              curve: Curves.easeOutCubic,
+              builder: (context, progress, _) => CustomPaint(
+                painter: _CelebrationPainter(progress),
+              ),
+            ),
           ),
-        )),
-      ),
+        ),
       _PanelShell(
         palette: palette,
         child: Column(mainAxisSize: MainAxisSize.min, children: [

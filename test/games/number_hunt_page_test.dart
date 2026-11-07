@@ -59,7 +59,8 @@ void main() {
 
     await tester.tap(find.text('NEXT LEVEL'));
     await tester.pump();
-    expect(find.text('Find the Number  ·  2'), findsOneWidget);
+    expect(find.text('Find the Number'), findsOneWidget);
+    expect(find.text('LEVEL 2'), findsOneWidget);
     expect(find.text('ROUND 1 / 5'), findsOneWidget);
 
     await finishLevel(2);
