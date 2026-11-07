@@ -183,7 +183,9 @@ class _CombinationLockPageState extends State<CombinationLockPage>
             Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 7,
               children: [for (var digit = 0; digit <= 9; digit++)
                 SizedBox(width: (width - 4 * 8) / 5, height: 45,
-                  child: ChunkyButton(onPressed: reported || _engine.isFailed
+                  child: ChunkyButton(
+                    key: ValueKey('lock-key-$digit'),
+                    onPressed: reported || _engine.isFailed
                     ? null : () => _digit(digit),
                     color: Colors.white, edgeColor: _palette.edge, depth: 3,
                     radius: 10, padding: EdgeInsets.zero,
