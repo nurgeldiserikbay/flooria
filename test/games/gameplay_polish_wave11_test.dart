@@ -35,7 +35,9 @@ Future<void> _open(WidgetTester tester, String id, {
 (int, int)? _legalJump(PegSolitaireEngine engine) {
   for (var source = 0; source < engine.board.length; source++) {
     if (!PegSolitaireEngine.isValidCell(source) ||
-        engine.board[source] != 1) continue;
+        engine.board[source] != 1) {
+      continue;
+    }
     final r = source ~/ PegSolitaireEngine.side;
     final c = source % PegSolitaireEngine.side;
     for (final (dr, dc) in const [
@@ -45,7 +47,9 @@ Future<void> _open(WidgetTester tester, String id, {
       final tc = c + dc;
       if (tr < 0 || tc < 0 ||
           tr >= PegSolitaireEngine.side ||
-          tc >= PegSolitaireEngine.side) continue;
+          tc >= PegSolitaireEngine.side) {
+        continue;
+      }
       final dest = tr * PegSolitaireEngine.side + tc;
       final mid = (r + dr ~/ 2) * PegSolitaireEngine.side +
           c + dc ~/ 2;
