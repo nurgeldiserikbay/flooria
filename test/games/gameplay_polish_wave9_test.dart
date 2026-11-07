@@ -68,7 +68,9 @@ void main() {
     expect(find.byTooltip('Move down'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Move right'));
-    await tester.pump(const Duration(milliseconds: 240));
+    // First draw the new location, then let the departing icon fade out.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 260));
     final cell = find.byKey(const ValueKey('tide-cell-31'));
     expect(tester.widget<Semantics>(cell).properties.label,
         contains('player'));
