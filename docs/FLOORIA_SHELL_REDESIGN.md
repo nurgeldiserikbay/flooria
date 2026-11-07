@@ -76,3 +76,28 @@ progress, analytics, saved preferences and working level transitions.
 
 This is a coherent shell pass, not a claim that every screen has been
 individually re-art-directed or device-verified.
+
+## Map polish follow-up (7 November 2026)
+
+A separate stacked PR implements the next layer of world polish:
+
+- **No stretched panorama:** the existing seamless neural background texture
+  is tiled at native scale in map space, so it follows pan and zoom while the
+  overall screen atmosphere remains stationary. This creates subtle depth
+  without new UI or asset downloads.
+- **Space between nodes:** the final 37 positions were staggered and spread
+  vertically. Previously nodes 39–48 nearly shared a single row and overlapped.
+- **More inviting start:** the initial camera opens at about 125% of viewport
+  width, so the graph responds to horizontal panning without requiring zoom.
+  The player still starts focused on the next playable neuron.
+- **Clearer hierarchy:** completed nodes are 62 logical pixels across and
+  locked ones 49; unlocked nodes remain prominent and locked colors are softer.
+- **Performance and accessibility:** static texture/connection layers have
+  repaint boundaries; repeating ambient particles and node pulsing stop when
+  the app's motion toggle is off or system reduced motion is enabled.
+- **Checks:** 360×640, 390×844 and 800×1100 responsive camera tests, collision
+  regression checks for late nodes, repeat-background assertion and reduced-
+  motion panning test.
+
+The static world texture uses the existing bundled image. Visual/animation
+checks on a real Android device and a large-text audit are still outstanding.
