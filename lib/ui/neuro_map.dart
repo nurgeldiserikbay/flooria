@@ -170,7 +170,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
   Widget build(BuildContext context) {
     final nodes = NeuronMapGraph.nodes;
     return LayoutBuilder(builder: (context, bounds) {
-      const chromeHeight = 148.0;
+      const chromeHeight = 126.0;
       final viewportHeight = math.max(0.0, bounds.maxHeight - chromeHeight);
       // Keep the map larger than its viewport at its resting scale. This gives
       // pan gestures room to move the network even before the player zooms in.
@@ -187,12 +187,19 @@ class _NeuroMapViewState extends State<NeuroMapView>
             bounds.maxWidth / mapWidth,
             viewportHeight / mapHeight,
           ).clamp(.62, 1.0);
+          // Open on the next playable node rather than the empty middle
+          // of a tall graph. The rest of the world remains freely pannable.
+          final focus = nodes.firstWhere(
+            (node) => NeuronMapGraph.availability(
+              node, widget.completedNeurons) == NeuronAvailability.open,
+            orElse: () => nodes.first,
+          );
+          final focusPoint = positions[focus.id]!;
           _transform.value = Matrix4.identity()
             ..translateByDouble(
-              (bounds.maxWidth - mapWidth * scale) / 2,
-              (viewportHeight - mapHeight * scale) / 2,
-              0,
-              1,
+              (bounds.maxWidth / 2) - focusPoint.dx * scale,
+              viewportHeight * .28 - focusPoint.dy * scale,
+              0, 1,
             )
             ..scaleByDouble(scale, scale, 1, 1);
         });
@@ -200,8 +207,8 @@ class _NeuroMapViewState extends State<NeuroMapView>
 
       return Stack(children: [
         Positioned.fill(
-          top: 66,
-          bottom: 82,
+          top: 122,
+          bottom: 4,
           child: InteractiveViewer(
             transformationController: _transform,
             constrained: false,
@@ -312,34 +319,51 @@ class _NeuroMapViewState extends State<NeuroMapView>
           ),
         ),
         Positioned(
-          top: 10,
-          left: 18,
-          right: 18,
-          child: Row(children: [
-            const _BrandMark(),
-            const SizedBox(width: 10),
-            const Expanded(child: Text('NEURO PLAYGROUND',
-              style: TextStyle(color: Color(0xFFF4F5FF),
-                fontSize: 13, fontWeight: FontWeight.w900,
-                letterSpacing: 1.2))),
-            _ProgressPill(value: '${widget.completedNeurons.length} / ${nodes.length}'),
-            const SizedBox(width: 3),
-            IconButton(
-              tooltip: 'Settings',
-              onPressed: widget.onSettings,
-              icon: const Icon(Icons.tune_rounded, color: Color(0xFFE9EEFF)),
+          top: 8,
+          left: 14,
+          right: 14,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 5, 5, 5),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .78),
+              borderRadius: BorderRadius.circular(23),
+              border: Border.all(color: const Color(0xB5FFFFFF)),
+              boxShadow: const [
+                BoxShadow(color: Color(0x143C557C),
+                  blurRadius: 14, offset: Offset(0, 4)),
+              ],
             ),
-          ]),
+            child: Row(children: [
+              const _BrandMark(),
+              const SizedBox(width: 10),
+              const Expanded(child: Text('Flooria',
+                style: TextStyle(
+                  color: neuroText,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.3,
+                ))),
+              _ProgressPill(
+                value: '${widget.completedNeurons.length} / ${nodes.length}',
+              ),
+              IconButton(
+                tooltip: 'Settings',
+                onPressed: widget.onSettings,
+                icon: const Icon(Icons.tune_rounded, color: neuroText),
+                iconSize: 22,
+                visualDensity: VisualDensity.compact,
+              ),
+            ]),
+          ),
         ),
         Positioned(
+          top: 61,
           left: 0,
           right: 0,
-          bottom: 0,
           child: NeuroNavigation(selected: 0, onTab: (tab) {
             switch (tab) {
               case 1: widget.onGames();
               case 2: widget.onAnalytics();
-              case 3: widget.onAnalytics();
               default: break;
             }
           }),
@@ -462,34 +486,7 @@ class _NeuronDot extends StatelessWidget {
                         color: Color(0xFF35A88C)),
                     ),
                   ),
-                  if (locked) Positioned(
-                    right: 0, bottom: 0,
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFEAF0FA),
-                      ),
-                      child: const Icon(Icons.lock_rounded, size: 10,
-                        color: Color(0xFF8290A9)),
-                    ),
-                  ),
-                  if (!complete && !locked) Positioned(
-                    right: 1, top: 1,
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFF8F6FF),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text('${node.level}', style: const TextStyle(
-                        color: Color(0xFF655BC2), fontSize: 9,
-                        fontWeight: FontWeight.w900)),
-                    ),
-                  ),
+
                 ]),
               ),
             ),
@@ -522,7 +519,7 @@ class _MapAtmosphere extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0x120B1537), Color(0x28110D38)],
+            colors: [Color(0x12FFFFFF), Color(0x26E7EDFF)],
           ),
         ),
       ),
@@ -538,10 +535,9 @@ class _BrandMark extends StatelessWidget {
     height: 37,
     width: 37,
     decoration: BoxDecoration(
-      color: const Color(0xFF5468B3),
-      borderRadius: BorderRadius.circular(13),
-      boxShadow: const [BoxShadow(color: Color(0x335468B3),
-        blurRadius: 12, offset: Offset(0, 4))],
+      color: const Color(0xFF7C84CC),
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: const [],
     ),
     child: const Icon(Icons.hub_rounded, color: Colors.white, size: 21),
   );
@@ -555,9 +551,9 @@ class _ProgressPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
     decoration: BoxDecoration(
-      color: const Color(0xCCFFFFFF),
+      color: const Color(0xFFEFEFFA),
       borderRadius: BorderRadius.circular(30),
-      border: Border.all(color: const Color(0xFFC7D3EF)),
+      border: Border.all(color: const Color(0xFFE6E5F2)),
     ),
     child: Text(value, style: const TextStyle(
       color: Color(0xFF52628E), fontSize: 10,
