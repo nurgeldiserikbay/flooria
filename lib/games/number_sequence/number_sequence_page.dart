@@ -125,6 +125,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
                 children: [for (final choice in _engine.choices)
                   SizedBox(width: (cardSide - 54) / 2, height: 56,
                     child: ChunkyButton(
+                      key: ValueKey('sequence-choice-$choice'),
                       onPressed: reported ? null : () => _choose(choice),
                       color: _wrongChoice == choice
                           ? const Color(0xFFFFDCDD)
