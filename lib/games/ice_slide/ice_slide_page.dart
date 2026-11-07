@@ -173,7 +173,8 @@ class _IceSlidePageState extends State<IceSlidePage>
               }),
             ),
             AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
+              duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                  ? Duration.zero : const Duration(milliseconds: 220),
               child: done
                   ? LevelResultPanel(
                       palette: _palette,
@@ -210,15 +211,27 @@ class _Board extends StatelessWidget {
         Offset(pad + (index % engine.size) * cell, pad + (index ~/ engine.size) * cell);
     final puck = origin(engine.position);
     final goal = origin(engine.goal);
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
     return Container(
       width: side,
       height: side,
       decoration: BoxDecoration(
-        color: _ice,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _palette.edge, width: 2),
-        boxShadow: const [BoxShadow(color: Color(0xFF1D2D4E), offset: Offset(0, 6))],
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_ice, Color(0xFFE9F4FC)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFC3D9EA)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x261D2D4E),
+            blurRadius: 16,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Stack(children: [
         Positioned.fill(
@@ -234,7 +247,8 @@ class _Board extends StatelessWidget {
           child: _GoalRing(done: engine.isCompleted),
         ),
         AnimatedPositioned(
-          duration: Duration(milliseconds: 60 + lastLength * 55),
+          duration: reduceMotion ? Duration.zero
+              : Duration(milliseconds: 60 + lastLength * 55),
           curve: Curves.easeOutCubic,
           left: puck.dx,
           top: puck.dy,
@@ -244,16 +258,25 @@ class _Board extends StatelessWidget {
             trigger: bumps,
             child: Padding(
               padding: EdgeInsets.all(cell * .16),
-              child: Container(
-                key: const ValueKey('ice-puck'),
-                decoration: BoxDecoration(
-                  color: _puck,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: _palette.edge, width: 2),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0xFF1D2D4E), offset: Offset(0, 3)),
-                  ],
-                ),
+              child: Semantics(
+                label: 'Ice puck at row ${engine.position ~/ engine.size + 1}, '
+                    'column ${engine.position % engine.size + 1}',
+                child: Container(
+                  key: const ValueKey('ice-puck'),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFFFA78D), _puck],
+                    ),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE45443),
+                      width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x4AFF6B57),
+                        blurRadius: 10, offset: Offset(0, 3)),
+                    ],
+                  ),
                 child: Center(
                   child: Container(
                     width: cell * .16,
@@ -261,6 +284,7 @@ class _Board extends StatelessWidget {
                     decoration: const BoxDecoration(
                       color: Colors.white, shape: BoxShape.circle),
                   ),
+                ),
                 ),
               ),
             ),
@@ -279,7 +303,8 @@ class _GoalRing extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(4),
     child: AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+          ? Duration.zero : const Duration(milliseconds: 300),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: done ? _palette.success.withValues(alpha: .2) : Colors.transparent,
