@@ -72,11 +72,22 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
       return Center(child: SizedBox(width: width,
         child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                StatChip(label: 'OBJECT', value: '${_engine.target} KG', palette: _palette),
-                StatChip(label: 'YOUR SIDE', value: '${_engine.total} KG', palette: _palette),
-              ])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: SizedBox(
+                width: width - 10,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    StatChip(label: 'OBJECT',
+                      value: '${_engine.target} KG', palette: _palette),
+                    const SizedBox(width: 10),
+                    StatChip(label: 'YOUR SIDE',
+                      value: '${_engine.total} KG', palette: _palette),
+                  ]),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             Semantics(
               label: 'Balance scale: object ${_engine.target} kilograms, '
