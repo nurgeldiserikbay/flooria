@@ -69,13 +69,21 @@ class NeuroNavigation extends StatelessWidget {
                         children: [
                           Icon(icons[i], size: 18,
                             color: active ? neuroAccent : neuroMuted),
-                          const SizedBox(width: 5),
-                          Text(labels[i], style: TextStyle(
-                            fontSize: 11.5,
-                            color: active ? neuroText : neuroMuted,
-                            fontWeight: active
-                                ? FontWeight.w800 : FontWeight.w600,
-                          )),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              labels[i],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: false,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: active ? neuroText : neuroMuted,
+                                fontWeight: active
+                                    ? FontWeight.w800 : FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
