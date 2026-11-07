@@ -122,20 +122,24 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
                     padding: EdgeInsets.zero,
                     semanticLabel: '${_engine.weights[index]} kilograms, '
                         '${_engine.selected.contains(index) ? 'selected' : 'not selected'}',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_engine.selected.contains(index)) ...[
-                          const Icon(Icons.check_rounded,
-                            size: 13, color: Color(0xFF66563F)),
-                          const SizedBox(width: 1),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_engine.selected.contains(index)) ...[
+                            const Icon(Icons.check_rounded,
+                              size: 12, color: Color(0xFF66563F)),
+                            const SizedBox(width: 1),
+                          ],
+                          Text('${_engine.weights[index]} kg',
+                            style: const TextStyle(
+                              color: Color(0xFF66563F),
+                              fontSize: 12, fontWeight: FontWeight.w900,
+                            )),
                         ],
-                        Text('${_engine.weights[index]} kg',
-                          style: const TextStyle(
-                            color: Color(0xFF66563F),
-                            fontSize: 12, fontWeight: FontWeight.w900,
-                          )),
-                      ],
+                      ),
                     ),
                   ),
                 ),
