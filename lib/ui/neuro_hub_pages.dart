@@ -6,13 +6,13 @@ import '../core/game_registry.dart';
 import 'game_glyph.dart';
 import 'skill_radar.dart';
 
-const neuroBg = Color(0xFFD6E5FA);
-const neuroCard = Color(0xFFF3F6FF);
-const neuroText = Color(0xFF273D75);
-const neuroMuted = Color(0xFF6077A6);
-const neuroAccent = Color(0xFF7D6AFF);
+const neuroBg = Color(0xFFF5F7FC);
+const neuroCard = Color(0xFFFFFFFF);
+const neuroText = Color(0xFF29354F);
+const neuroMuted = Color(0xFF71809B);
+const neuroAccent = Color(0xFF8176D7);
 
-/// Three compact portals for the map, approved games, and skill records.
+/// Quiet floating world navigation instead of a full-width bottom tab bar.
 class NeuroNavigation extends StatelessWidget {
   const NeuroNavigation({super.key, required this.selected, required this.onTab});
   final int selected;
@@ -23,69 +23,102 @@ class NeuroNavigation extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(3, (i) {
-        final active = selected == i;
-        return Expanded(child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              key: ValueKey('neuro-nav-$i'),
-              borderRadius: BorderRadius.circular(21),
-              onTap: () => onTab(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                height: 62,
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: active
-                    ? [const Color(0xFFFCEBFF), const Color(0xFFD5EFFF)]
-                    : [const Color(0xEFFFFFFF), const Color(0xD7DDEEFF)]),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: active
-                    ? const Color(0xFF8A77D9) : const Color(0x99FFFFFF),
-                    width: active ? 2 : 1),
-                  boxShadow: const [BoxShadow(color: Color(0x334D69AB),
-                    blurRadius: 12, offset: Offset(0, 4))]),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(icons[i], size: 25,
-                      color: const Color(0xFF52649A)),
-                    const SizedBox(height: 2),
-                    Text(labels[i], style: TextStyle(
-                      color: const Color(0xFF344A81),
-                      fontSize: 11, fontWeight: active
-                        ? FontWeight.w900 : FontWeight.w700)),
-                  ]),
-              ),
-            ),
+  Widget build(BuildContext context) {
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 288),
+          height: 50,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .87),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: const Color(0xB5FFFFFF)),
+            boxShadow: const [
+              BoxShadow(color: Color(0x183A5476), blurRadius: 18,
+                offset: Offset(0, 5)),
+            ],
           ),
-        ));
-      }),
-    ),
-  );
+          child: Row(children: List.generate(3, (i) {
+            final active = selected == i;
+            return Expanded(
+              child: Semantics(
+                selected: active,
+                button: true,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    key: ValueKey('neuro-nav-$i'),
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () => onTab(i),
+                    child: AnimatedContainer(
+                      duration: reducedMotion
+                          ? Duration.zero
+                          : const Duration(milliseconds: 175),
+                      curve: Curves.easeOutCubic,
+                      decoration: BoxDecoration(
+                        color: active
+                            ? const Color(0xFFEDEAFF) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(icons[i], size: 18,
+                            color: active ? neuroAccent : neuroMuted),
+                          const SizedBox(width: 5),
+                          Text(labels[i], style: TextStyle(
+                            fontSize: 11.5,
+                            color: active ? neuroText : neuroMuted,
+                            fontWeight: active
+                                ? FontWeight.w800 : FontWeight.w600,
+                          )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          })),
+        ),
+      ),
+    );
+  }
 }
 
 /// Layered daylight sky with soft orbital shapes. All procedural, no large textures.
 class NeuroAtmosphere extends StatelessWidget {
   const NeuroAtmosphere({super.key, required this.child});
   final Widget child;
+
   @override
-  Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-      begin: Alignment.topLeft, end: Alignment.bottomRight,
-      colors: [Color(0xFFB1E5FB), Color(0xFFDAD0FD), Color(0xFFFFE7D6)]))),
-    const Positioned(top: -85, right: -85,
-      child: _AmbientOrb(size: 260, color: Color(0x99FFFFFF))),
-    const Positioned(top: 145, left: -105,
-      child: _AmbientOrb(size: 215, color: Color(0x776AAFF1))),
-    const Positioned(bottom: 120, right: -80,
-      child: _AmbientOrb(size: 195, color: Color(0x889D8CF5))),
-    child,
-  ]);
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF6FAFD),
+              Color(0xFFF3F1FC),
+              Color(0xFFFFF8F2),
+            ],
+          ),
+        ),
+      ),
+      const Positioned(top: -120, right: -125,
+        child: _AmbientOrb(size: 280, color: Color(0x99D4E5FF))),
+      const Positioned(bottom: -120, left: -105,
+        child: _AmbientOrb(size: 230, color: Color(0x88EBD7F8))),
+      child,
+    ],
+  );
 }
 
 class _AmbientOrb extends StatelessWidget {
@@ -120,8 +153,8 @@ class NeuroShell extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
             child: Row(mainAxisAlignment: MainAxisAlignment.end,
               children: actions!)),
-        Expanded(child: child),
         NeuroNavigation(selected: tab, onTab: onTab),
+        Expanded(child: child),
       ]),
     ),
   );
@@ -191,35 +224,29 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Choose a game', style: TextStyle(
-                  color: neuroText, fontSize: 19, fontWeight: FontWeight.w900)),
+                const Text('Explore', style: TextStyle(
+                  color: neuroText, fontSize: 24, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
-                Text('${allGames.length} games to explore', style: const TextStyle(
-                  color: neuroMuted, fontSize: 12, fontWeight: FontWeight.w700)),
+                Text('${allGames.length} games · Pick your next challenge',
+                  style: const TextStyle(
+                    color: neuroMuted, fontSize: 12,
+                    fontWeight: FontWeight.w500)),
               ],
             )),
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
+            Tooltip(
+              message: 'Surprise me',
+              child: Material(
+                color: const Color(0xFFFFEACB),
                 borderRadius: BorderRadius.circular(18),
-                onTap: () => _surprise(games),
-                child: Ink(
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [
-                      Color(0xFFFFE6A8), Color(0xFFFFCBB5),
-                    ]),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFE9B96E)),
-                    boxShadow: const [BoxShadow(color: Color(0x22A96949),
-                      blurRadius: 8, offset: Offset(0, 3))],
+                child: InkWell(
+                  key: const ValueKey('random-game'),
+                  onTap: () => _surprise(games),
+                  borderRadius: BorderRadius.circular(18),
+                  child: const SizedBox(
+                    width: 48, height: 46,
+                    child: Icon(Icons.casino_rounded,
+                      color: Color(0xFF9A704A), size: 23),
                   ),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.casino_rounded, color: Color(0xFF8A5C37), size: 18),
-                    SizedBox(width: 6),
-                    Text('Surprise me', style: TextStyle(color: Color(0xFF734B32),
-                      fontSize: 12, fontWeight: FontWeight.w900)),
-                  ]),
                 ),
               ),
             ),
@@ -259,8 +286,8 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: width >= 820 ? 4 : width >= 500 ? 3 : 2,
-            mainAxisSpacing: 14, crossAxisSpacing: 14,
-            childAspectRatio: width >= 820 ? 1.18 : 1.02),
+            mainAxisSpacing: 12, crossAxisSpacing: 12,
+            childAspectRatio: width >= 820 ? 1.22 : 1.10),
           itemCount: games.length,
           itemBuilder: (context, index) {
             final entry = games[index];
@@ -279,18 +306,21 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                           Colors.white,
                           Color.alphaBlend(accent.withValues(alpha: .09), Colors.white),
                         ]),
-                      borderRadius: BorderRadius.circular(25),
-                      border: Border.all(color: accent.withValues(alpha: .28), width: 1.4),
-                      boxShadow: [BoxShadow(color: accent.withValues(alpha: .10),
-                        blurRadius: 15, offset: const Offset(0, 5))],
+                      borderRadius: BorderRadius.circular(23),
+                      border: Border.all(
+                        color: const Color(0xFFE9ECF4), width: 1),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x123F5678),
+                          blurRadius: 16, offset: Offset(0, 6)),
+                      ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(13),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(children: [
-                            GameGlyph(gameId: entry.id, size: 62),
+                            GameGlyph(gameId: entry.id, size: 58),
                             const Spacer(),
                             IconButton(
                               tooltip: favorite ? 'Remove favorite' : 'Add favorite',
@@ -310,19 +340,10 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(color: neuroText,
                               fontSize: 15, fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 7),
-                          Row(children: [
-                            Container(width: 7, height: 7,
-                              decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
-                            const SizedBox(width: 5),
-                            Expanded(child: Text(
-                              (_skillLabels[entry.skill] ?? entry.skill).toUpperCase(),
-                              maxLines: 1, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: neuroMuted, fontSize: 9,
-                                fontWeight: FontWeight.w900, letterSpacing: .8))),
-                            Text('LEVEL $level', style: TextStyle(color: neuroMuted,
-                              fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: .5)),
-                          ]),
+                          const SizedBox(height: 6),
+                          Text('Level $level', style: const TextStyle(
+                            color: neuroMuted, fontSize: 11,
+                            fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
