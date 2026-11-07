@@ -38,6 +38,28 @@ Future<void> _open(
   await tester.pump(const Duration(milliseconds: 260));
 }
 
+void _expectNoLayoutErrors(WidgetTester tester) {
+  final exception = tester.takeException();
+  if (exception != null) {
+    // Include the offending Row and child widths in CI output so a compact
+    // phone layout failure is actionable rather than a generic overflow.
+    for (final row in tester.renderObjectList<RenderFlex>(find.byType(Row))) {
+      if (!row.hasSize) continue;
+      var totalWidth = 0.0;
+      RenderBox? child = row.firstChild;
+      while (child != null) {
+        if (child.hasSize) totalWidth += child.size.width;
+        child = (child.parentData! as FlexParentData).nextSibling;
+      }
+      if (totalWidth > row.size.width + .1) {
+        debugPrint('OVERFLOW ROW width=${row.size.width} '
+            'children=$totalWidth widget=${row.debugCreator}');
+      }
+    }
+  }
+  expect(exception, isNull);
+}
+
 void main() {
   for (final id in const [
     'combination_lock', 'number_sequence', 'whack_target',
@@ -50,12 +72,12 @@ void main() {
           await _open(tester, id, level: level);
           expect(find.byType(GameScaffold), findsOneWidget);
           expect(find.text('LEVEL $level'), findsOneWidget);
-          expect(tester.takeException(), isNull);
+          _expectNoLayoutErrors(tester);
 
           await tester.tap(find.byTooltip('Restart'));
           await tester.pump(const Duration(milliseconds: 210));
           expect(find.text('LEVEL $level'), findsOneWidget);
-          expect(tester.takeException(), isNull);
+          _expectNoLayoutErrors(tester);
         });
       }
     }
@@ -82,7 +104,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('lock-key-5')));
     await tester.pump(const Duration(milliseconds: 170));
     expect(find.text('5'), findsWidgets);
-    expect(tester.takeException(), isNull);
+    _expectNoLayoutErrors(tester);
   });
 
   testWidgets('Wrong number answer stays visible, next round remains playable',
@@ -99,7 +121,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 260));
     expect(find.byKey(const ValueKey('sequence-round-1')), findsOneWidget);
     expect(find.textContaining('NOT QUITE'), findsNothing);
-    expect(tester.takeException(), isNull);
+    _expectNoLayoutErrors(tester);
   });
 
   testWidgets('Number Sequence completes once and continues to level 2',
@@ -113,7 +135,7 @@ void main() {
         'sequence-choice-${engine.answer}')));
       engine.choose(engine.answer);
       await tester.pump(const Duration(milliseconds: 250));
-      expect(tester.takeException(), isNull);
+      _expectNoLayoutErrors(tester);
     }
     expect(results, hasLength(1));
     expect(results.single.level, 1);
@@ -121,7 +143,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 210));
     expect(find.text('LEVEL 2'), findsOneWidget);
     expect(results, hasLength(1));
-    expect(tester.takeException(), isNull);
+    _expectNoLayoutErrors(tester);
   });
 
   testWidgets('Target tap shows a hit and countdown resets next window',
@@ -142,7 +164,7 @@ void main() {
       milliseconds: engine.windowMilliseconds));
     await tester.pump();
     expect(find.byKey(const ValueKey('whack-window-1')), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    _expectNoLayoutErrors(tester);
   });
 
   testWidgets('New microanimations respect reduced motion', (tester) async {
@@ -169,6 +191,6 @@ void main() {
       find.descendant(of: target, matching: find.byType(AnimatedScale)));
     expect(targetScale.duration, Duration.zero);
     expect(find.byKey(const ValueKey('whack-window-0')), findsNothing);
-    expect(tester.takeException(), isNull);
+    _expectNoLayoutErrors(tester);
   });
 }
