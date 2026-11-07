@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flooria/core/game_registry.dart';
 import 'package:flooria/games/combination_lock/combination_lock_engine.dart';
