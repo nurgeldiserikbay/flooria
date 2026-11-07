@@ -18,56 +18,144 @@ class TideShiftPage extends StatefulWidget {
 
 class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftPage> {
   late TideShiftEngine _engine;
+  int _blockedPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = TideShiftEngine.forLevel(level);
+  void resetLevel() {
+    _engine = TideShiftEngine.forLevel(level);
+    _blockedPulse = 0;
+  }
+
   void _step(int dr, int dc) {
-    final result = _engine.step(dr, dc); setState(() {});
+    final result = _engine.step(dr, dc);
+    if (result == TideMove.ignored) return;
+    if (result == TideMove.blocked) {
+      HapticFeedback.selectionClick();
+      setState(() => _blockedPulse++);
+      return;
+    }
+    setState(() {});
     if (result == TideMove.flooded) {
       HapticFeedback.heavyImpact();
+    } else if (result == TideMove.completed) {
+      HapticFeedback.mediumImpact();
+      reportWin(score: _engine.score, metrics: const {});
     } else {
       HapticFeedback.selectionClick();
     }
-    if (result == TideMove.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: const {}); }
   }
 
   @override
   Widget build(BuildContext context) => GameScaffold(palette: _palette, title: 'Tide Shift', level: level,
     actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart', palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, box) {
+      final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      final motion = reduceMotion ? Duration.zero
+          : const Duration(milliseconds: 210);
       final side = math.min(box.maxWidth - 34, box.maxHeight - (reported || _engine.isFailed ? 350 : 300)).clamp(220.0, 350.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Padding(padding: const EdgeInsets.symmetric(horizontal: 22), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           StatChip(label: 'TIDE', value: _engine.tide.toString(), palette: _palette),
-          Row(children: [for (var i = 0; i < 4; i++) Icon(Icons.water_drop_rounded, size: 17,
-            color: i < _engine.tide ? _palette.accent : const Color(0xFFC9E6E1))]),
+          Semantics(
+            label: 'Tide level ${_engine.tide}',
+            child: Row(children: [
+              for (var i = 0; i < 4; i++)
+                AnimatedScale(
+                  scale: i < _engine.tide ? 1.12 : .94,
+                  duration: motion,
+                  child: Icon(Icons.water_drop_rounded, size: 17,
+                    color: i < _engine.tide ? _palette.accent
+                        : const Color(0xFFC9E6E1)),
+                ),
+            ]),
+          ),
           StatChip(label: 'STEPS', value: _engine.moves.toString(), palette: _palette),
         ])),
         const SizedBox(height: 9),
-        Container(width: side, height: side, padding: const EdgeInsets.all(5), decoration: BoxDecoration(color: const Color(0xFFBFE4DD),
-          borderRadius: BorderRadius.circular(20), border: Border.all(color: _palette.edge, width: 2)),
-          child: GridView.builder(physics: const NeverScrollableScrollPhysics(), itemCount: 36,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6, crossAxisSpacing: 3, mainAxisSpacing: 3),
+        Container(
+          width: side, height: side,
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: const Color(0xFFCBEAE4),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFA5D6CE)),
+            boxShadow: const [
+              BoxShadow(color: Color(0x26315E5D),
+                blurRadius: 15, offset: Offset(0, 5)),
+            ],
+          ),
+          child: GridView.builder(
+            key: const ValueKey('tide-board'),
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: 36,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 6, crossAxisSpacing: 3, mainAxisSpacing: 3),
             itemBuilder: (context, cell) {
               final height = _engine.heights[cell];
               final flooded = height < _engine.tide;
-              return AnimatedContainer(duration: const Duration(milliseconds: 220), decoration: BoxDecoration(
-                color: flooded ? const Color(0xFF54B9C0) : height >= 4 ? const Color(0xFF9ACB8C) : const Color(0xFFD6C58B),
-                borderRadius: BorderRadius.circular(7)), child: Center(child: cell == _engine.position
-                  ? const Icon(Icons.directions_run_rounded, color: Color(0xFF315E5D), size: 22)
-                  : cell == _engine.goal ? const Icon(Icons.flag_rounded, color: Colors.white, size: 20)
-                  : flooded ? const Icon(Icons.water_rounded, color: Color(0xFFB9F3E8), size: 16) : null));
-            })),
+              final player = cell == _engine.position;
+              return Semantics(
+                key: ValueKey('tide-cell-$cell'),
+                label: 'Row ${cell ~/ TideShiftEngine.side + 1}, '
+                    'column ${cell % TideShiftEngine.side + 1}, '
+                    '${flooded ? 'flooded' : height >= 4 ? 'high ground' : 'low ground'}'
+                    '${player ? ', player' : ''}'
+                    '${cell == _engine.goal ? ', goal' : ''}',
+                child: AnimatedContainer(
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: flooded
+                          ? const [Color(0xFF82D3D6), Color(0xFF45AEB8)]
+                          : height >= 4
+                              ? const [Color(0xFFC1E9A9), Color(0xFF84BC82)]
+                              : const [Color(0xFFECDDAD), Color(0xFFD0B87D)],
+                    ),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  alignment: Alignment.center,
+                  child: AnimatedSwitcher(
+                    duration: motion,
+                    switchInCurve: Curves.easeOutBack,
+                    child: player
+                        ? const Icon(
+                            Icons.directions_run_rounded,
+                            key: ValueKey('tide-player'),
+                            color: Color(0xFF205C5C), size: 24)
+                        : cell == _engine.goal
+                            ? const Icon(Icons.flag_rounded,
+                                key: ValueKey('tide-goal'),
+                                color: Colors.white, size: 21)
+                            : flooded
+                                ? const Icon(Icons.water_rounded,
+                                    key: ValueKey('tide-water'),
+                                    color: Color(0xFFC6F4EE), size: 15)
+                                : const SizedBox.shrink(
+                                    key: ValueKey('tide-empty')),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
         const SizedBox(height: 9),
         _TidePad(onStep: _step, disabled: reported || _engine.isFailed),
         if (reported) Padding(padding: const EdgeInsets.all(8), child: LevelResultPanel(palette: _palette, launch: launch,
           level: level, stars: _engine.moves <= 11 ? 3 : 2, detail: 'Reached high ground before the tide.', onReplay: replayLevel, onNext: nextLevel))
         else if (_engine.isFailed) Padding(padding: const EdgeInsets.all(8), child: RetryPanel(palette: _palette,
           title: 'THE TIDE CAUGHT YOU', detail: 'Stay on the raised green path.', onRetry: replayLevel))
-        else const HintLine('LOW GROUND FLOODS AS THE TIDE RISES', palette: _palette),
+        else Shake(
+          trigger: _blockedPulse,
+          child: const HintLine(
+            'LOW GROUND FLOODS AS THE TIDE RISES', palette: _palette),
+        ),
       ]));
     }));
 }
@@ -78,10 +166,11 @@ class _TidePad extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox(width: 142, child: GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
     crossAxisCount: 3, mainAxisSpacing: 3, crossAxisSpacing: 3, children: [
-      const SizedBox(), _move(Icons.keyboard_arrow_up_rounded, -1, 0), const SizedBox(),
-      _move(Icons.keyboard_arrow_left_rounded, 0, -1), const SizedBox(), _move(Icons.keyboard_arrow_right_rounded, 0, 1),
-      const SizedBox(), _move(Icons.keyboard_arrow_down_rounded, 1, 0), const SizedBox(),
+      const SizedBox(), _move(Icons.keyboard_arrow_up_rounded, 'Move up', -1, 0), const SizedBox(),
+      _move(Icons.keyboard_arrow_left_rounded, 'Move left', 0, -1), const SizedBox(),
+      _move(Icons.keyboard_arrow_right_rounded, 'Move right', 0, 1),
+      const SizedBox(), _move(Icons.keyboard_arrow_down_rounded, 'Move down', 1, 0), const SizedBox(),
     ]));
-  Widget _move(IconData icon, int dr, int dc) => ChunkyIconButton(icon: icon, tooltip: 'Move', palette: _palette,
+  Widget _move(IconData icon, String tooltip, int dr, int dc) => ChunkyIconButton(icon: icon, tooltip: tooltip, palette: _palette,
     onPressed: disabled ? null : () => onStep(dr, dc));
 }
