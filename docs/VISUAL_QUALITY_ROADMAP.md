@@ -217,3 +217,29 @@ deterministic engines, registry, scores, progression, or save data.
 text review, long-run profiling, sound/haptic preference integration and
 independent playtesting with children. Flutter widget tests cannot alone
 prove the games are attractive or that frame times are stable on Android.
+
+## Wave 8 — locks, numeric patterns and timed targets (8 Nov 2026)
+
+This wave polishes three distinct game interactions, without changing their
+rules, scoring, level generation, catalog entries or persistence.
+
+- [x] **Combination Lock**: five-digit layouts fit 360px screens alongside
+  the delete key, the active position has a readable gold highlight and a
+  quick transition when a digit changes, failed guesses produce an unobtrusive
+  shake, and tall hint/history panels can scroll. Slot semantics expose the
+  selected position and entered digit.
+- [x] **Number Sequence**: sequence tiles use gentle raised gradients and
+  animate between rounds; incorrectly selected answers are marked with a
+  cross and calm retry hint, which clear on the next correct answer.
+- [x] **Whack the Target**: target cells scale and glow as the moving target
+  appears, successful hits become green, each timed window has a short
+  progress strip, and spot semantics identify the target without colour
+  alone. The existing Dart timer still drives hits and misses.
+- [x] **Reduced motion**: new effects stop when the platform requests
+  reduced animations; the timing logic remains unchanged.
+- [x] **QA**: widget tests cover levels 1/90, 360x640 and 390x844, five-digit
+  input, wrong-to-correct number patterns, level progression and time windows.
+
+Still pending: manual Android touch/sound QA, screenshots, 60fps profiling,
+keyboard and screen reader testing, and child playtesting. An automated green
+run alone cannot certify visual quality.
