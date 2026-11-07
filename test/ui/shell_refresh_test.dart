@@ -54,7 +54,7 @@ void main() {
       expect(find.byType(NeuroGamesPage), findsOneWidget);
       expect(find.text('Explore'), findsOneWidget);
       expect(find.text(
-        '${GameRegistry.enabledGames.length} games · Pick your next challenge',
+        '${GameRegistry.enabledGames.length} games to explore',
       ), findsOneWidget);
       expect(tester.takeException(), isNull);
 
