@@ -51,7 +51,12 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          # Pages can spend over ten minutes syncing a release after upload.
-          # The action defaults to 600000ms and cancels an otherwise valid build.
-          timeout: 1200000
+      # deploy-pages@v4 has a hard maximum of 600000ms (10 minutes);
+      # higher timeout values are silently clamped and do not fix a
+      # server-side "syncing_files" hang. Keep build and deploy separate so
+      # only this job can be retried without duplicate Pages artifacts.
+      - name: Explain failed Pages deployment
+        if: ${{ failure() }}
+        run: |
+          echo "::warning::GitHub Pages publication failed after a successful build. Check the Deploy to GitHub Pages log for syncing_files timeout or service errors."
+          echo "::warning::Retry only the failed deploy job, not the entire run. If syncing_files persists, check https://www.githubstatus.com/ and contact GitHub Support."
