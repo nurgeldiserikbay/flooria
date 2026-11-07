@@ -204,13 +204,6 @@ class GameScaffold extends StatelessWidget {
         end: Alignment.bottomRight,
         colors: [palette.ground, Colors.white, palette.ground],
       ))),
-      Positioned.fill(
-        child: IgnorePointer(
-          child: CustomPaint(
-            painter: _GameBackdropPainter(color: palette.accent),
-          ),
-        ),
-      ),
       Positioned(top: 74, right: -82,
         child: _GameOrb(size: 230, color: palette.accent)),
       Positioned(bottom: 62, left: -84,
@@ -223,13 +216,24 @@ class GameScaffold extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
                 child: Row(children: [
-                  ChunkyIconButton(
-                    icon: Icons.arrow_back_rounded,
-                    tooltip: 'Back',
-                    palette: palette,
-                    onPressed: () => Navigator.of(context).maybePop(),
+                  Tooltip(
+                    message: 'Back',
+                    child: Material(
+                      color: palette.surface.withValues(alpha: .84),
+                      borderRadius: BorderRadius.circular(15),
+                      child: InkWell(
+                        key: const ValueKey('game-back'),
+                        borderRadius: BorderRadius.circular(15),
+                        onTap: () => Navigator.of(context).maybePop(),
+                        child: SizedBox(
+                          width: 44, height: 44,
+                          child: Icon(Icons.arrow_back_rounded,
+                            color: palette.ink, size: 23),
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 11),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,29 +243,19 @@ class GameScaffold extends StatelessWidget {
                           key: titleKey,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: palette.ink, fontSize: 17,
-                            fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: palette.accent.withValues(alpha: .12),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: palette.accent.withValues(alpha: .25)),
-                          ),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(Icons.star_rounded, color: palette.ink, size: 13),
-                            const SizedBox(width: 3),
-                            Text('LEVEL $level', style: TextStyle(
-                              color: palette.ink, fontSize: 9,
-                              fontWeight: FontWeight.w900, letterSpacing: .8)),
-                          ]),
-                        ),
+                          style: TextStyle(color: palette.ink, fontSize: 18,
+                            fontWeight: FontWeight.w800, letterSpacing: -.2)),
+                        const SizedBox(height: 2),
+                        Text('LEVEL $level', style: TextStyle(
+                          color: palette.muted,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: .7)),
                       ],
                     ),
                   ),
                   for (final action in actions) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     action,
                   ],
                 ]),
@@ -273,44 +267,6 @@ class GameScaffold extends StatelessWidget {
       ),
     ]),
   );
-}
-
-/// Sparse edge-only sparkles give game screens a sense of place without
-/// competing with the playable board. Entirely drawn in Flutter.
-class _GameBackdropPainter extends CustomPainter {
-  const _GameBackdropPainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final dots = Paint()..color = color.withValues(alpha: .12);
-    final shine = Paint()
-      ..color = color.withValues(alpha: .17)
-      ..strokeWidth = 1.6
-      ..strokeCap = StrokeCap.round;
-
-    const points = <Offset>[
-      Offset(.10, .17), Offset(.88, .12), Offset(.94, .37),
-      Offset(.08, .67), Offset(.86, .81), Offset(.23, .93),
-    ];
-    for (final point in points) {
-      final center = Offset(point.dx * size.width, point.dy * size.height);
-      canvas.drawCircle(center, 3, dots);
-    }
-
-    for (final point in const <Offset>[
-      Offset(.19, .25), Offset(.84, .69), Offset(.10, .90),
-    ]) {
-      final center = Offset(point.dx * size.width, point.dy * size.height);
-      canvas.drawLine(center.translate(-6, 0), center.translate(6, 0), shine);
-      canvas.drawLine(center.translate(0, -6), center.translate(0, 6), shine);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _GameBackdropPainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 class _GameOrb extends StatelessWidget {
@@ -376,18 +332,19 @@ class StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
     decoration: BoxDecoration(
-      color: palette.surface,
-      borderRadius: BorderRadius.circular(9),
-      border: Border.all(color: palette.edge, width: 1.5),
+      color: palette.surface.withValues(alpha: .86),
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(
+        color: palette.edge.withValues(alpha: .16), width: 1),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Text(label, style: TextStyle(color: palette.muted, fontSize: 10,
-        fontWeight: FontWeight.w900, letterSpacing: 1)),
+      Text(label, style: TextStyle(color: palette.muted, fontSize: 9.5,
+        fontWeight: FontWeight.w700, letterSpacing: .45)),
       const SizedBox(width: 6),
       Text(value, key: valueKey, style: TextStyle(color: palette.ink,
-        fontSize: 13, fontWeight: FontWeight.w900,
+        fontSize: 13, fontWeight: FontWeight.w800,
         fontFeatures: const [FontFeature.tabularFigures()])),
     ]),
   );
@@ -414,8 +371,8 @@ class HintLine extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             if (leading != null) ...[leading!, const SizedBox(width: 8)],
-            Text(text, style: TextStyle(color: palette.muted, fontSize: 11,
-              fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+            Text(text, style: TextStyle(color: palette.muted, fontSize: 10.5,
+              fontWeight: FontWeight.w700, letterSpacing: .7)),
           ]),
         ),
       ),
@@ -635,7 +592,8 @@ class _PanelShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     tween: Tween(begin: 0, end: 1),
-    duration: const Duration(milliseconds: 260),
+    duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 260),
     curve: Curves.easeOutBack,
     builder: (context, t, child) => Transform.translate(
       offset: Offset(0, 24 * (1 - t)),
@@ -643,12 +601,16 @@ class _PanelShell extends StatelessWidget {
     ),
     child: Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       decoration: BoxDecoration(
         color: palette.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: palette.edge, width: 2),
-        boxShadow: [BoxShadow(color: palette.edge, offset: const Offset(0, 5))],
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: palette.edge.withValues(alpha: .13), width: 1),
+        boxShadow: [
+          BoxShadow(color: palette.edge.withValues(alpha: .10),
+            offset: const Offset(0, 6), blurRadius: 18),
+        ],
       ),
       child: child,
     ),
@@ -666,7 +628,8 @@ class _PopIn extends StatelessWidget {
     final start = delay.inMilliseconds / total.inMilliseconds;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: total,
+      duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+          ? Duration.zero : total,
       builder: (context, t, child) {
         final local = ((t - start) / (1 - start)).clamp(0.0, 1.0);
         return Transform.scale(
@@ -689,7 +652,8 @@ class Shake extends StatelessWidget {
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     key: ValueKey(trigger),
     tween: Tween(begin: trigger == 0 ? 1 : 0, end: 1),
-    duration: const Duration(milliseconds: 360),
+    duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 360),
     builder: (context, t, child) => Transform.translate(
       offset: Offset(math.sin(t * math.pi * 6) * 7 * (1 - t), 0),
       child: child,
