@@ -86,9 +86,14 @@ class _CombinationLockPageState extends State<CombinationLockPage>
             const SizedBox(height: 15),
             Shake(
               trigger: _wrongPulse,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+              child: SizedBox(
+                width: width,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                   for (var slot = 0; slot < _engine.codeLength; slot++) ...[
                     if (slot > 0) const SizedBox(width: 6),
                     Semantics(
@@ -176,7 +181,9 @@ class _CombinationLockPageState extends State<CombinationLockPage>
                         : () => setState(() { _engine.clearActive(); }),
                     size: 42,
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 15),
