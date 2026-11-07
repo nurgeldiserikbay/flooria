@@ -417,18 +417,14 @@ class NeuroSkillsPage extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
         child: Column(children: [
           Row(children: [
-            const Expanded(child: Text('SKILL MAP', style: TextStyle(
-              color: neuroText, fontSize: 17,
-              fontWeight: FontWeight.w900, letterSpacing: 1.1))),
-            Text('$completedCount NODES', style: const TextStyle(
-              color: neuroMuted, fontSize: 10,
-              fontWeight: FontWeight.w900, letterSpacing: 1)),
+            const Expanded(child: Text('Your growth', style: TextStyle(
+              color: neuroText, fontSize: 22,
+              fontWeight: FontWeight.w800))),
+            Text('$completedCount completed', style: const TextStyle(
+              color: neuroMuted, fontSize: 11,
+              fontWeight: FontWeight.w600)),
           ]),
-          const SizedBox(height: 4),
-          const Align(alignment: Alignment.centerLeft,
-            child: Text('Built from your game results.', style: TextStyle(
-              color: neuroMuted, fontSize: 11))),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Expanded(child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420, maxHeight: 290),
             child: SkillRadarChart(ratings: ratings),
