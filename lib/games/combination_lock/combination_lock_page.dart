@@ -25,12 +25,16 @@ class CombinationLockPage extends StatefulWidget {
 class _CombinationLockPageState extends State<CombinationLockPage>
     with LevelFlow<CombinationLockPage> {
   late CombinationLockEngine _engine;
+  int _wrongPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = CombinationLockEngine.forLevel(level);
+  void resetLevel() {
+    _engine = CombinationLockEngine.forLevel(level);
+    _wrongPulse = 0;
+  }
 
   void _digit(int digit) {
     final result = _engine.enterDigit(digit);
@@ -42,7 +46,11 @@ class _CombinationLockPageState extends State<CombinationLockPage>
   void _submit() {
     final result = _engine.submit();
     if (result == LockMove.ignored) return;
-    setState(() {});
+    setState(() {
+      if (result == LockMove.submitted || result == LockMove.failed) {
+        _wrongPulse++;
+      }
+    });
     if (result == LockMove.solved) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -60,8 +68,14 @@ class _CombinationLockPageState extends State<CombinationLockPage>
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
       final width = min(constraints.maxWidth - 36, 380.0).toDouble();
+      final slotWidth = min(54.0,
+          (width - 50 - (_engine.codeLength - 1) * 6) /
+              _engine.codeLength).toDouble();
+      final reduceMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
       final clues = _engine.clues.reversed.take(4).toList();
-      return Center(child: SizedBox(width: width,
+      return Center(child: SingleChildScrollView(
+        child: SizedBox(width: width,
         child: Column(mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min, children: [
             Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -70,35 +84,108 @@ class _CombinationLockPageState extends State<CombinationLockPage>
                 StatChip(label: 'CODE', value: '${_engine.codeLength} DIGITS', palette: _palette),
               ])),
             const SizedBox(height: 15),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (var slot = 0; slot < _engine.codeLength; slot++) ...[
-                if (slot > 0) const SizedBox(width: 8),
-                InkWell(onTap: () => setState(() => _engine.selectSlot(slot)),
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(duration: const Duration(milliseconds: 120),
-                    width: min(54, (width - 20) / _engine.codeLength).toDouble(),
-                    height: 66,
-                    decoration: BoxDecoration(color: _engine.activeSlot == slot
-                      ? const Color(0xFFFFE0A5) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _engine.activeSlot == slot
-                        ? _palette.accent : _palette.edge, width: 2),
-                      boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 4))]),
-                    child: Center(child: Text(_engine.input[slot]?.toString() ?? '·',
-                      style: TextStyle(color: _palette.ink, fontSize: 28,
-                        fontWeight: FontWeight.w900))),
-                  )),
-              ],
-              const SizedBox(width: 10),
-              ChunkyIconButton(icon: Icons.backspace_outlined, tooltip: 'Clear digit',
-                palette: _palette, onPressed: reported || _engine.isFailed
-                  ? null : () => setState(() { _engine.clearActive(); }), size: 42),
-            ]),
+            Shake(
+              trigger: _wrongPulse,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var slot = 0; slot < _engine.codeLength; slot++) ...[
+                    if (slot > 0) const SizedBox(width: 6),
+                    Semantics(
+                      key: ValueKey('lock-slot-$slot'),
+                      button: true,
+                      selected: _engine.activeSlot == slot,
+                      label: 'Digit ${slot + 1} of ${_engine.codeLength}, '
+                          '${_engine.input[slot]?.toString() ?? 'empty'}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: reported || _engine.isFailed
+                              ? null : () => setState(
+                                  () => _engine.selectSlot(slot)),
+                          borderRadius: BorderRadius.circular(13),
+                          child: AnimatedScale(
+                            scale: _engine.activeSlot == slot ? 1 : .97,
+                            duration: reduceMotion ? Duration.zero
+                                : const Duration(milliseconds: 140),
+                            curve: Curves.easeOutCubic,
+                            child: AnimatedContainer(
+                              duration: reduceMotion ? Duration.zero
+                                  : const Duration(milliseconds: 170),
+                              width: slotWidth,
+                              height: 63,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: _engine.activeSlot == slot
+                                      ? const [
+                                          Color(0xFFFFEAC7),
+                                          Color(0xFFFFD994),
+                                        ]
+                                      : const [
+                                          Colors.white,
+                                          Color(0xFFFFF9EC),
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: _engine.activeSlot == slot
+                                      ? _palette.accent
+                                      : const Color(0xFFDCCFBA),
+                                  width: _engine.activeSlot == slot ? 2 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _engine.activeSlot == slot
+                                        ? const Color(0x44C99A52)
+                                        : const Color(0x22584D3D),
+                                    blurRadius: _engine.activeSlot == slot
+                                        ? 9 : 4,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: AnimatedSwitcher(
+                                duration: reduceMotion ? Duration.zero
+                                    : const Duration(milliseconds: 140),
+                                child: Text(
+                                  _engine.input[slot]?.toString() ?? '·',
+                                  key: ValueKey(
+                                      'lock-slot-value-$slot-${_engine.input[slot]}'),
+                                  style: TextStyle(
+                                    color: _palette.ink,
+                                    fontSize: 27,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 8),
+                  ChunkyIconButton(
+                    icon: Icons.backspace_outlined,
+                    tooltip: 'Clear digit',
+                    palette: _palette,
+                    onPressed: reported || _engine.isFailed ? null
+                        : () => setState(() { _engine.clearActive(); }),
+                    size: 42,
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 15),
             Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 7,
               children: [for (var digit = 0; digit <= 9; digit++)
                 SizedBox(width: (width - 4 * 8) / 5, height: 45,
-                  child: ChunkyButton(onPressed: reported || _engine.isFailed
+                  child: ChunkyButton(
+                    key: ValueKey('lock-key-$digit'),
+                    onPressed: reported || _engine.isFailed
                     ? null : () => _digit(digit),
                     color: Colors.white, edgeColor: _palette.edge, depth: 3,
                     radius: 10, padding: EdgeInsets.zero,
@@ -142,6 +229,7 @@ class _CombinationLockPageState extends State<CombinationLockPage>
               const HintLine('EXACT = RIGHT DIGIT AND POSITION', palette: _palette),
           ],
         ),
+      ),
       ));
     }),
   );
