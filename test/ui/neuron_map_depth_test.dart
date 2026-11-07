@@ -76,7 +76,9 @@ void main() {
     await _showMap(tester, reducedMotion: true);
     final pattern = find.byWidgetPredicate((widget) {
       if (widget is! DecoratedBox ||
-          widget.decoration is! BoxDecoration) return false;
+          widget.decoration is! BoxDecoration) {
+        return false;
+      }
       final image = (widget.decoration as BoxDecoration).image;
       return image?.image is AssetImage &&
           (image!.image as AssetImage).assetName ==
