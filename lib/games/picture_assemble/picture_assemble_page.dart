@@ -97,6 +97,7 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
                         (cell - blank).abs() == 1) ||
                     (cell - blank).abs() == PictureAssembleEngine.side);
                 return Semantics(
+                  key: ValueKey('picture-cell-$cell'),
                   label: tile == 0 ? 'Empty space'
                       : 'Piece $tile, ${isNeighbor ? 'can slide' : 'not adjacent'}',
                   button: tile != 0,
@@ -104,7 +105,6 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      key: ValueKey('picture-cell-$cell'),
                       onTap: reported ? null : () => _tap(cell),
                       borderRadius: BorderRadius.circular(8),
                       child: AnimatedScale(
