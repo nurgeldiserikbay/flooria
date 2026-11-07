@@ -169,3 +169,24 @@ adding one-off effects to every module.
 
 The full catalog and game engines are unchanged. The 50 modules remain
 accessible under Games without requiring map unlocks.
+
+## Wave 6 — playful feedback for three puzzle families (8 Nov 2026)
+
+- [x] **Nonogram**: solved row/column clues become violet, filled cells
+  receive a restrained glossy inset animation, crossed cells stay distinct.
+  Grid cells have explicit row, column and fill-state semantics.
+- [x] **Color Flood**: each successful colour change triggers a brief board
+  arrival animation and 170ms tile recolouring. The palette uses larger
+  circular touch targets, a selected checkmark, accessible colour names
+  and softer lighting/shadow around the board.
+- [x] **Find a Set**: card selection has a subtle press scale and gentle
+  highlight; a valid set transitions to a positive checkmark; an invalid
+  trio shakes the instruction line without hiding the rule.
+- [x] **Accessibility**: animations across these three modules become
+  instantaneous when platform reduced-motion is enabled.
+- [x] **QA**: game-specific smoke and tap regressions exercise levels 1 and
+  90 at 360×640 and 390×844, plus reduced motion.
+
+No gameplay engines, deterministic puzzle generation, progress storage,
+registered IDs or scoring rules were altered. Screenshots on actual Android
+devices and individual accessibility audits remain outstanding.
