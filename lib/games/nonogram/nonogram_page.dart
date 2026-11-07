@@ -43,6 +43,28 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
     }
   }
 
+  // A solved clue changes colour immediately; no extra numbers or banners
+  // are needed, so the board stays the primary focus.
+  bool _matchesClue(Iterable<int> marks, List<int> expected) {
+    final actual = <int>[];
+    var run = 0;
+    for (final mark in marks) {
+      if (mark == 1) {
+        run++;
+      } else if (run > 0) {
+        actual.add(run);
+        run = 0;
+      }
+    }
+    if (run > 0) actual.add(run);
+    if (actual.isEmpty) actual.add(0);
+    if (actual.length != expected.length) return false;
+    for (var i = 0; i < expected.length; i++) {
+      if (actual[i] != expected[i]) return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) => GameScaffold(
     palette: _palette,
@@ -67,24 +89,57 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             const SizedBox(width: 44),
             SizedBox(width: boardSide, height: 56,
-              child: Row(children: [for (final clue in _engine.columnClues)
-                Expanded(child: Center(child: Text(clue.join(' '), textAlign: TextAlign.center,
-                  maxLines: 2, overflow: TextOverflow.clip,
-                  style: TextStyle(color: _palette.muted, fontSize: 10,
-                    height: 1.05, fontWeight: FontWeight.w900))))])),
+              child: Row(children: [
+                for (var col = 0; col < _engine.columnClues.length; col++)
+                  Expanded(child: Center(child: Text(
+                    _engine.columnClues[col].join(' '),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.clip,
+                    style: TextStyle(
+                      color: _matchesClue(
+                        [for (var row = 0; row < NonogramEngine.side; row++)
+                          _engine.marks[row * NonogramEngine.side + col]],
+                        _engine.columnClues[col],
+                      ) ? _palette.accent : _palette.muted,
+                      fontSize: 10, height: 1.05,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ))),
+              ])),
           ]),
           Row(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(width: 44,
-              child: Column(children: [for (final clue in _engine.rowClues)
-                SizedBox(height: cell, child: Align(alignment: Alignment.centerRight,
-                  child: Padding(padding: const EdgeInsets.only(right: 5),
-                    child: Text(clue.join(' '), textAlign: TextAlign.right,
-                      style: TextStyle(color: _palette.muted, fontSize: 10,
-                        fontWeight: FontWeight.w900)))))])),
-            Container(width: boardSide, height: boardSide, padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(color: const Color(0xFFD8D2E7),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _palette.edge, width: 2)),
+              child: Column(children: [
+                for (var row = 0; row < _engine.rowClues.length; row++)
+                  SizedBox(height: cell,
+                    child: Align(alignment: Alignment.centerRight,
+                      child: Padding(padding: const EdgeInsets.only(right: 5),
+                        child: Text(_engine.rowClues[row].join(' '),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: _matchesClue(
+                              _engine.marks.skip(row * NonogramEngine.side)
+                                  .take(NonogramEngine.side),
+                              _engine.rowClues[row],
+                            ) ? _palette.accent : _palette.muted,
+                            fontSize: 10, fontWeight: FontWeight.w900,
+                          )),
+                      ),
+                    ),
+                  ),
+              ])),
+            Container(width: boardSide, height: boardSide,
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8E2F3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFD3CBE7)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x2649445F),
+                    blurRadius: 16, offset: Offset(0, 5)),
+                ],
+              ),
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.zero,
@@ -93,17 +148,70 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
                   crossAxisCount: NonogramEngine.side, crossAxisSpacing: 2, mainAxisSpacing: 2),
                 itemBuilder: (context, cellIndex) {
                   final mark = _engine.marks[cellIndex];
-                  return Material(color: Colors.transparent,
-                    child: InkWell(onTap: reported ? null : () => _tap(cellIndex),
-                      borderRadius: BorderRadius.circular(3),
-                      child: AnimatedContainer(duration: const Duration(milliseconds: 100),
-                        decoration: BoxDecoration(color: mark == 1
-                          ? const Color(0xFF8574C7) : const Color(0xFFFBFAFE),
-                          borderRadius: BorderRadius.circular(3),
-                          border: Border.all(color: const Color(0xFFD2CDE2))),
-                        child: mark == 2 ? const Icon(Icons.close_rounded,
-                          size: 17, color: Color(0xFFAAA4BD)) : null,
-                      )),
+                  final reducedMotion =
+                      MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+                  final duration = reducedMotion ? Duration.zero
+                      : const Duration(milliseconds: 170);
+                  return Semantics(
+                    key: ValueKey('nonogram-cell-$cellIndex'),
+                    button: true,
+                    enabled: !reported,
+                    label: 'Row ${cellIndex ~/ NonogramEngine.side + 1}, '
+                        'column ${cellIndex % NonogramEngine.side + 1}, '
+                        '${mark == 1 ? 'filled' : mark == 2 ? 'crossed' : 'empty'}',
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: reported ? null : () => _tap(cellIndex),
+                        borderRadius: BorderRadius.circular(6),
+                        child: AnimatedScale(
+                          scale: mark == 1 ? .96 : 1,
+                          duration: duration,
+                          curve: Curves.easeOutCubic,
+                          child: AnimatedContainer(
+                            duration: duration,
+                            curve: Curves.easeOutCubic,
+                            decoration: BoxDecoration(
+                              gradient: mark == 1
+                                  ? const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFFB9A6EF),
+                                        Color(0xFF7563BF),
+                                      ],
+                                    )
+                                  : null,
+                              color: mark == 1 ? null
+                                  : mark == 2
+                                      ? const Color(0xFFF1EDF7)
+                                      : const Color(0xFFFBFAFE),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: mark == 1
+                                    ? const Color(0xFF7563BF)
+                                    : const Color(0xFFD8D2E8),
+                              ),
+                              boxShadow: mark == 1 ? const [
+                                BoxShadow(
+                                  color: Color(0x448574C7),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ] : null,
+                            ),
+                            child: mark == 2
+                                ? const Icon(Icons.close_rounded,
+                                    size: 17, color: Color(0xFFABA5BD))
+                                : mark == 1
+                                    ? const Center(child: Icon(
+                                        Icons.circle, size: 7,
+                                        color: Color(0x99FFFFFF)))
+                                    : null,
+                          ),
+                        ),
+                      ),
+                    ),
                   );
                 },
               )),

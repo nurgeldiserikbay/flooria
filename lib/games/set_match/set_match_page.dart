@@ -26,22 +26,30 @@ class SetMatchPage extends StatefulWidget {
 class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage> {
   late SetMatchEngine _engine;
   String _message = 'FIND 2 SETS';
+  int _invalidPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() { _engine = SetMatchEngine.forLevel(level); _message = 'FIND 2 SETS'; }
+  void resetLevel() {
+    _engine = SetMatchEngine.forLevel(level);
+    _message = 'FIND 2 SETS';
+    _invalidPulse = 0;
+  }
 
   void _tap(int card) {
     final result = _engine.tap(card);
     if (result == SetMove.ignored) return;
-    setState(() => _message = switch (result) {
-      SetMove.invalid => 'NOT A SET · EACH FEATURE MUST MATCH OR DIFFER',
-      SetMove.found => 'NICE SET · FIND ONE MORE',
-      SetMove.completed => 'BOTH SETS FOUND',
-      SetMove.selected => 'SELECT 3 CARDS',
-      SetMove.ignored => _message,
+    setState(() {
+      _message = switch (result) {
+        SetMove.invalid => 'NOT A SET · EACH FEATURE MUST MATCH OR DIFFER',
+        SetMove.found => 'NICE SET · FIND ONE MORE',
+        SetMove.completed => 'BOTH SETS FOUND',
+        SetMove.selected => 'SELECT 3 CARDS',
+        SetMove.ignored => _message,
+      };
+      if (result == SetMove.invalid) _invalidPulse++;
     });
     if (result == SetMove.completed) {
       HapticFeedback.mediumImpact();
@@ -79,23 +87,78 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
               itemBuilder: (context, index) {
                 final card = _engine.cards[index];
                 final selected = _engine.selected.contains(index);
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported || card == null ? null : () => _tap(index),
-                    borderRadius: BorderRadius.circular(10),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 110),
-                      decoration: BoxDecoration(color: card == null
-                        ? const Color(0xFFEAE7F4) : selected ? const Color(0xFFE7DDF7) : Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: selected ? _palette.accent
-                          : const Color(0xFFD9D4E6), width: selected ? 2.5 : 1.5),
-                        boxShadow: selected ? null : [BoxShadow(color: _palette.edge.withValues(alpha: .12),
-                          offset: const Offset(0, 2))]),
-                      child: card == null
-                        ? const Icon(Icons.check_rounded, color: Color(0xFF64AE8A))
-                        : Row(mainAxisAlignment: MainAxisAlignment.center,
-                            children: [for (var i = 0; i < card.count; i++)
-                              _SetSymbol(card: card, color: _setColors[card.color])]),
-                    )),
+                final duration =
+                    MediaQuery.maybeOf(context)?.disableAnimations == true
+                        ? Duration.zero
+                        : const Duration(milliseconds: 180);
+                return Semantics(
+                  key: ValueKey('set-card-$index'),
+                  button: card != null,
+                  enabled: !reported && card != null,
+                  label: card == null
+                      ? 'Matched card ${index + 1}'
+                      : 'Card ${index + 1}, ${card.count} shapes, '
+                          '${selected ? 'selected' : 'not selected'}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: reported || card == null
+                          ? null : () => _tap(index),
+                      borderRadius: BorderRadius.circular(12),
+                      child: AnimatedScale(
+                        scale: selected ? .95 : 1,
+                        duration: duration,
+                        curve: Curves.easeOutBack,
+                        child: AnimatedContainer(
+                          duration: duration,
+                          curve: Curves.easeOutCubic,
+                          decoration: BoxDecoration(
+                            color: card == null
+                                ? const Color(0xFFEAF4EF)
+                                : selected
+                                    ? const Color(0xFFEDE6F9)
+                                    : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: selected ? _palette.accent
+                                  : const Color(0xFFDDD7E9),
+                              width: selected ? 2 : 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: selected
+                                    ? const Color(0x338A72C4)
+                                    : const Color(0x174E466A),
+                                blurRadius: selected ? 12 : 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: duration,
+                            switchInCurve: Curves.easeOutBack,
+                            child: card == null
+                                ? const Icon(
+                                    Icons.check_circle_rounded,
+                                    key: ValueKey('set-matched'),
+                                    color: Color(0xFF54AB83),
+                                  )
+                                : Row(
+                                    key: const ValueKey('set-symbols'),
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      for (var i = 0; i < card.count; i++)
+                                        _SetSymbol(
+                                          card: card,
+                                          color: _setColors[card.color],
+                                        ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             )),
@@ -107,7 +170,10 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
                 detail: 'Found two triples with matching or different features.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            HintLine(_message, palette: _palette),
+            Shake(
+              trigger: _invalidPulse,
+              child: HintLine(_message, palette: _palette),
+            ),
         ]));
     }),
   );
