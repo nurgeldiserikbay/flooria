@@ -163,7 +163,7 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
             const HintLine('PLACE A DOMINO THAT MATCHES THE OPEN NUMBER', palette: _palette),
         ],
       )),
-    ));
+    );
     }),
   );
 }
