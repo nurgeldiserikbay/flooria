@@ -39,9 +39,10 @@ class _NeuroMapViewState extends State<NeuroMapView>
     duration: const Duration(milliseconds: 1800),
   );
   bool _positioned = false;
+  bool _animating = false;
 
   static const double _baseMapWidth = 640;
-  static const double _baseMapHeight = 1900;
+  static const double _baseMapHeight = 2450;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
   // Fixed, irregular anchors avoid a repeated pattern and stay stable during rebuilds.
@@ -81,43 +82,45 @@ class _NeuroMapViewState extends State<NeuroMapView>
     'node_16': Offset(.50, .49),
     'node_17': Offset(.23, .55),
     'node_18': Offset(.77, .55),
-    'node_19': Offset(.08, .61),
-    'node_20': Offset(.29, .61),
-    'node_21': Offset(.50, .61),
-    'node_22': Offset(.71, .61),
-    'node_23': Offset(.92, .61),
-    'node_24': Offset(.08, .67),
-    'node_25': Offset(.29, .67),
-    'node_26': Offset(.50, .67),
-    'node_27': Offset(.71, .67),
-    'node_28': Offset(.92, .67),
-    'node_29': Offset(.08, .73),
-    'node_30': Offset(.29, .73),
-    'node_31': Offset(.50, .73),
-    'node_32': Offset(.71, .73),
-    'node_33': Offset(.92, .73),
-    'node_34': Offset(.08, .79),
+    // Organic rows keep 55 nodes distinct, without overlapping the
+    // 39–48 group at the bottom of the map.
+    'node_19': Offset(.09, .59),
+    'node_20': Offset(.30, .60),
+    'node_21': Offset(.52, .60),
+    'node_22': Offset(.73, .59),
+    'node_23': Offset(.91, .61),
+    'node_24': Offset(.07, .66),
+    'node_25': Offset(.28, .67),
+    'node_26': Offset(.49, .66),
+    'node_27': Offset(.70, .67),
+    'node_28': Offset(.92, .66),
+    'node_29': Offset(.10, .72),
+    'node_30': Offset(.32, .73),
+    'node_31': Offset(.53, .73),
+    'node_32': Offset(.75, .72),
+    'node_33': Offset(.91, .73),
+    'node_34': Offset(.08, .78),
     'node_35': Offset(.29, .79),
-    'node_36': Offset(.50, .79),
+    'node_36': Offset(.49, .78),
     'node_37': Offset(.71, .79),
-    'node_38': Offset(.92, .79),
-    'node_39': Offset(.08, .85),
-    'node_40': Offset(.29, .85),
-    'node_41': Offset(.50, .85),
-    'node_42': Offset(.71, .85),
-    'node_43': Offset(.92, .85),
-    'node_44': Offset(.08, .84),
-    'node_45': Offset(.29, .84),
-    'node_46': Offset(.50, .84),
-    'node_47': Offset(.71, .84),
-    'node_48': Offset(.92, .84),
-    'node_49': Offset(.08, .93),
-    'node_50': Offset(.29, .93),
-    'node_51': Offset(.50, .93),
-    'node_52': Offset(.71, .93),
-    'node_53': Offset(.92, .93),
-    'node_54': Offset(.37, .99),
-    'node_55': Offset(.63, .99),
+    'node_38': Offset(.90, .79),
+    'node_39': Offset(.10, .84),
+    'node_40': Offset(.32, .85),
+    'node_41': Offset(.53, .84),
+    'node_42': Offset(.74, .85),
+    'node_43': Offset(.92, .84),
+    'node_44': Offset(.08, .90),
+    'node_45': Offset(.29, .91),
+    'node_46': Offset(.49, .90),
+    'node_47': Offset(.70, .91),
+    'node_48': Offset(.90, .90),
+    'node_49': Offset(.10, .96),
+    'node_50': Offset(.31, .97),
+    'node_51': Offset(.53, .96),
+    'node_52': Offset(.74, .97),
+    'node_53': Offset(.91, .96),
+    'node_54': Offset(.37, .995),
+    'node_55': Offset(.63, .995),
   };
 
   Offset _point(NeuronNode node, double width, double height) {
@@ -133,28 +136,44 @@ class _NeuroMapViewState extends State<NeuroMapView>
   double _diameter(NeuronNode node, Set<String> completed) {
     final state = NeuronMapGraph.availability(node, completed);
     if (state == NeuronAvailability.open) return node.id == 'node_01' ? 76 : 68;
-    if (state == NeuronAvailability.complete) return 66;
-    return 54;
+    if (state == NeuronAvailability.complete) return 62;
+    return 49;
   }
 
   @override
   void initState() {
     super.initState();
-    if (widget.motionEnabled) _pulse.repeat();
+    // A MediaQuery is not yet available in initState. Start the animation
+    // when dependencies become available, and never tick under reduced motion.
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncMotion();
+  }
+
+  void _syncMotion() {
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final animate = widget.motionEnabled && !reducedMotion;
+    if (_animating == animate) return;
+    _animating = animate;
+    if (animate) {
+      _pulse.repeat();
+    } else {
+      _pulse.stop();
+      _pulse.value = .5;
+    }
   }
 
   @override
   void didUpdateWidget(covariant NeuroMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.motionEnabled != widget.motionEnabled) {
-      if (widget.motionEnabled) {
-        _pulse.repeat();
-      } else {
-        _pulse.stop();
-        _pulse.value = .5;
-      }
-    }
-    if (oldWidget.completedNeurons.length != widget.completedNeurons.length) {
+    _syncMotion();
+    // The next reachable neuron may change when progress is recorded.
+    if (!widget.completedNeurons.containsAll(oldWidget.completedNeurons) ||
+        oldWidget.completedNeurons.length != widget.completedNeurons.length) {
       _positioned = false;
     }
   }
@@ -183,10 +202,10 @@ class _NeuroMapViewState extends State<NeuroMapView>
         _positioned = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final scale = math.min(
-            bounds.maxWidth / mapWidth,
-            viewportHeight / mapHeight,
-          ).clamp(.62, 1.0);
+          // At launch there must be space to drag *horizontally* without
+          // zooming first. Scale to roughly 125% of viewport width.
+          final scale = (bounds.maxWidth / mapWidth * 1.25)
+              .clamp(.72, .90);
           // Open on the next playable node rather than the empty middle
           // of a tall graph. The rest of the world remains freely pannable.
           final focus = nodes.firstWhere(
@@ -220,7 +239,9 @@ class _NeuroMapViewState extends State<NeuroMapView>
               width: mapWidth,
               height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
-                const Positioned.fill(child: _MapAtmosphere()),
+                const Positioned.fill(child: RepaintBoundary(
+                  child: _MapAtmosphere(),
+                )),
                 for (final fog in _fogAnchors)
                   if (NeuronMapGraph.availability(
                     nodes.firstWhere((node) => node.id == fog.$1),
@@ -276,12 +297,14 @@ class _NeuroMapViewState extends State<NeuroMapView>
                       ),
                     ),
                   ),
-                NeuroConnectionSvg(
-                  width: mapWidth,
-                  height: mapHeight,
-                  nodes: nodes,
-                  positions: positions,
-                  completed: widget.completedNeurons,
+                RepaintBoundary(
+                  child: NeuroConnectionSvg(
+                    width: mapWidth,
+                    height: mapHeight,
+                    nodes: nodes,
+                    positions: positions,
+                    completed: widget.completedNeurons,
+                  ),
                 ),
                 AnimatedBuilder(
                   animation: _pulse,
@@ -310,6 +333,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
                         state: NeuronMapGraph.availability(
                           node, widget.completedNeurons),
                         pulse: _pulse,
+                        animate: _animating,
                         onTap: widget.onNodeTap,
                       ),
                     );
@@ -379,12 +403,14 @@ class _NeuronDot extends StatelessWidget {
     required this.node,
     required this.state,
     required this.pulse,
+    required this.animate,
     required this.onTap,
   });
 
   final NeuronNode node;
   final NeuronAvailability state;
   final Animation<double> pulse;
+  final bool animate;
   final ValueChanged<NeuronNode> onTap;
 
   @override
@@ -398,15 +424,16 @@ class _NeuronDot extends StatelessWidget {
             ? Icons.hub_rounded
             : GameGlyphs.iconFor(node.moduleId!);
     final glow = .5 + .5 * math.sin(pulse.value * math.pi * 2);
-    final size = node.id == 'node_01' && open ? 76.0 : open ? 68.0 : complete ? 66.0 : 54.0;
+    final size = node.id == 'node_01' && open ? 76.0
+        : open ? 68.0 : complete ? 62.0 : 49.0;
     final color = complete
         ? const Color(0xFF53B99F)
         : const Color(0xFF716BE0);
     final lockedTints = <(Color, Color)>[
-      (const Color(0xFFD6E8FF), const Color(0xFFAAC8F0)),
-      (const Color(0xFFE5DDFF), const Color(0xFFC2B6F0)),
-      (const Color(0xFFD4F1EA), const Color(0xFFA8D8CB)),
-      (const Color(0xFFFFE5D8), const Color(0xFFF3C4B1)),
+      (const Color(0xFFF1F4FA), const Color(0xFFD5DCEB)),
+      (const Color(0xFFF0EFF9), const Color(0xFFD8D3ED)),
+      (const Color(0xFFEEF7F4), const Color(0xFFD2E8E1)),
+      (const Color(0xFFF8F3EF), const Color(0xFFEDDCD3)),
     ];
     final lockedTint = lockedTints[(node.slot - 1) % lockedTints.length];
     return Semantics(
@@ -415,14 +442,15 @@ class _NeuronDot extends StatelessWidget {
       child: AnimatedBuilder(
         animation: pulse,
         builder: (context, _) => Transform.scale(
-          scale: open ? 1 + .018 * glow : 1,
+          scale: animate && open ? 1 + .018 * glow : 1,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: locked ? null : () => onTap(node),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 260),
+                duration: animate ? const Duration(milliseconds: 260)
+                    : Duration.zero,
                 width: size,
                 height: size,
                 decoration: BoxDecoration(
@@ -497,34 +525,42 @@ class _NeuronDot extends StatelessWidget {
   }
 }
 
+/// A seamless pattern fixed to map-space. It pans and zooms with the nodes,
+/// instead of stretching one bitmap across the full 2,450px world.
 class _MapAtmosphere extends StatelessWidget {
   const _MapAtmosphere();
 
   @override
-  Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
-    Positioned.fill(
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      const DecoratedBox(
+        decoration: BoxDecoration(
+          color: Color(0xFFF2F6FB),
           image: DecorationImage(
             image: AssetImage('assets/background/neural_hex_mesh.jpg'),
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.high,
+            fit: BoxFit.none,
+            repeat: ImageRepeat.repeat,
+            alignment: Alignment.topLeft,
+            filterQuality: FilterQuality.medium,
           ),
         ),
       ),
-    ),
-    const Positioned.fill(
-      child: DecoratedBox(
+      const DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0x12FFFFFF), Color(0x26E7EDFF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0x88F9FCFF),
+              Color(0x9BF4F2FC),
+              Color(0x8FFFF9F4),
+            ],
           ),
         ),
       ),
-    ),
-  ]);
+    ],
+  );
 }
 
 class _BrandMark extends StatelessWidget {
