@@ -54,6 +54,11 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
     actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
+      final blank = _engine.blank;
+      final reduceMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      final duration = reduceMotion
+          ? Duration.zero : const Duration(milliseconds: 190);
       final side = min(constraints.maxWidth - 32,
         constraints.maxHeight - (reported ? 280 : 220)).clamp(235.0, 370.0).toDouble();
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
@@ -67,11 +72,18 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
               CustomPaint(size: const Size(54, 54), painter: _ScenePreviewPainter()),
             ])),
           const SizedBox(height: 12),
-          Container(width: side, height: side, padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(color: const Color(0xFFC7DDE2),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
+          Container(
+            width: side, height: side,
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: const Color(0xFFD4E6EA),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFB5D0D6)),
+              boxShadow: const [
+                BoxShadow(color: Color(0x253D5661),
+                  blurRadius: 16, offset: Offset(0, 5)),
+              ],
+            ),
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(), padding: EdgeInsets.zero,
               itemCount: _engine.tiles.length,
@@ -79,20 +91,68 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
                 crossAxisCount: PictureAssembleEngine.side, crossAxisSpacing: 3, mainAxisSpacing: 3),
               itemBuilder: (context, cell) {
                 final tile = _engine.tiles[cell];
-                return Material(color: Colors.transparent,
-                  child: InkWell(onTap: reported ? null : () => _tap(cell),
-                    borderRadius: BorderRadius.circular(7),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 130),
-                      decoration: BoxDecoration(color: tile == 0
-                        ? const Color(0xFFDCE9E9) : Colors.white,
-                        borderRadius: BorderRadius.circular(7),
-                        border: Border.all(color: tile == 0
-                          ? const Color(0xFFAFC6C8) : Colors.white, width: 2)),
-                      child: tile == 0
-                        ? const Center(child: Icon(Icons.circle_outlined,
-                            color: Color(0xFFAAC0C3), size: 18))
-                        : CustomPaint(painter: _SceneFragmentPainter(tile - 1)),
-                    )),
+                final isNeighbor = tile != 0 && (
+                    (cell ~/ PictureAssembleEngine.side ==
+                        blank ~/ PictureAssembleEngine.side &&
+                        (cell - blank).abs() == 1) ||
+                    (cell - blank).abs() == PictureAssembleEngine.side);
+                return Semantics(
+                  key: ValueKey('picture-cell-$cell'),
+                  label: tile == 0 ? 'Empty space'
+                      : 'Piece $tile, ${isNeighbor ? 'can slide' : 'not adjacent'}',
+                  button: tile != 0,
+                  enabled: tile != 0 && !reported,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: reported ? null : () => _tap(cell),
+                      borderRadius: BorderRadius.circular(8),
+                      child: AnimatedScale(
+                        duration: duration,
+                        curve: Curves.easeOutCubic,
+                        scale: tile == 0 ? .98 : isNeighbor ? 1 : .975,
+                        child: AnimatedContainer(
+                          duration: duration,
+                          decoration: BoxDecoration(
+                            color: tile == 0
+                                ? const Color(0xFFDFECED) : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: tile == 0
+                                  ? const Color(0xFFABCBD0)
+                                  : isNeighbor
+                                      ? const Color(0xFF62B5BF)
+                                      : const Color(0xFFEBF2F2),
+                              width: isNeighbor ? 2 : 1,
+                            ),
+                            boxShadow: isNeighbor ? const [
+                              BoxShadow(
+                                color: Color(0x3559A8B2),
+                                blurRadius: 9,
+                                offset: Offset(0, 2),
+                              ),
+                            ] : null,
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: duration,
+                            switchInCurve: Curves.easeOutCubic,
+                            switchOutCurve: Curves.easeInCubic,
+                            child: tile == 0
+                                ? const Center(
+                                    key: ValueKey('picture-empty'),
+                                    child: Icon(Icons.circle_outlined,
+                                      color: Color(0xFFABC5C8), size: 18),
+                                  )
+                                : CustomPaint(
+                                    key: ValueKey('picture-piece-$tile'),
+                                    painter: _SceneFragmentPainter(tile - 1),
+                                    child: const SizedBox.expand(),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             )),

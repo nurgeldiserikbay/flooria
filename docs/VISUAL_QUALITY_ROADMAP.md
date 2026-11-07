@@ -190,3 +190,30 @@ accessible under Games without requiring map unlocks.
 No gameplay engines, deterministic puzzle generation, progress storage,
 registered IDs or scoring rules were altered. Screenshots on actual Android
 devices and individual accessibility audits remain outstanding.
+
+## Wave 7 — spatial, physics and chaining polish (8 Nov 2026)
+
+This wave improves three **different** puzzle families without touching their
+deterministic engines, registry, scores, progression, or save data.
+
+- [x] **Picture Assembly:** movable neighbours of the blank are outlined
+  gently in teal, the scene fragments cross-fade and scale during slides,
+  and the board has a quieter rounded frame. Accessible labels distinguish
+  blank, movable and non-adjacent cells.
+- [x] **Balance Scale:** the balance beam now eases into its new angle as
+  weights are selected, selected weights show a checkmark and semantic status,
+  and incorrect checks briefly shake the instruction text. Numeric totals
+  remain visible, even with motion disabled.
+- [x] **Domino Chain:** the free chain end is an obvious high-contrast cue,
+  currently connectable pieces receive a gentle gold outline, each newly
+  placed domino arrives with a brief pop, and blocked picks shake the end
+  indicator. The placement sequence, mistake count and auto-orientation
+  remain unchanged.
+- [x] **Accessibility and QA:** new optional effects honour the platform's
+  reduced-motion preference, and automated tests exercise levels 1/90 at
+  360x640 and 390x844, as well as representative taps and restart.
+
+**Still required:** screenshots from actual devices, landscape and enlarged
+text review, long-run profiling, sound/haptic preference integration and
+independent playtesting with children. Flutter widget tests cannot alone
+prove the games are attractive or that frame times are stable on Android.
