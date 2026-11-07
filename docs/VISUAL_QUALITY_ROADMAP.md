@@ -136,3 +136,36 @@ and 390×844, plus interaction checks for each game. All visual animations
 should respect reduced motion. A CI green result is not equivalent to a
 real-device visual QA; specifically review small control targets,
 frame pacing, accessibility and win-panel fit on Android.
+
+## Wave 5 — polished shared game feel and fast catalog discovery (8 Nov 2026)
+
+This follow-up targets improvements reused across the library, instead of
+adding one-off effects to every module.
+
+- [x] **Tactile inputs:** quiet 1.3px borders and diffused shadows replace
+  the hardest dark button outlines; pressed travel and immediate actions remain.
+- [x] **Palette consistency:** the GameScaffold atmosphere now blends with
+  each module's own surface; dark games no longer inherit a white center.
+- [x] **Micro-animation accessibility:** result confetti is removed under
+  system reduced-motion; progress segments change instantly. Regular users
+  keep the brief victory animation.
+- [x] **Catalog scanning:** gradient game glyphs, an optional compact
+  search icon that expands a title/category search field, a clear empty
+  state, and larger fixed-height cards at 1.5× font size.
+- [x] **Legacy consistency:** Find the Number now uses GameScaffold,
+  Restart, and the shared tactile Next Level button, preserving its
+  scoring, board and next-level logic.
+- [x] **Automated guards:** tests for search, empty results, text scaling,
+  dark backgrounds, reduced motion, two phone sizes and Number Hunt
+  progression.
+
+### Still not verified
+
+- [ ] Human visual review of 360×640 and 390×844 renders and actual Android
+  touch response; CI widget tests do not judge aesthetic quality.
+- [ ] Low-end Android frame timings and image memory use.
+- [ ] Other older game modules that bypass the shared components.
+- [ ] Localization and user tests with children and adults.
+
+The full catalog and game engines are unchanged. The 50 modules remain
+accessible under Games without requiring map unlocks.
