@@ -17,20 +17,25 @@ class FlooriaSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF4F6FF),
+    backgroundColor: const Color(0xFFF7F8FC),
     appBar: AppBar(
-      title: const Text('Settings'),
+      title: const Text('Comfort', style: TextStyle(
+        color: Color(0xFF29354F), fontWeight: FontWeight.w800)),
       backgroundColor: Colors.transparent,
+      scrolledUnderElevation: 0,
     ),
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: ListView(padding: const EdgeInsets.all(20), children: [
-        const Text('GAMEPLAY', style: TextStyle(
-          color: Color(0xFF6077A6), fontSize: 11,
-          letterSpacing: 1.8, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 12),
+        const Text('Play your way', style: TextStyle(
+          color: Color(0xFF29354F), fontSize: 22,
+          fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        const Text('Choose the effects that feel right for you.',
+          style: TextStyle(color: Color(0xFF71809B), fontSize: 13)),
+        const SizedBox(height: 20),
         _PreferenceTile(
           icon: Icons.auto_awesome_motion_rounded,
           title: 'Ambient motion',
@@ -44,10 +49,7 @@ class FlooriaSettingsPage extends StatelessWidget {
           value: hapticsEnabled,
           onChanged: onHapticsChanged,
         ),
-        const SizedBox(height: 28),
-        const Text('NEURO PLAYGROUND', textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF8995AD), fontSize: 10,
-            letterSpacing: 1.4, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 12),
           ]),
         ),
       ),
@@ -64,13 +66,17 @@ class _PreferenceTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  Widget build(BuildContext context) => SwitchListTile.adaptive(
-    value: value,
-    onChanged: onChanged,
-    secondary: Icon(icon, color: const Color(0xFF776BE0)),
-    title: Text(title, style: const TextStyle(
-      color: Color(0xFF273D75), fontWeight: FontWeight.w700)),
-    tileColor: const Color(0xFFFDFEFF),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+  Widget build(BuildContext context) => Material(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(20),
+    child: SwitchListTile.adaptive(
+      value: value,
+      onChanged: onChanged,
+      secondary: Icon(icon, color: const Color(0xFF8176D7)),
+      title: Text(title, style: const TextStyle(
+        color: Color(0xFF29354F), fontWeight: FontWeight.w700)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20)),
+    ),
   );
 }
