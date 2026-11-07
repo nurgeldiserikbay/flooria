@@ -31,6 +31,7 @@ class _TowerShiftPageState extends State<TowerShiftPage>
     with LevelFlow<TowerShiftPage> {
   late TowerShiftEngine _engine;
   bool _blocked = false;
+  int _blockedPulse = 0;
 
   @override
   GameLaunch get launch => widget.launch;
@@ -40,12 +41,16 @@ class _TowerShiftPageState extends State<TowerShiftPage>
   void resetLevel() {
     _engine = TowerShiftEngine.forLevel(level);
     _blocked = false;
+    _blockedPulse = 0;
   }
 
   void _tapPeg(int peg) {
     final result = _engine.tapPeg(peg);
     if (result == TowerMove.ignored) return;
-    setState(() => _blocked = result == TowerMove.blocked);
+    setState(() {
+      _blocked = result == TowerMove.blocked;
+      if (_blocked) _blockedPulse++;
+    });
     if (result == TowerMove.blocked) {
       HapticFeedback.selectionClick();
     } else if (result == TowerMove.completed) {
@@ -64,6 +69,10 @@ class _TowerShiftPageState extends State<TowerShiftPage>
     actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
       palette: _palette, onPressed: reported ? null : replayLevel)],
     child: LayoutBuilder(builder: (context, constraints) {
+      final reduceMotion =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      final motion = reduceMotion
+          ? Duration.zero : const Duration(milliseconds: 170);
       final diskHeight = min(30.0,
           max(18.0, (constraints.maxHeight - 190) / (_engine.disks + 2)))
           .toDouble();
@@ -85,20 +94,30 @@ class _TowerShiftPageState extends State<TowerShiftPage>
                 diskCount: _engine.disks,
                 diskHeight: diskHeight,
                 selected: _engine.selectedPeg == peg,
+                legalTarget: _engine.selectedPeg != null &&
+                    _engine.selectedPeg != peg &&
+                    (_engine.pegs[peg].isEmpty ||
+                        _engine.pegs[peg].last >
+                            _engine.pegs[_engine.selectedPeg!].last),
                 blocked: _blocked,
+                motion: motion,
                 onTap: () => _tapPeg(peg),
               ),
             )))),
           ),
           const SizedBox(height: 12),
-          HintLine(
-            reported ? 'ALL DISKS MOVED' : _blocked
-                ? 'SMALLER DISK MUST STAY ON TOP'
-                : _engine.selectedPeg == null
-                    ? 'PICK A PEG, THEN CHOOSE A DESTINATION'
-                    : 'CHOOSE WHERE TO MOVE THE DISK',
-            palette: _palette,
-            leading: Icon(Icons.touch_app_rounded, size: 16, color: _palette.accent),
+          Shake(
+            trigger: _blockedPulse,
+            child: HintLine(
+              reported ? 'ALL DISKS MOVED' : _blocked
+                  ? 'SMALLER DISK MUST STAY ON TOP'
+                  : _engine.selectedPeg == null
+                      ? 'PICK A PEG, THEN CHOOSE A DESTINATION'
+                      : 'HIGHLIGHTED PEGS CAN RECEIVE THIS DISK',
+              palette: _palette,
+              leading: Icon(Icons.touch_app_rounded,
+                size: 16, color: _palette.accent),
+            ),
           ),
           if (reported) ...[
             const SizedBox(height: 8),
@@ -119,29 +138,56 @@ class _TowerShiftPageState extends State<TowerShiftPage>
 class _PegCard extends StatelessWidget {
   const _PegCard({required this.peg, required this.disks,
     required this.diskCount, required this.diskHeight, required this.selected,
-    required this.blocked, required this.onTap});
+    required this.blocked, required this.legalTarget,
+    required this.motion, required this.onTap});
 
   final int peg;
   final List<int> disks;
   final int diskCount;
   final double diskHeight;
-  final bool selected, blocked;
+  final bool selected, blocked, legalTarget;
+  final Duration motion;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFE3E7FF) : const Color(0xFFF9FAFF),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: selected
-              ? _palette.accent : const Color(0xFFD8DFF0), width: selected ? 2.5 : 1.5),
-        ),
+  Widget build(BuildContext context) => Semantics(
+    key: ValueKey('tower-peg-$peg'),
+    button: true,
+    selected: selected,
+    label: 'Peg ${['A', 'B', 'C'][peg]}, '
+        '${disks.length} disks'
+        '${selected ? ', selected' : ''}'
+        '${legalTarget ? ', valid destination' : ''}',
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: motion,
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: selected
+                  ? const [Color(0xFFE9EAFF), Color(0xFFD4D9FF)]
+                  : legalTarget
+                      ? const [Color(0xFFE7FAF0), Color(0xFFCAF1DF)]
+                      : const [Colors.white, Color(0xFFF4F7FF)],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected ? _palette.accent
+                  : legalTarget ? const Color(0xFF4DAE88)
+                  : const Color(0xFFD8DFF0),
+              width: selected || legalTarget ? 2 : 1,
+            ),
+            boxShadow: legalTarget ? const [
+              BoxShadow(color: Color(0x254DAE88),
+                blurRadius: 8, offset: Offset(0, 2)),
+            ] : null,
+          ),
         child: LayoutBuilder(builder: (context, box) => Stack(
           alignment: Alignment.bottomCenter,
           children: [
@@ -174,10 +220,14 @@ class _PegCard extends StatelessWidget {
                 fontSize: 12, fontWeight: FontWeight.w900))),
             if (peg == 2) const Positioned(bottom: 2, child: Icon(
               Icons.flag_rounded, size: 15, color: Color(0xFF4DAE88))),
-            if (blocked && selected) const Positioned(top: 8, right: 8,
+            if (legalTarget) const Positioned(top: 8, right: 8,
+              child: Icon(Icons.check_circle_rounded,
+                size: 16, color: Color(0xFF4DAE88))),
+            if (blocked && selected) const Positioned(top: 8, left: 8,
               child: Icon(Icons.close_rounded, size: 15, color: Color(0xFFE36C72))),
           ],
         )),
+        ),
       ),
     ),
   );

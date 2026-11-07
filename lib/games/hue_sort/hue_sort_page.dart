@@ -119,7 +119,8 @@ class _HueSortPageState extends State<HueSortPage> with LevelFlow<HueSortPage> {
             }),
           ),
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
+            duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                ? Duration.zero : const Duration(milliseconds: 220),
             child: done
                 ? LevelResultPanel(
                     palette: _palette,
@@ -156,6 +157,10 @@ class _HueBoard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final done = engine.isCompleted;
+    final motion = MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 240);
+    final boardMotion = MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 420);
     final positions = <int, int>{
       for (var p = 0; p < engine.cellCount; p++) engine.tileAt(p): p,
     };
@@ -163,7 +168,7 @@ class _HueBoard extends StatelessWidget {
     return Shake(
       trigger: nudge,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 420),
+        duration: boardMotion,
         curve: Curves.easeOutCubic,
         // Padding 4 and a 2px border on each side.
         width: cell * engine.columns + 12,
@@ -172,21 +177,26 @@ class _HueBoard extends StatelessWidget {
         decoration: BoxDecoration(
           color: _palette.surface,
           borderRadius: BorderRadius.circular(done ? 12 : 16),
-          border: Border.all(color: _palette.edge, width: 2),
-          boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 6))],
+          border: Border.all(color: const Color(0xFFD8D0C6), width: 1.2),
+          boxShadow: const [
+            BoxShadow(color: Color(0x282A2420),
+              blurRadius: 16, offset: Offset(0, 5)),
+          ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(done ? 8 : 10),
           child: Stack(children: [
             for (var tile = 0; tile < engine.cellCount; tile++)
-              _positioned(tile, positions[tile]!, gap, done),
+              _positioned(tile, positions[tile]!, gap, done,
+                motion, boardMotion),
           ]),
         ),
       ),
     );
   }
 
-  Widget _positioned(int tile, int position, double gap, bool done) {
+  Widget _positioned(int tile, int position, double gap,
+      bool done, Duration motion, Duration boardMotion) {
     final row = position ~/ engine.columns;
     final column = position % engine.columns;
     final isSelected = selected == position;
@@ -195,26 +205,34 @@ class _HueBoard extends StatelessWidget {
     final dark = color.computeLuminance() < .35;
     return AnimatedPositioned(
       key: ValueKey('hue-tile-$tile'),
-      duration: const Duration(milliseconds: 240),
+      duration: motion,
       curve: Curves.easeInOutCubic,
       left: column * cell,
       top: row * cell,
       width: cell,
       height: cell,
-      child: GestureDetector(
-        key: ValueKey('hue-cell-$position'),
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onTap(position),
-        child: AnimatedPadding(
-          duration: const Duration(milliseconds: 420),
-          curve: Curves.easeOutCubic,
-          padding: EdgeInsets.all(gap / 2),
-          child: AnimatedScale(
-            scale: isSelected ? .86 : 1,
-            duration: const Duration(milliseconds: 120),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 420),
-              curve: Curves.easeOutCubic,
+      child: Semantics(
+        key: ValueKey('hue-tile-state-$position'),
+        button: true,
+        enabled: !done && !fixed,
+        selected: isSelected,
+        label: 'Color tile in row ${row + 1}, column ${column + 1}'
+            '${fixed ? ', fixed reference' : ''}'
+            '${isSelected ? ', selected' : ''}',
+        child: GestureDetector(
+          key: ValueKey('hue-cell-$position'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => onTap(position),
+          child: AnimatedPadding(
+            duration: boardMotion,
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.all(gap / 2),
+            child: AnimatedScale(
+              scale: isSelected ? .86 : 1,
+              duration: motion,
+              child: AnimatedContainer(
+                duration: boardMotion,
+                curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: BorderRadius.circular(done ? 0 : 6),
@@ -234,6 +252,7 @@ class _HueBoard extends StatelessWidget {
                       ),
                     )
                   : null,
+              ),
             ),
           ),
         ),
