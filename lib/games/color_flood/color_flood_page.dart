@@ -69,29 +69,56 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
                 StatChip(label: 'MOVES', value: '${_engine.moves}/${_engine.moveLimit}', palette: _palette),
               ])),
           const SizedBox(height: 13),
-          Container(width: side, height: side, padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(color: const Color(0xFFDED7CB),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _palette.edge, width: 2),
-              boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              itemCount: _engine.board.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: ColorFloodEngine.side, crossAxisSpacing: 2, mainAxisSpacing: 2),
-              itemBuilder: (context, cell) => AnimatedContainer(
-                duration: const Duration(milliseconds: 130),
-                decoration: BoxDecoration(color: _floodColors[_engine.colorAt(cell)],
-                  borderRadius: BorderRadius.circular(3)),
+          TweenAnimationBuilder<double>(
+            key: ValueKey('flood-board-${_engine.moves}'),
+            tween: Tween(begin: .975, end: 1),
+            duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                ? Duration.zero : const Duration(milliseconds: 230),
+            curve: Curves.easeOutBack,
+            builder: (context, scale, child) =>
+                Transform.scale(scale: scale, child: child),
+            child: Container(
+              width: side, height: side,
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8E5DC),
+                borderRadius: BorderRadius.circular(19),
+                border: Border.all(color: const Color(0xFFD1D9D3)),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x234B453C),
+                    blurRadius: 17, offset: Offset(0, 6)),
+                ],
               ),
-            )),
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: _engine.board.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: ColorFloodEngine.side,
+                  crossAxisSpacing: 2, mainAxisSpacing: 2,
+                ),
+                itemBuilder: (context, cell) => AnimatedContainer(
+                  duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                      ? Duration.zero : const Duration(milliseconds: 170),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    color: _floodColors[_engine.colorAt(cell)],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 14),
           if (!reported && !_engine.isFailed)
             Wrap(alignment: WrapAlignment.center, spacing: 9, runSpacing: 8,
               children: [for (var color = 0; color < _engine.colorCount; color++)
-                _ColorChoice(color: _floodColors[color], selected: _engine.currentColor == color,
-                  onTap: () => _choose(color))]),
+                _ColorChoice(
+                  index: color,
+                  color: _floodColors[color],
+                  selected: _engine.currentColor == color,
+                  onTap: () => _choose(color),
+                )]),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
               child: LevelResultPanel(palette: _palette, launch: launch,
@@ -110,21 +137,63 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
 }
 
 class _ColorChoice extends StatelessWidget {
-  const _ColorChoice({required this.color, required this.selected, required this.onTap});
+  const _ColorChoice({
+    required this.index,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int index;
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    label: selected ? 'Current colour' : 'Choose colour',
-    child: GestureDetector(onTap: selected ? null : onTap,
-      child: AnimatedContainer(duration: const Duration(milliseconds: 130),
-        width: 42, height: 42,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-          border: Border.all(color: selected ? _palette.ink : Colors.white, width: selected ? 3 : 2),
-          boxShadow: [BoxShadow(color: GamePalette.shade(color, .25), offset: const Offset(0, 3))]),
-        child: selected ? const Icon(Icons.check_rounded, size: 20, color: Colors.white) : null,
-      )),
-  );
+  Widget build(BuildContext context) {
+    final duration = MediaQuery.maybeOf(context)?.disableAnimations == true
+        ? Duration.zero : const Duration(milliseconds: 165);
+    return Semantics(
+      label: 'Colour ${index + 1}, ${selected ? 'selected' : 'available'}',
+      button: true,
+      enabled: !selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('flood-color-$index'),
+          onTap: selected ? null : onTap,
+          customBorder: const CircleBorder(),
+          child: AnimatedScale(
+            duration: duration,
+            curve: Curves.easeOutBack,
+            scale: selected ? 1.08 : .96,
+            child: AnimatedContainer(
+              duration: duration,
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected ? const Color(0xFF4B453C) : Colors.white,
+                  width: selected ? 3 : 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: GamePalette.shade(color, .20).withValues(alpha: .36),
+                    blurRadius: selected ? 10 : 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: selected
+                  ? const Icon(Icons.check_rounded,
+                      size: 23, color: Colors.white)
+                  : null,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
