@@ -25,12 +25,17 @@ class BalanceScalePage extends StatefulWidget {
 class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<BalanceScalePage> {
   late BalanceScaleEngine _engine;
   String _message = 'CHOOSE WEIGHTS TO BALANCE THE OBJECT';
+  int _wrongPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() { _engine = BalanceScaleEngine.forLevel(level); _message = 'CHOOSE WEIGHTS TO BALANCE THE OBJECT'; }
+  void resetLevel() {
+    _engine = BalanceScaleEngine.forLevel(level);
+    _message = 'CHOOSE WEIGHTS TO BALANCE THE OBJECT';
+    _wrongPulse = 0;
+  }
 
   void _toggle(int index) {
     if (_engine.toggle(index) == BalanceMove.ignored) return;
@@ -46,8 +51,12 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
     } else {
-      setState(() => _message = _engine.total < _engine.target
-        ? 'ADD ${_engine.difference} MORE' : 'REMOVE ${_engine.difference}');
+      setState(() {
+        _message = _engine.total < _engine.target
+            ? 'ADD ${_engine.difference} MORE'
+            : 'REMOVE ${_engine.difference}';
+        _wrongPulse++;
+      });
       HapticFeedback.selectionClick();
     }
   }
@@ -69,17 +78,56 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
                 StatChip(label: 'YOUR SIDE', value: '${_engine.total} KG', palette: _palette),
               ])),
             const SizedBox(height: 8),
-            CustomPaint(size: Size(width, scaleHeight),
-              painter: _ScalePainter(_engine.target, _engine.total)),
+            Semantics(
+              label: 'Balance scale: object ${_engine.target} kilograms, '
+                  'your weights ${_engine.total} kilograms',
+              child: TweenAnimationBuilder<double>(
+                key: const ValueKey('balance-scale-motion'),
+                tween: Tween<double>(
+                  begin: 0,
+                  end: _engine.total.toDouble(),
+                ),
+                duration: MediaQuery.maybeOf(context)?.disableAnimations == true
+                    ? Duration.zero : const Duration(milliseconds: 320),
+                curve: Curves.easeOutCubic,
+                builder: (context, animatedTotal, _) => CustomPaint(
+                  size: Size(width, scaleHeight),
+                  painter: _ScalePainter(_engine.target, animatedTotal),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 7,
               children: [for (var index = 0; index < _engine.weights.length; index++)
-                SizedBox(width: min(64, (width - 32) / 5).toDouble(), height: 48,
-                  child: ChunkyButton(onPressed: reported ? null : () => _toggle(index),
-                    color: _engine.selected.contains(index) ? const Color(0xFFFFD981) : Colors.white,
-                    edgeColor: _palette.edge, depth: 3, radius: 10, padding: EdgeInsets.zero,
-                    child: Text('${_engine.weights[index]} kg', style: TextStyle(
-                      color: _palette.ink, fontSize: 12, fontWeight: FontWeight.w900)))),
+                SizedBox(
+                  width: min(64, (width - 32) / 5).toDouble(),
+                  height: 48,
+                  child: ChunkyButton(
+                    onPressed: reported ? null : () => _toggle(index),
+                    color: _engine.selected.contains(index)
+                        ? const Color(0xFFFFD981) : Colors.white,
+                    edgeColor: _palette.edge,
+                    depth: 3, radius: 12,
+                    padding: EdgeInsets.zero,
+                    semanticLabel: '${_engine.weights[index]} kilograms, '
+                        '${_engine.selected.contains(index) ? 'selected' : 'not selected'}',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_engine.selected.contains(index)) ...[
+                          const Icon(Icons.check_rounded,
+                            size: 13, color: Color(0xFF66563F)),
+                          const SizedBox(width: 1),
+                        ],
+                        Text('${_engine.weights[index]} kg',
+                          style: const TextStyle(
+                            color: Color(0xFF66563F),
+                            fontSize: 12, fontWeight: FontWeight.w900,
+                          )),
+                      ],
+                    ),
+                  ),
+                ),
               ]),
             const SizedBox(height: 8),
             if (!reported)
@@ -95,7 +143,10 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
                   detail: 'Balanced the object with the right weights.',
                   onReplay: replayLevel, onNext: nextLevel))
             else
-              HintLine(_message, palette: _palette),
+              Shake(
+                trigger: _wrongPulse,
+                child: HintLine(_message, palette: _palette),
+              ),
           ],
         ),
       ));
@@ -106,7 +157,7 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
 class _ScalePainter extends CustomPainter {
   const _ScalePainter(this.target, this.total);
   final int target;
-  final int total;
+  final double total;
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height * .58);
@@ -140,7 +191,7 @@ class _ScalePainter extends CustomPainter {
     weightText.paint(canvas, Offset(left.dx - weightText.width / 2,
       left.dy + 25 - weightText.height / 2));
     if (total > 0) {
-      final value = TextPainter(text: TextSpan(text: '$total', style: const TextStyle(
+      final value = TextPainter(text: TextSpan(text: '${total.round()}', style: const TextStyle(
         color: Color(0xFF66563F), fontSize: 12, fontWeight: FontWeight.w900)),
         textDirection: TextDirection.ltr)..layout();
       value.paint(canvas, Offset(right.dx - value.width / 2, right.dy + 26));
