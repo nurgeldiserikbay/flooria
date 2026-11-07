@@ -78,11 +78,31 @@ class _CombinationLockPageState extends State<CombinationLockPage>
         child: SizedBox(width: width,
         child: Column(mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min, children: [
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                StatChip(label: 'TRIES LEFT', value: '${_engine.attemptsLeft}', palette: _palette),
-                StatChip(label: 'CODE', value: '${_engine.codeLength} DIGITS', palette: _palette),
-              ])),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: SizedBox(
+                width: width - 16,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      StatChip(
+                        label: 'TRIES LEFT',
+                        value: '${_engine.attemptsLeft}',
+                        palette: _palette,
+                      ),
+                      const SizedBox(width: 12),
+                      StatChip(
+                        label: 'CODE',
+                        value: '${_engine.codeLength} DIGITS',
+                        palette: _palette,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 15),
             Shake(
               trigger: _wrongPulse,
