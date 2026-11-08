@@ -106,6 +106,7 @@ void main() {
       )),
     ));
     await tester.tap(find.byKey(const ValueKey('win')));
+    await tester.pump();
     expect(find.text('Reported true'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('replay')));
     await tester.pump();
