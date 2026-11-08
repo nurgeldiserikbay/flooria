@@ -24,17 +24,30 @@ class LightsOutPage extends StatefulWidget {
 
 class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutPage> {
   late LightsOutEngine _engine;
+  String _feedback = 'TAP A LIGHT TO TOGGLE IT AND ITS NEIGHBOURS';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = LightsOutEngine.forLevel(level);
+  void resetLevel() {
+    _engine = LightsOutEngine.forLevel(level);
+    _feedback = 'TAP A LIGHT TO TOGGLE IT AND ITS NEIGHBOURS';
+  }
 
   void _press(int cell) {
+    final before = _engine.litCount;
     final result = _engine.press(cell);
     if (result == LightMove.ignored) return;
-    setState(() {});
+    setState(() {
+      _feedback = result == LightMove.completed
+          ? 'ALL LIGHTS OUT · GREAT JOB!'
+          : _engine.litCount < before
+              ? 'NICE TAP · ${before - _engine.litCount} FEWER LIGHTS ON'
+              : _engine.litCount > before
+                  ? 'MORE LIGHTS ON · TRY A DIFFERENT SPOT'
+                  : 'SAME NUMBER OF LIGHTS · PLAN THE NEXT TAP';
+    });
     if (result == LightMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -62,7 +75,11 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 16),
-          Container(width: side, height: side, padding: const EdgeInsets.all(8),
+          Semantics(
+            key: const ValueKey('lights-board-state'),
+            label: '${_engine.litCount} of ${_engine.lights.length} lights on. '
+                '${_engine.moves} taps used. Tap a light to toggle it and its neighbours.',
+            child: Container(width: side, height: side, padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: const Color(0xFFC9D8E2),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _palette.edge, width: 2),
@@ -81,7 +98,10 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
                 final duration = reducedMotion
                     ? Duration.zero : const Duration(milliseconds: 190);
                 return Semantics(
-                  label: lit ? 'Light on' : 'Light off',
+                  key: ValueKey('lights-cell-state-$cell'),
+                  label: 'Row ${cell ~/ LightsOutEngine.side + 1}, '
+                      'column ${cell % LightsOutEngine.side + 1}, '
+                      'light ${lit ? 'on' : 'off'}',
                   button: true,
                   child: Material(
                     color: Colors.transparent,
@@ -146,7 +166,7 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
                   ),
                 );
               },
-            )),
+            ))),
           const SizedBox(height: 16),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -155,7 +175,7 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
                 detail: 'Every light is switched off.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('EACH TAP TOGGLES NEIGHBOURING LIGHTS', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
