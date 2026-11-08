@@ -36,7 +36,10 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
   }
 
   void _add(RobotCommand command) {
-    if (!_engine.add(command)) return;
+    if (!_engine.add(command)) {
+      setState(() => _message = 'PROGRAM FULL · UNDO A COMMAND');
+      return;
+    }
     setState(() => _message = 'COMMAND ADDED');
     HapticFeedback.selectionClick();
   }
@@ -59,7 +62,9 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
   }
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return GameScaffold(
     palette: _palette, title: 'Robot Program', level: level,
     actions: [
       ChunkyIconButton(icon: Icons.backspace_outlined, tooltip: 'Undo command',
@@ -92,10 +97,39 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
               itemBuilder: (context, cell) {
                 final wall = _engine.walls.contains(cell);
                 final isRobot = cell == _engine.robot;
-                return AnimatedContainer(duration: const Duration(milliseconds: 140),
-                  decoration: BoxDecoration(color: wall ? const Color(0xFF666F91)
-                    : const Color(0xFFF8F9FF), borderRadius: BorderRadius.circular(7),
-                    border: Border.all(color: wall ? _palette.edge : const Color(0xFFDCE2F2))),
+                final isGoal = cell == _engine.goal;
+                final row = cell ~/ RobotProgramEngine.side + 1;
+                final column = cell % RobotProgramEngine.side + 1;
+                final description = [
+                  'Row $row, column $column',
+                  if (wall) 'wall' else 'open path',
+                  if (cell == _engine.start) 'start',
+                  if (isGoal) 'exit',
+                  if (isRobot) 'robot facing ${const ['north', 'east', 'south', 'west'][_engine.heading]}',
+                ].join(', ');
+                return Semantics(
+                  key: ValueKey('robot-cell-$cell'),
+                  label: description,
+                  child: AnimatedContainer(
+                  duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 170),
+                  curve: Curves.easeOutCubic,
+                  decoration: BoxDecoration(
+                    gradient: wall ? null : LinearGradient(
+                      begin: Alignment.topLeft, end: Alignment.bottomRight,
+                      colors: isGoal
+                        ? const [Color(0xFFDBF8E3), Color(0xFFBAEACB)]
+                        : isRobot
+                        ? const [Color(0xFFEBEFFF), Color(0xFFD4E2FF)]
+                        : const [Color(0xFFFFFFFF), Color(0xFFF3F6FF)],
+                    ),
+                    color: wall ? const Color(0xFF666F91) : null,
+                    borderRadius: BorderRadius.circular(7),
+                    border: Border.all(
+                      color: isGoal ? const Color(0xFF53A875)
+                        : isRobot ? _palette.accent
+                        : wall ? _palette.edge : const Color(0xFFDCE2F2),
+                      width: isRobot || isGoal ? 1.7 : 1,
+                    )),
                   child: Center(child: isRobot
                     ? Transform.rotate(angle: _engine.heading * pi / 2,
                         child: Icon(Icons.smart_toy_rounded, size: side / 12,
@@ -104,7 +138,7 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
                     : cell == _engine.start ? const Icon(Icons.play_arrow_rounded,
                         size: 18, color: Color(0xFF69A88B))
                     : wall ? const Icon(Icons.square_rounded, size: 10, color: Color(0xFF8C94AE)) : null),
-                );
+                ));
               },
             )),
           const SizedBox(height: 8),
@@ -112,7 +146,12 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
             child: Wrap(alignment: WrapAlignment.center, spacing: 4, runSpacing: 4,
               children: [
                 for (var i = 0; i < _engine.commandLimit; i++)
-                  Container(width: 27, height: 29,
+                  Semantics(
+                    key: ValueKey('robot-program-slot-$i'),
+                    label: 'Command ${i + 1}: ${i < _engine.program.length ? _commandName(_engine.program[i]) : 'empty'}',
+                    child: AnimatedContainer(
+                    duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
+                    width: 27, height: 29,
                     decoration: BoxDecoration(color: i < _engine.program.length
                       ? const Color(0xFFE5EBFC) : Colors.white,
                       borderRadius: BorderRadius.circular(6),
@@ -120,7 +159,7 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
                     child: Center(child: i < _engine.program.length
                       ? Icon(_commandIcon(_engine.program[i]), size: 16, color: _palette.ink)
                       : Text('${i + 1}', style: TextStyle(color: _palette.muted, fontSize: 9,
-                          fontWeight: FontWeight.w800)))),
+                          fontWeight: FontWeight.w800))))),
               ],
             )),
           const SizedBox(height: 8),
@@ -152,7 +191,14 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
         ]));
     }),
   );
+  }
 }
+
+String _commandName(RobotCommand command) => switch (command) {
+  RobotCommand.forward => 'move forward',
+  RobotCommand.turnLeft => 'turn left',
+  RobotCommand.turnRight => 'turn right',
+};
 
 IconData _commandIcon(RobotCommand command) => switch (command) {
   RobotCommand.forward => Icons.arrow_upward_rounded,
