@@ -25,6 +25,8 @@ class SokobanPage extends StatefulWidget {
 class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
   late SokobanEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'PUSH EVERY CRATE ONTO A GOLD PAD';
+  int get _cratesOnGoals => _engine.crates.intersection(_engine.goals).length;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -33,18 +35,35 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
   void resetLevel() {
     _engine = SokobanEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'PUSH EVERY CRATE ONTO A GOLD PAD';
   }
 
   void _move(CrateDirection direction) {
+    final before = _cratesOnGoals;
+    final oldCrates = Set<int>.of(_engine.crates);
     final result = _engine.move(direction);
     if (result == SokobanMove.ignored || result == SokobanMove.blocked) {
       if (result == SokobanMove.blocked) {
         HapticFeedback.selectionClick();
-        setState(() => _blockedPulse++);
+        setState(() {
+          _blockedPulse++;
+          _feedback = 'BLOCKED · A WALL OR CRATE IS IN THE WAY';
+        });
       }
       return;
     }
-    setState(() {});
+    setState(() {
+      final placed = _cratesOnGoals;
+      _feedback = result == SokobanMove.completed
+          ? 'ALL CRATES ON GOLD PADS · GREAT JOB!'
+          : placed > before
+              ? 'CRATE ON TARGET · $placed OF ${_engine.goals.length} COMPLETE'
+              : placed < before
+                  ? 'CRATE MOVED OFF TARGET · PLACE IT BACK'
+                  : !_engine.crates.containsAll(oldCrates)
+                      ? 'CRATE PUSHED · KEEP AIMING FOR GOLD PADS'
+                      : 'GOOD STEP · PLAN YOUR NEXT PUSH';
+    });
     if (result == SokobanMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -63,16 +82,23 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
     child: LayoutBuilder(builder: (context, constraints) {
       final side = min(constraints.maxWidth - 28,
         constraints.maxHeight - (reported ? 245 : 215)).clamp(250.0, 430.0).toDouble();
-      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
+      return Center(child: SingleChildScrollView(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(padding: const EdgeInsets.symmetric(horizontal: 22),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                StatChip(label: 'CRATES', value: '${_engine.goals.length}', palette: _palette),
+                StatChip(label: 'ON GOALS', value: '$_cratesOnGoals/${_engine.goals.length}', palette: _palette),
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          Shake(
+          Semantics(
+            key: const ValueKey('sokoban-board-state'),
+            label: '$_cratesOnGoals of ${_engine.goals.length} crates on targets. '
+                '${_engine.moves} moves made. '
+                'Player at row ${_engine.player ~/ SokobanEngine.side + 1}, '
+                'column ${_engine.player % SokobanEngine.side + 1}.',
+            child: Shake(
             trigger: _blockedPulse,
             child: Container(
               width: side,
@@ -111,7 +137,7 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
                 ),
               ),
             ),
-          ),
+          )),
           const SizedBox(height: 12),
           if (!reported) _DirectionPad(onMove: _move),
           if (reported)
@@ -121,8 +147,8 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
                 detail: 'Every crate reached a marked pad.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('PUSH EVERY CRATE ONTO A GOLD PAD', palette: _palette),
-        ]));
+            HintLine(_feedback, palette: _palette),
+        ])));
     }),
   );
 }
@@ -227,27 +253,30 @@ class _DirectionPad extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(mainAxisSize: MainAxisSize.min,
     children: [
-      _Arrow(icon: Icons.keyboard_arrow_up_rounded, onTap: () => onMove(CrateDirection.up)),
+      _Arrow(icon: Icons.keyboard_arrow_up_rounded, label: 'Move up', onTap: () => onMove(CrateDirection.up)),
       Row(mainAxisSize: MainAxisSize.min, children: [
-        _Arrow(icon: Icons.keyboard_arrow_left_rounded, onTap: () => onMove(CrateDirection.left)),
+        _Arrow(icon: Icons.keyboard_arrow_left_rounded, label: 'Move left', onTap: () => onMove(CrateDirection.left)),
         const SizedBox(width: 48),
-        _Arrow(icon: Icons.keyboard_arrow_right_rounded, onTap: () => onMove(CrateDirection.right)),
+        _Arrow(icon: Icons.keyboard_arrow_right_rounded, label: 'Move right', onTap: () => onMove(CrateDirection.right)),
       ]),
-      _Arrow(icon: Icons.keyboard_arrow_down_rounded, onTap: () => onMove(CrateDirection.down)),
+      _Arrow(icon: Icons.keyboard_arrow_down_rounded, label: 'Move down', onTap: () => onMove(CrateDirection.down)),
     ]);
 }
 
 class _Arrow extends StatelessWidget {
-  const _Arrow({required this.icon, required this.onTap});
+  const _Arrow({required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
+  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     child: ChunkyButton(
+      key: ValueKey('sokoban-${label.toLowerCase().replaceAll(' ', '-')}'),
+      semanticLabel: label,
       onPressed: onTap,
       color: _palette.surface,
       edgeColor: _palette.edge,
