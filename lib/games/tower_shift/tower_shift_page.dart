@@ -32,6 +32,7 @@ class _TowerShiftPageState extends State<TowerShiftPage>
   late TowerShiftEngine _engine;
   bool _blocked = false;
   int _blockedPulse = 0;
+  String _feedback = 'PICK A PEG, THEN CHOOSE A DESTINATION';
 
   @override
   GameLaunch get launch => widget.launch;
@@ -42,14 +43,26 @@ class _TowerShiftPageState extends State<TowerShiftPage>
     _engine = TowerShiftEngine.forLevel(level);
     _blocked = false;
     _blockedPulse = 0;
+    _feedback = 'PICK A PEG, THEN CHOOSE A DESTINATION';
   }
 
   void _tapPeg(int peg) {
     final result = _engine.tapPeg(peg);
-    if (result == TowerMove.ignored) return;
+    if (result == TowerMove.ignored) {
+      setState(() => _feedback = 'CHOOSE A PEG WITH DISKS');
+      return;
+    }
     setState(() {
       _blocked = result == TowerMove.blocked;
       if (_blocked) _blockedPulse++;
+      _feedback = switch (result) {
+        TowerMove.selected => 'PEG ${['A', 'B', 'C'][peg]} SELECTED · CHOOSE A HIGHLIGHTED PEG',
+        TowerMove.deselected => 'SELECTION CLEARED · PICK A PEG',
+        TowerMove.moved => 'GOOD MOVE · ${_engine.moves} MOVES USED',
+        TowerMove.blocked => 'BLOCKED · A BIGGER DISK CANNOT GO ON A SMALLER ONE',
+        TowerMove.completed => 'ALL DISKS ON PEG C · PUZZLE SOLVED!',
+        TowerMove.ignored => _feedback,
+      };
     });
     if (result == TowerMove.blocked) {
       HapticFeedback.selectionClick();
@@ -85,7 +98,12 @@ class _TowerShiftPageState extends State<TowerShiftPage>
             StatChip(label: 'DISKS', value: '${_engine.disks}', palette: _palette),
           ]),
           const SizedBox(height: 16),
-          Expanded(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch,
+          Expanded(child: Semantics(
+            key: const ValueKey('tower-board-state'),
+            label: '${_engine.pegs[2].length} of ${_engine.disks} disks on goal peg C. '
+                '${_engine.moves} moves made. '
+                '${_engine.selectedPeg == null ? 'No peg selected' : 'Peg ${['A', 'B', 'C'][_engine.selectedPeg!]} selected'}.',
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch,
             children: List.generate(3, (peg) => Expanded(child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: _PegCard(
@@ -104,16 +122,12 @@ class _TowerShiftPageState extends State<TowerShiftPage>
                 onTap: () => _tapPeg(peg),
               ),
             )))),
-          ),
+          )),
           const SizedBox(height: 12),
           Shake(
             trigger: _blockedPulse,
             child: HintLine(
-              reported ? 'ALL DISKS MOVED' : _blocked
-                  ? 'SMALLER DISK MUST STAY ON TOP'
-                  : _engine.selectedPeg == null
-                      ? 'PICK A PEG, THEN CHOOSE A DESTINATION'
-                      : 'HIGHLIGHTED PEGS CAN RECEIVE THIS DISK',
+              _feedback,
               palette: _palette,
               leading: Icon(Icons.touch_app_rounded,
                 size: 16, color: _palette.accent),
