@@ -27,7 +27,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   late RopeUntangleEngine _engine;
   int? _dragged;
   int? _bestCrossings;
-  bool _improved = false;
+  String _feedback = 'DRAG A JOINT TO REMOVE CROSSINGS';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -37,19 +37,26 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     _engine = RopeUntangleEngine.forLevel(level);
     _dragged = null;
     _bestCrossings = _engine.crossingCount;
-    _improved = false;
+    _feedback = 'DRAG A JOINT TO REMOVE CROSSINGS';
   }
 
   void _move(Offset local, Size size) {
     final node = _dragged;
     if (node == null) return;
+    final before = _engine.crossingCount;
     final result = _engine.moveNode(node,
       Point<double>(local.dx / size.width, local.dy / size.height));
     if (result == RopeMove.ignored) return;
     setState(() {
       final crossings = _engine.crossingCount;
-      _improved = crossings < (_bestCrossings ?? crossings);
-      if (_improved) _bestCrossings = crossings;
+      if (crossings < (_bestCrossings ?? crossings)) _bestCrossings = crossings;
+      _feedback = result == RopeMove.completed
+          ? 'ALL ROPES CLEAR · GREAT JOB!'
+          : crossings < before
+              ? 'NICE MOVE · ${before - crossings} FEWER CROSSINGS'
+              : crossings > before
+                  ? 'MORE CROSSINGS · TRY ANOTHER POSITION'
+                  : 'KEEP DRAGGING · $crossings CROSSINGS REMAIN';
     });
     if (result == RopeMove.completed) {
       HapticFeedback.mediumImpact();
@@ -60,9 +67,6 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   @override
   Widget build(BuildContext context) {
     final crossings = _engine.crossingCount;
-    final feedback = crossings == 0 ? 'ALL ROPES CLEAR'
-        : _improved ? 'NICE MOVE · FEWER CROSSINGS!'
-        : 'DRAG A JOINT TO REMOVE CROSSINGS';
     return GameScaffold(
     palette: _palette,
     title: 'Rope Untangle',
@@ -83,8 +87,9 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
           const SizedBox(height: 14),
           Semantics(
             key: const ValueKey('rope-board-state'),
-            label: '$crossings crossings remaining, ${_engine.positions.length} draggable joints'
-                '${_dragged == null ? '' : ', moving joint ${_dragged! + 1}'}',
+            label: '$crossings crossings remaining, ${_engine.positions.length} draggable joints. '
+                '${_engine.moves} drag updates. '
+                '${_dragged == null ? 'No joint selected' : 'Moving joint ${_dragged! + 1}'}.',
             child: GestureDetector(
             key: const ValueKey('rope-board'),
             onPanStart: (details) {
@@ -127,7 +132,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
                 detail: 'Every rope is clear and every joint is apart.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            HintLine(feedback, palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
