@@ -27,7 +27,6 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   late RopeUntangleEngine _engine;
   int? _dragged;
   int? _bestCrossings;
-  bool _improved = false;
   String _feedback = 'DRAG A JOINT TO REMOVE CROSSINGS';
   @override
   GameLaunch get launch => widget.launch;
@@ -38,7 +37,6 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     _engine = RopeUntangleEngine.forLevel(level);
     _dragged = null;
     _bestCrossings = _engine.crossingCount;
-    _improved = false;
     _feedback = 'DRAG A JOINT TO REMOVE CROSSINGS';
   }
 
@@ -51,8 +49,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     if (result == RopeMove.ignored) return;
     setState(() {
       final crossings = _engine.crossingCount;
-      _improved = crossings < (_bestCrossings ?? crossings);
-      if (_improved) _bestCrossings = crossings;
+      if (crossings < (_bestCrossings ?? crossings)) _bestCrossings = crossings;
       _feedback = result == RopeMove.completed
           ? 'ALL ROPES CLEAR · GREAT JOB!'
           : crossings < before
