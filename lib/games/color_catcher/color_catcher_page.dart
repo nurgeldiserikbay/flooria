@@ -59,7 +59,9 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
   }
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return GameScaffold(
     palette: _palette,
     title: 'Color Catcher',
     level: level,
@@ -82,7 +84,19 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
                 StatChip(label: 'BOMBS', value: '${_engine.strikes}/3', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          Container(width: boardWidth, height: boardHeight, padding: const EdgeInsets.all(5),
+          Semantics(
+            key: const ValueKey('catcher-board-state'),
+            label: 'Basket in lane ${_engine.basketLane + 1} of ${ColorCatcherEngine.lanes}. '
+                '${_engine.caught} of ${_engine.goal} fruit caught. '
+                '${_engine.strikes} of 3 bomb strikes. Swipe left or right to move.',
+            child: GestureDetector(
+              key: const ValueKey('catcher-swipe-area'),
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragEnd: reported || _engine.isFailed ? null : (details) {
+                final velocity = details.primaryVelocity ?? 0;
+                if (velocity.abs() > 30) _move(velocity > 0 ? 1 : -1);
+              },
+            child: Container(width: boardWidth, height: boardHeight, padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(color: const Color(0xFFC8DDCA),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: _palette.edge, width: 2),
@@ -99,14 +113,15 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
                 final token = byCell[cell];
                 final bucket = row == ColorCatcherEngine.rows - 1 &&
                     cell % ColorCatcherEngine.lanes == _engine.basketLane;
-                return AnimatedContainer(duration: const Duration(milliseconds: 120),
+                return AnimatedContainer(
+                  duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 120),
                   decoration: BoxDecoration(color: bucket ? const Color(0xFFB5DDBB)
                     : const Color(0xFFE6EFE3), borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: bucket ? _palette.accent
                       : const Color(0xFFD1E0D0), width: bucket ? 2 : 1)),
                   child: Center(child: token != null
                     ? Icon(token.kind == CatchKind.fruit
-                        ? Icons.local_florist_rounded : Icons.brightness_1_rounded,
+                        ? Icons.local_florist_rounded : Icons.warning_rounded,
                       size: boardWidth / 16,
                       color: token.kind == CatchKind.fruit
                         ? const Color(0xFFE47A50) : const Color(0xFF58585C))
@@ -114,7 +129,7 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
                         size: 27, color: Color(0xFF477A50)) : null),
                 );
               },
-            )),
+            )))),
           const SizedBox(height: 12),
           if (!reported && !_engine.isFailed)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -135,8 +150,9 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
               child: RetryPanel(palette: _palette, title: 'TOO MANY BOMBS',
                 detail: 'Move the basket away from dark bombs.', onRetry: replayLevel))
           else
-            const HintLine('CATCH FRUIT · DODGE THE DARK BOMBS', palette: _palette),
+            const HintLine('SWIPE OR USE ARROWS · CATCH FRUIT, AVOID BOMBS', palette: _palette),
         ]));
     }),
   );
+  }
 }
