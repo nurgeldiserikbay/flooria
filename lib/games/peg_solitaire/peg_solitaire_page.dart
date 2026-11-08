@@ -26,6 +26,7 @@ class _PegSolitairePageState extends State<PegSolitairePage>
     with LevelFlow<PegSolitairePage> {
   late PegSolitaireEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'JUMP OVER A PEG TO REMOVE IT';
 
   bool _isLegalDestination(int index) {
     final source = _engine.selectedCell;
@@ -54,17 +55,28 @@ class _PegSolitairePageState extends State<PegSolitairePage>
   void resetLevel() {
     _engine = PegSolitaireEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'JUMP OVER A PEG TO REMOVE IT';
   }
 
   void _tap(int index) {
     final result = _engine.tap(index);
     if (result == PegMove.ignored) {
       // Tapping the selected peg deselects it; repaint immediately.
-      setState(() {});
+      setState(() => _feedback = _engine.selectedCell == null
+          ? 'SELECTION CLEARED · CHOOSE A PEG'
+          : 'CHOOSE A PEG FIRST');
       return;
     }
     setState(() {
       if (result == PegMove.blocked) _blockedPulse++;
+      _feedback = switch (result) {
+        PegMove.selected => 'PEG SELECTED · TAP A HIGHLIGHTED LANDING',
+        PegMove.blocked => 'NOT A LEGAL JUMP · HOP OVER ONE PEG',
+        PegMove.moved => 'GREAT JUMP · ${_engine.pegCount} PEGS LEFT',
+        PegMove.completed => 'ONLY ONE PEG LEFT · PUZZLE SOLVED!',
+        PegMove.failed => 'NO JUMPS LEFT · TRY A NEW ROUTE',
+        PegMove.ignored => _feedback,
+      };
     });
     if (result == PegMove.completed) {
       HapticFeedback.mediumImpact();
@@ -100,7 +112,12 @@ class _PegSolitairePageState extends State<PegSolitairePage>
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          Container(
+          Semantics(
+            key: const ValueKey('peg-board-state'),
+            label: '${_engine.pegCount} pegs remaining. '
+                '${_engine.moves} jumps made. '
+                '${_engine.selectedCell == null ? 'No peg selected' : 'Peg selected at row ${_engine.selectedCell! ~/ PegSolitaireEngine.side + 1}, column ${_engine.selectedCell! % PegSolitaireEngine.side + 1}'}.',
+            child: Container(
             width: side, height: side,
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
@@ -234,7 +251,7 @@ class _PegSolitairePageState extends State<PegSolitairePage>
                 );
               },
             ),
-          ),
+          )),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -249,8 +266,7 @@ class _PegSolitairePageState extends State<PegSolitairePage>
           else
             Shake(
               trigger: _blockedPulse,
-              child: const HintLine(
-                'JUMP OVER A PEG TO REMOVE IT', palette: _palette),
+              child: HintLine(_feedback, palette: _palette),
             ),
         ]));
     }),
