@@ -25,7 +25,7 @@ class SetMatchPage extends StatefulWidget {
 
 class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage> {
   late SetMatchEngine _engine;
-  String _message = 'FIND 2 SETS';
+  String _message = 'PICK 3 CARDS · EACH FEATURE SAME OR ALL DIFFERENT';
   int _invalidPulse = 0;
   @override
   GameLaunch get launch => widget.launch;
@@ -34,7 +34,7 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
   @override
   void resetLevel() {
     _engine = SetMatchEngine.forLevel(level);
-    _message = 'FIND 2 SETS';
+    _message = 'PICK 3 CARDS · EACH FEATURE SAME OR ALL DIFFERENT';
     _invalidPulse = 0;
   }
 
@@ -44,9 +44,9 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
     setState(() {
       _message = switch (result) {
         SetMove.invalid => 'NOT A SET · EACH FEATURE MUST MATCH OR DIFFER',
-        SetMove.found => 'NICE SET · FIND ONE MORE',
+        SetMove.found => 'NICE SET · ${_engine.goalSets - _engine.setsFound} LEFT',
         SetMove.completed => 'BOTH SETS FOUND',
-        SetMove.selected => 'SELECT 3 CARDS',
+        SetMove.selected => '${_engine.selected.length} OF 3 CARDS SELECTED',
         SetMove.ignored => _message,
       };
       if (result == SetMove.invalid) _invalidPulse++;
@@ -77,7 +77,12 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
               StatChip(label: 'CARDS', value: '${_engine.cards.where((card) => card != null).length}', palette: _palette),
             ])),
           const SizedBox(height: 12),
-          SizedBox(width: width, height: cardHeight * 3 + 12,
+          Semantics(
+            key: const ValueKey('set-board-progress'),
+            label: '${_engine.setsFound} of ${_engine.goalSets} sets found. '
+                '${_engine.selected.length} of 3 cards selected. '
+                '${_engine.cards.where((card) => card != null).length} cards remaining.',
+            child: SizedBox(width: width, height: cardHeight * 3 + 12,
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(), padding: EdgeInsets.zero,
               itemCount: _engine.cards.length,
@@ -98,6 +103,9 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
                   label: card == null
                       ? 'Matched card ${index + 1}'
                       : 'Card ${index + 1}, ${card.count} shapes, '
+                          '${['red', 'green', 'blue'][card.color]}, '
+                          '${['oval', 'rectangle', 'triangle'][card.shape]}, '
+                          '${['outline', 'solid', 'striped'][card.fill]}, '
                           '${selected ? 'selected' : 'not selected'}',
                   child: Material(
                     color: Colors.transparent,
@@ -161,7 +169,7 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
                   ),
                 );
               },
-            )),
+            ))),
           const SizedBox(height: 12),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
