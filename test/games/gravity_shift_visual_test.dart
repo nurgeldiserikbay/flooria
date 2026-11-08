@@ -48,7 +48,7 @@ void main() {
     expect(tester.widget<Semantics>(board).properties.label,
       contains('Ball at row 6, column 1'));
     // The starting ball is at the left boundary for every level.
-    await tester.tap(find.bySemanticsLabel('Tilt left'));
+    await tester.tap(find.byKey(const ValueKey('gravity-tilt-left')));
     await tester.pump(const Duration(milliseconds: 120));
     expect(find.textContaining('NO ROOM TO ROLL'), findsOneWidget);
     expect(tester.widget<Semantics>(board).properties.label,
