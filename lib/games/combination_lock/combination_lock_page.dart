@@ -26,6 +26,7 @@ class _CombinationLockPageState extends State<CombinationLockPage>
     with LevelFlow<CombinationLockPage> {
   late CombinationLockEngine _engine;
   int _wrongPulse = 0;
+  String _feedback = 'EXACT = RIGHT DIGIT AND POSITION';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -34,22 +35,36 @@ class _CombinationLockPageState extends State<CombinationLockPage>
   void resetLevel() {
     _engine = CombinationLockEngine.forLevel(level);
     _wrongPulse = 0;
+    _feedback = 'EXACT = RIGHT DIGIT AND POSITION';
   }
 
   void _digit(int digit) {
     final result = _engine.enterDigit(digit);
-    if (result == LockMove.ignored) return;
-    setState(() {});
+    if (result == LockMove.ignored) {
+      setState(() => _feedback = 'EACH DIGIT CAN ONLY APPEAR ONCE');
+      HapticFeedback.selectionClick();
+      return;
+    }
+    setState(() => _feedback = 'FILL ALL DIGITS · THEN TRY THE CODE');
     HapticFeedback.selectionClick();
   }
 
   void _submit() {
     final result = _engine.submit();
-    if (result == LockMove.ignored) return;
+    if (result == LockMove.ignored) {
+      setState(() => _feedback = 'FILL EVERY SLOT BEFORE CHECKING');
+      HapticFeedback.selectionClick();
+      return;
+    }
     setState(() {
       if (result == LockMove.submitted || result == LockMove.failed) {
         _wrongPulse++;
       }
+      _feedback = result == LockMove.solved
+          ? 'LOCK OPEN · GREAT DEDUCTION!'
+          : result == LockMove.failed
+              ? 'NO TRIES LEFT · USE THE CLUES NEXT TIME'
+              : 'CHECK YOUR CLUES · EXACT MEANS RIGHT POSITION';
     });
     if (result == LockMove.solved) {
       HapticFeedback.mediumImpact();
@@ -104,7 +119,13 @@ class _CombinationLockPageState extends State<CombinationLockPage>
               ),
             ),
             const SizedBox(height: 15),
-            Shake(
+            Semantics(
+              key: const ValueKey('lock-progress-state'),
+              label: '${_engine.attemptsLeft} tries remaining, '
+                  '${_engine.codeLength} digit code. '
+                  '${_engine.input.where((digit) => digit != null).length} digits filled. '
+                  '${_engine.clues.length} clues received.',
+              child: Shake(
               trigger: _wrongPulse,
               child: SizedBox(
                 width: width,
@@ -205,7 +226,7 @@ class _CombinationLockPageState extends State<CombinationLockPage>
                   ),
                 ),
               ),
-            ),
+            )),
             const SizedBox(height: 15),
             Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 7,
               children: [for (var digit = 0; digit <= 9; digit++)
@@ -253,7 +274,7 @@ class _CombinationLockPageState extends State<CombinationLockPage>
               RetryPanel(palette: _palette, title: 'LOCK STILL CLOSED',
                 detail: 'Use the clues to deduce the code.', onRetry: replayLevel),
             ] else
-              const HintLine('EXACT = RIGHT DIGIT AND POSITION', palette: _palette),
+              HintLine(_feedback, palette: _palette),
           ],
         ),
       ),
