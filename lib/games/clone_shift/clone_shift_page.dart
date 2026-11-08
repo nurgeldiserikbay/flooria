@@ -19,6 +19,7 @@ class CloneShiftPage extends StatefulWidget {
 class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShiftPage> {
   late CloneShiftEngine _engine;
   int _stationaryPulse = 0;
+  String _feedback = 'THE BLUE CLONE MIRRORS LEFT AND RIGHT';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -27,6 +28,7 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
   void resetLevel() {
     _engine = CloneShiftEngine.forLevel(level);
     _stationaryPulse = 0;
+    _feedback = 'THE BLUE CLONE MIRRORS LEFT AND RIGHT';
   }
 
   void _move(CloneDirection direction) {
@@ -34,10 +36,18 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
     final result = _engine.move(direction);
     if (result == CloneMove.ignored) return;
     setState(() {
-      if (_engine.positions[0] == previous[0] &&
-          _engine.positions[1] == previous[1]) {
-        _stationaryPulse++;
-      }
+      final firstMoved = _engine.positions[0] != previous[0];
+      final secondMoved = _engine.positions[1] != previous[1];
+      if (!firstMoved && !secondMoved) _stationaryPulse++;
+      _feedback = result == CloneMove.completed
+          ? 'BOTH EXPLORERS REACHED THEIR STARS!'
+          : !firstMoved && !secondMoved
+              ? 'BOTH BLOCKED · TRY A DIFFERENT DIRECTION'
+              : _engine.limit - _engine.moves <= 3
+                  ? 'FEW MOVES LEFT · PLAN TOGETHER'
+                  : firstMoved && secondMoved
+                      ? 'BOTH EXPLORERS MOVED · KEEP GOING'
+                      : 'ONE EXPLORER IS BLOCKED BY A WALL';
     });
     if (result == CloneMove.completed) {
       HapticFeedback.mediumImpact();
@@ -64,7 +74,15 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
           StatChip(label: 'LIMIT', value: _engine.limit.toString(), palette: _palette),
         ])),
         const SizedBox(height: 10),
-        Container(
+        Semantics(
+          key: const ValueKey('clone-board-state'),
+          label: 'Explorer 1 at row ${_engine.positions[0] ~/ CloneShiftEngine.side + 1}, '
+              'column ${_engine.positions[0] % CloneShiftEngine.side + 1}. '
+              'Explorer 2 at row ${_engine.positions[1] ~/ CloneShiftEngine.side + 1}, '
+              'column ${_engine.positions[1] % CloneShiftEngine.side + 1}. '
+              '${_engine.limit - _engine.moves} moves remaining. '
+              'The second explorer mirrors horizontal movements.',
+          child: Container(
           width: side,
           height: side,
           padding: const EdgeInsets.all(5),
@@ -188,7 +206,7 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
               ],
             );
           }),
-        ),
+        )),
         const SizedBox(height: 9),
         _DirectionPad(onMove: _move, disabled: reported || _engine.isFailed),
         if (reported) Padding(padding: const EdgeInsets.all(10), child: LevelResultPanel(palette: _palette, launch: launch,
@@ -197,9 +215,7 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
           title: 'OUT OF MOVES', detail: 'Guide both linked explorers to their stars.', onRetry: replayLevel))
         else Shake(
           trigger: _stationaryPulse,
-          child: const HintLine(
-            'THE BLUE CLONE MOVES IN MIRROR',
-            palette: _palette),
+          child: HintLine(_feedback, palette: _palette),
         ),
       ]));
     }));
@@ -214,5 +230,5 @@ class _DirectionPad extends StatelessWidget {
     children: [for (final d in [null, CloneDirection.up, null, CloneDirection.left, null, CloneDirection.right, null, CloneDirection.down, null])
       d == null ? const SizedBox() : ChunkyIconButton(icon: switch (d) { CloneDirection.up => Icons.keyboard_arrow_up_rounded,
         CloneDirection.right => Icons.keyboard_arrow_right_rounded, CloneDirection.down => Icons.keyboard_arrow_down_rounded,
-        CloneDirection.left => Icons.keyboard_arrow_left_rounded }, tooltip: d.name, palette: _palette, onPressed: disabled ? null : () => onMove(d))]));
+        CloneDirection.left => Icons.keyboard_arrow_left_rounded }, tooltip: 'Move ${d.name}', palette: _palette, onPressed: disabled ? null : () => onMove(d))]));
 }
