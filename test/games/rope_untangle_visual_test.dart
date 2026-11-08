@@ -56,7 +56,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 80));
     expect(tester.widget<Semantics>(
       find.byKey(const ValueKey('rope-board-state')),
-    ).properties.label, contains('moving joint 1'));
+    ).properties.label, contains('Moving joint 1'));
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 80));
     expect(tester.widget<Semantics>(
