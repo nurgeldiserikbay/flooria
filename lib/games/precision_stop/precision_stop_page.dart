@@ -29,6 +29,7 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
   final Stopwatch _watch = Stopwatch();
   Timer? _refresh;
   bool _running = false;
+  double? _lastStopSeconds;
   String _message = 'STOP NEAR THE TARGET TIME';
   @override
   GameLaunch get launch => widget.launch;
@@ -41,6 +42,7 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
     _refresh?.cancel();
     _watch.reset();
     _running = false;
+    _lastStopSeconds = null;
     _message = 'STOP NEAR THE TARGET TIME';
     _engine = PrecisionStopEngine(level);
   }
@@ -49,7 +51,11 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
     if (_running || reported) return;
     _watch.reset();
     _watch.start();
-    setState(() { _running = true; _message = 'TAP STOP WHEN IT MATCHES'; });
+    setState(() {
+      _running = true;
+      _lastStopSeconds = null;
+      _message = 'TAP STOP WHEN IT MATCHES';
+    });
     _refresh = Timer.periodic(const Duration(milliseconds: 25), (_) {
       if (mounted && _running) setState(() {});
     });
@@ -59,9 +65,11 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
     if (!_running) return;
     _watch.stop();
     _refresh?.cancel();
-    final result = _engine.stopAt(_watch.elapsedMicroseconds / 1000000);
+    final seconds = _watch.elapsedMicroseconds / 1000000;
+    final result = _engine.stopAt(seconds);
     setState(() {
       _running = false;
+      _lastStopSeconds = seconds;
       _message = switch (result) {
         StopResult.hit => 'NICE — NEXT TARGET',
         StopResult.early => 'TOO EARLY — TRY AGAIN',
@@ -95,7 +103,8 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
     child: LayoutBuilder(builder: (context, constraints) {
       final size = min(constraints.maxWidth - 40,
           constraints.maxHeight - (reported ? 230 : 180)).clamp(220.0, 390.0).toDouble();
-      final shown = _running ? _watch.elapsedMicroseconds / 1000000 : 0.0;
+      final shown = _running ? _watch.elapsedMicroseconds / 1000000
+          : (_lastStopSeconds ?? 0.0);
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -106,8 +115,11 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
           const SizedBox(height: 18),
           Semantics(
             key: const ValueKey('precision-clock-state'),
-            label: 'Timer ${_running ? 'running' : 'stopped'}, target ${_clock(_engine.targetSeconds)} seconds, '
-                '${_engine.round} of 3 successful stops',
+            label: 'Timer ${_running ? 'running' : 'stopped'}, '
+                'target ${_clock(_engine.targetSeconds)} seconds. '
+                '${_engine.round} of 3 successful stops, ${_engine.misses} misses. '
+                '${_lastStopSeconds == null ? 'No stop recorded yet.' : 'Last stop at ${_clock(_lastStopSeconds!)} seconds.'} '
+                '$_message.',
             child: SizedBox(width: size, height: size,
             child: Stack(alignment: Alignment.center, children: [
               SizedBox.expand(child: CircularProgressIndicator(
@@ -125,7 +137,7 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
                   key: const ValueKey('precision-clock-scale'),
                   scale: _running ? 1.04 : 1,
                   duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 160),
-                  child: Text(_running ? _clock(shown) : '0.00',
+                  child: Text(_clock(shown),
                   style: TextStyle(color: _palette.ink,
                     fontSize: 48, fontWeight: FontWeight.w900,
                     fontFeatures: [FontFeature.tabularFigures()]))),
@@ -137,7 +149,9 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
               ]),
             ]))),
           const SizedBox(height: 18),
-          Text(_message, style: TextStyle(color: _palette.muted,
+          Text(_message,
+            key: const ValueKey('precision-feedback'),
+            style: TextStyle(color: _palette.muted,
             fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: .8)),
           const SizedBox(height: 12),
           if (!reported)
