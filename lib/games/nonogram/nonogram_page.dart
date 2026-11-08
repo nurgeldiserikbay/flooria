@@ -24,17 +24,30 @@ class NonogramPage extends StatefulWidget {
 
 class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage> {
   late NonogramEngine _engine;
+  String _feedback = 'FILL CELLS TO MATCH EVERY ROW AND COLUMN CLUE';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = NonogramEngine.forLevel(level);
+  void resetLevel() {
+    _engine = NonogramEngine.forLevel(level);
+    _feedback = 'FILL CELLS TO MATCH EVERY ROW AND COLUMN CLUE';
+  }
 
   void _tap(int cell) {
     final result = _engine.tapCell(cell);
     if (result == NonogramMark.ignored) return;
-    setState(() {});
+    setState(() {
+      final mark = _engine.marks[cell];
+      _feedback = result == NonogramMark.completed
+          ? 'ALL CLUES MATCH · PICTURE COMPLETE!'
+          : mark == 1
+              ? 'CELL FILLED · CHECK THE ROW AND COLUMN CLUES'
+              : mark == 2
+                  ? 'CELL CROSSED · THIS SPACE STAYS EMPTY'
+                  : 'CELL CLEARED · KEEP SOLVING THE PICTURE';
+    });
     if (result == NonogramMark.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -65,6 +78,24 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
     return true;
   }
 
+  int get _solvedClues {
+    var solved = 0;
+    for (var row = 0; row < NonogramEngine.side; row++) {
+      if (_matchesClue(
+        _engine.marks.skip(row * NonogramEngine.side).take(NonogramEngine.side),
+        _engine.rowClues[row],
+      )) solved++;
+    }
+    for (var col = 0; col < NonogramEngine.side; col++) {
+      if (_matchesClue(
+        [for (var row = 0; row < NonogramEngine.side; row++)
+          _engine.marks[row * NonogramEngine.side + col]],
+        _engine.columnClues[col],
+      )) solved++;
+    }
+    return solved;
+  }
+
   @override
   Widget build(BuildContext context) => GameScaffold(
     palette: _palette,
@@ -83,7 +114,7 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 StatChip(label: 'FILLED', value: '${_engine.marks.where((mark) => mark == 1).length}', palette: _palette),
-                StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
+                StatChip(label: 'CLUES', value: '$_solvedClues/12', palette: _palette),
               ])),
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -108,7 +139,12 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
                   ))),
               ])),
           ]),
-          Row(mainAxisSize: MainAxisSize.min, children: [
+          Semantics(
+            key: const ValueKey('nonogram-board-state'),
+            label: '$_solvedClues of 12 row and column clues matched. '
+                '${_engine.moves} moves made. '
+                '${_engine.marks.where((mark) => mark == 1).length} cells filled.',
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
             SizedBox(width: 44,
               child: Column(children: [
                 for (var row = 0; row < _engine.rowClues.length; row++)
@@ -215,7 +251,7 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
                   );
                 },
               )),
-          ]),
+          ])),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -224,7 +260,7 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
                 detail: 'The row and column clues all match.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('FILL THE CELLS TO MATCH EVERY CLUE', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
