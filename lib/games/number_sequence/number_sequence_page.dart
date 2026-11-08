@@ -27,6 +27,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
   late NumberSequenceEngine _engine;
   int _wrongPulse = 0;
   int? _wrongChoice;
+  String _feedback = 'PICK THE VALUE THAT CONTINUES THE PATTERN';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -36,6 +37,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
     _engine = NumberSequenceEngine.forLevel(level);
     _wrongPulse = 0;
     _wrongChoice = null;
+    _feedback = 'PICK THE VALUE THAT CONTINUES THE PATTERN';
   }
 
   void _choose(int value) {
@@ -46,12 +48,16 @@ class _NumberSequencePageState extends State<NumberSequencePage>
       setState(() {
         _wrongPulse++;
         _wrongChoice = value;
+        _feedback = 'NOT QUITE · CHECK HOW THE NUMBERS CHANGE';
       });
       return;
     }
     HapticFeedback.lightImpact();
     if (result == SequenceAnswer.completed) {
-      setState(() => _wrongChoice = null);
+      setState(() {
+        _wrongChoice = null;
+        _feedback = 'ALL FIVE PATTERNS SOLVED · GREAT JOB!';
+      });
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: {'math':
         ((_engine.correct / (_engine.correct + _engine.mistakes)) * 100).round()});
@@ -59,6 +65,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
     }
     setState(() {
       _wrongChoice = null; // New round starts with clean feedback.
+      _feedback = 'GREAT ANSWER · FIND THE NEXT PATTERN';
     });
   }
 
@@ -85,7 +92,12 @@ class _NumberSequencePageState extends State<NumberSequencePage>
           const SizedBox(height: 18),
           SegmentBar(total: 5, done: _engine.correct, palette: _palette),
           const SizedBox(height: 22),
-          Shake(trigger: _wrongPulse, child: Container(
+          Semantics(
+            key: const ValueKey('sequence-board-state'),
+            label: 'Round ${_engine.correct + 1} of 5. '
+                'Number pattern: ${_engine.terms.join(', ')}, unknown next term. '
+                '${_engine.mistakes} incorrect attempts.',
+            child: Shake(trigger: _wrongPulse, child: Container(
             width: cardSide,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             decoration: BoxDecoration(
@@ -152,7 +164,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
                       ),
                     ))]),
             ]),
-          )),
+          ))),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -161,12 +173,7 @@ class _NumberSequencePageState extends State<NumberSequencePage>
                 detail: 'Solved five number patterns.', onReplay: replayLevel,
                 onNext: nextLevel))
           else
-            HintLine(
-              _wrongChoice == null
-                  ? 'PICK THE VALUE THAT CONTINUES THE PATTERN'
-                  : 'NOT QUITE — LOOK AT THE DIFFERENCE',
-              palette: _palette,
-            ),
+            HintLine(_feedback, palette: _palette),
         ],
       )));
     }),
