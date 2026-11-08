@@ -93,7 +93,9 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
         [for (var row = 0; row < NonogramEngine.side; row++)
           _engine.marks[row * NonogramEngine.side + col]],
         _engine.columnClues[col],
-      )) solved++;
+      )) {
+        solved++;
+      }
     }
     return solved;
   }
