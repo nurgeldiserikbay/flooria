@@ -27,6 +27,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   late RopeUntangleEngine _engine;
   int? _dragged;
   int? _bestCrossings;
+  bool _improved = false;
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -36,6 +37,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     _engine = RopeUntangleEngine.forLevel(level);
     _dragged = null;
     _bestCrossings = _engine.crossingCount;
+    _improved = false;
   }
 
   void _move(Offset local, Size size) {
@@ -46,7 +48,8 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     if (result == RopeMove.ignored) return;
     setState(() {
       final crossings = _engine.crossingCount;
-      if (crossings < (_bestCrossings ?? crossings)) _bestCrossings = crossings;
+      _improved = crossings < (_bestCrossings ?? crossings);
+      if (_improved) _bestCrossings = crossings;
     });
     if (result == RopeMove.completed) {
       HapticFeedback.mediumImpact();
@@ -58,7 +61,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   Widget build(BuildContext context) {
     final crossings = _engine.crossingCount;
     final feedback = crossings == 0 ? 'ALL ROPES CLEAR'
-        : _bestCrossings == crossings ? 'KEEP UNTANGLING THE ROPES'
+        : _improved ? 'NICE MOVE · FEWER CROSSINGS!'
         : 'DRAG A JOINT TO REMOVE CROSSINGS';
     return GameScaffold(
     palette: _palette,
