@@ -23,6 +23,7 @@ class DominoChainPage extends StatefulWidget {
 class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<DominoChainPage> {
   late DominoChainEngine _engine;
   int _wrongPulse = 0;
+  String _feedback = 'PLACE A DOMINO THAT MATCHES THE OPEN NUMBER';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -31,17 +32,25 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
   void resetLevel() {
     _engine = DominoChainEngine.forLevel(level);
     _wrongPulse = 0;
+    _feedback = 'PLACE A DOMINO THAT MATCHES THE OPEN NUMBER';
   }
 
   void _place(int id) {
     final result = _engine.place(id);
     if (result == DominoMove.ignored) return;
     if (result == DominoMove.blocked) {
-      setState(() => _wrongPulse++);
+      setState(() {
+        _wrongPulse++;
+        _feedback = 'NOT A MATCH · FIND A TILE WITH ${_engine.openValue}';
+      });
       HapticFeedback.selectionClick();
       return;
     }
-    setState(() {});
+    setState(() {
+      _feedback = result == DominoMove.completed
+          ? 'CHAIN COMPLETE · EVERY TILE CONNECTS!'
+          : 'GOOD MATCH · NEXT OPEN NUMBER IS ${_engine.openValue}';
+    });
     if (result == DominoMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -72,7 +81,12 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
                 StatChip(label: 'MISTAKES', value: '${_engine.mistakes}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          Container(
+          Semantics(
+            key: const ValueKey('domino-chain-state'),
+            label: '${_engine.placed.length} of ${_engine.tiles.length} dominoes placed. '
+                'Open number ${_engine.openValue}. '
+                '${_engine.mistakes} incorrect attempts.',
+            child: Container(
             width: constraints.maxWidth - 34,
             constraints: const BoxConstraints(minHeight: 92, maxHeight: 170),
             padding: const EdgeInsets.all(12),
@@ -100,7 +114,7 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
                     child: _DominoFace(tile: tile, compact: true),
                   ),
               ])),
-          ),
+          )),
           const SizedBox(height: 12),
           Shake(
             trigger: _wrongPulse,
@@ -136,7 +150,8 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
                 Semantics(
                   button: true,
                   enabled: !reported,
-                  label: 'Domino ${tile.left} to ${tile.right}',
+                  label: 'Domino ${tile.left} to ${tile.right}, '
+                      '${tile.left == _engine.openValue || tile.right == _engine.openValue ? 'matches open number' : 'does not match open number'}',
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -160,7 +175,7 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
                 detail: 'Every domino connects to the open end.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('PLACE A DOMINO THAT MATCHES THE OPEN NUMBER', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ],
       )),
     );
