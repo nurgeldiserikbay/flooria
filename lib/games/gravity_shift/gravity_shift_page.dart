@@ -235,7 +235,8 @@ class _DirectionButton extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => SizedBox(width: 46, height: 44,
-    child: ChunkyButton(onPressed: onTap, semanticLabel: label,
+    child: ChunkyButton(key: ValueKey('gravity-tilt-${label.split(' ').last}'),
+      onPressed: onTap, semanticLabel: label,
       color: Colors.white, edgeColor: _palette.edge,
       depth: 3, radius: 10, padding: EdgeInsets.zero,
       child: Icon(icon, color: _palette.ink, size: 27)));
