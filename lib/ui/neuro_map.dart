@@ -39,10 +39,9 @@ class _NeuroMapViewState extends State<NeuroMapView>
     duration: const Duration(milliseconds: 1800),
   );
   bool _positioned = false;
-  bool _animating = false;
 
-  static const double _baseMapWidth = 640;
-  static const double _baseMapHeight = 2450;
+  static const double _baseMapWidth = 390;
+  static const double _baseMapHeight = 620;
   // Hand-shaped positions keep the progression organic instead of reading as
   // a level grid. Topology remains in NeuronMapGraph; this is presentation only.
   // Fixed, irregular anchors avoid a repeated pattern and stay stable during rebuilds.
@@ -64,63 +63,20 @@ class _NeuroMapViewState extends State<NeuroMapView>
   ];
 
   static const _mapPositions = <String, Offset>{
-    'node_01': Offset(.50, .05),
-    'node_02': Offset(.22, .10),
-    'node_03': Offset(.78, .11),
-    'node_04': Offset(.08, .16),
-    'node_05': Offset(.40, .17),
-    'node_06': Offset(.91, .16),
-    'node_07': Offset(.10, .22),
-    'node_08': Offset(.31, .23),
-    'node_09': Offset(.69, .23),
-    'node_10': Offset(.91, .24),
-    'node_11': Offset(.31, .30),
-    'node_12': Offset(.70, .30),
-    'node_13': Offset(.50, .37),
-    'node_14': Offset(.22, .43),
-    'node_15': Offset(.78, .43),
-    'node_16': Offset(.50, .49),
-    'node_17': Offset(.23, .55),
-    'node_18': Offset(.77, .55),
-    // Organic rows keep 55 nodes distinct, without overlapping the
-    // 39–48 group at the bottom of the map.
-    'node_19': Offset(.09, .59),
-    'node_20': Offset(.30, .60),
-    'node_21': Offset(.52, .60),
-    'node_22': Offset(.73, .59),
-    'node_23': Offset(.91, .61),
-    'node_24': Offset(.07, .66),
-    'node_25': Offset(.28, .67),
-    'node_26': Offset(.49, .66),
-    'node_27': Offset(.70, .67),
-    'node_28': Offset(.92, .66),
-    'node_29': Offset(.10, .72),
-    'node_30': Offset(.32, .73),
-    'node_31': Offset(.53, .73),
-    'node_32': Offset(.75, .72),
-    'node_33': Offset(.91, .73),
-    'node_34': Offset(.08, .78),
-    'node_35': Offset(.29, .79),
-    'node_36': Offset(.49, .78),
-    'node_37': Offset(.71, .79),
-    'node_38': Offset(.90, .79),
-    'node_39': Offset(.10, .84),
-    'node_40': Offset(.32, .85),
-    'node_41': Offset(.53, .84),
-    'node_42': Offset(.74, .85),
-    'node_43': Offset(.92, .84),
-    'node_44': Offset(.08, .90),
-    'node_45': Offset(.29, .91),
-    'node_46': Offset(.49, .90),
-    'node_47': Offset(.70, .91),
-    'node_48': Offset(.90, .90),
-    'node_49': Offset(.10, .96),
-    'node_50': Offset(.31, .97),
-    'node_51': Offset(.53, .96),
-    'node_52': Offset(.74, .97),
-    'node_53': Offset(.91, .96),
-    'node_54': Offset(.37, .995),
-    'node_55': Offset(.63, .995),
+    'node_01': Offset(.50, .06),
+    'node_02': Offset(.22, .20),
+    'node_03': Offset(.78, .22),
+    'node_04': Offset(.08, .37),
+    'node_05': Offset(.40, .39),
+    'node_06': Offset(.91, .37),
+    'node_07': Offset(.10, .55),
+    'node_08': Offset(.31, .57),
+    'node_09': Offset(.69, .56),
+    'node_10': Offset(.91, .58),
+    'node_11': Offset(.31, .76),
+    'node_12': Offset(.70, .78),
+    'node_13': Offset(.50, .94),
+    'node_14': Offset(.82, .94),
   };
 
   Offset _point(NeuronNode node, double width, double height) {
@@ -136,44 +92,28 @@ class _NeuroMapViewState extends State<NeuroMapView>
   double _diameter(NeuronNode node, Set<String> completed) {
     final state = NeuronMapGraph.availability(node, completed);
     if (state == NeuronAvailability.open) return node.id == 'node_01' ? 76 : 68;
-    if (state == NeuronAvailability.complete) return 62;
-    return 49;
+    if (state == NeuronAvailability.complete) return 66;
+    return 54;
   }
 
   @override
   void initState() {
     super.initState();
-    // A MediaQuery is not yet available in initState. Start the animation
-    // when dependencies become available, and never tick under reduced motion.
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _syncMotion();
-  }
-
-  void _syncMotion() {
-    final reducedMotion =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final animate = widget.motionEnabled && !reducedMotion;
-    if (_animating == animate) return;
-    _animating = animate;
-    if (animate) {
-      _pulse.repeat();
-    } else {
-      _pulse.stop();
-      _pulse.value = .5;
-    }
+    if (widget.motionEnabled) _pulse.repeat();
   }
 
   @override
   void didUpdateWidget(covariant NeuroMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _syncMotion();
-    // The next reachable neuron may change when progress is recorded.
-    if (!widget.completedNeurons.containsAll(oldWidget.completedNeurons) ||
-        oldWidget.completedNeurons.length != widget.completedNeurons.length) {
+    if (oldWidget.motionEnabled != widget.motionEnabled) {
+      if (widget.motionEnabled) {
+        _pulse.repeat();
+      } else {
+        _pulse.stop();
+        _pulse.value = .5;
+      }
+    }
+    if (oldWidget.completedNeurons.length != widget.completedNeurons.length) {
       _positioned = false;
     }
   }
@@ -189,7 +129,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
   Widget build(BuildContext context) {
     final nodes = NeuronMapGraph.nodes;
     return LayoutBuilder(builder: (context, bounds) {
-      const chromeHeight = 126.0;
+      const chromeHeight = 148.0;
       final viewportHeight = math.max(0.0, bounds.maxHeight - chromeHeight);
       // Keep the map larger than its viewport at its resting scale. This gives
       // pan gestures room to move the network even before the player zooms in.
@@ -202,23 +142,16 @@ class _NeuroMapViewState extends State<NeuroMapView>
         _positioned = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          // At launch there must be space to drag *horizontally* without
-          // zooming first. Scale to roughly 125% of viewport width.
-          final scale = (bounds.maxWidth / mapWidth * 1.25)
-              .clamp(.72, .90);
-          // Open on the next playable node rather than the empty middle
-          // of a tall graph. The rest of the world remains freely pannable.
-          final focus = nodes.firstWhere(
-            (node) => NeuronMapGraph.availability(
-              node, widget.completedNeurons) == NeuronAvailability.open,
-            orElse: () => nodes.first,
-          );
-          final focusPoint = positions[focus.id]!;
+          final scale = math.min(
+            bounds.maxWidth / mapWidth,
+            viewportHeight / mapHeight,
+          ).clamp(.62, 1.0);
           _transform.value = Matrix4.identity()
             ..translateByDouble(
-              (bounds.maxWidth / 2) - focusPoint.dx * scale,
-              viewportHeight * .28 - focusPoint.dy * scale,
-              0, 1,
+              (bounds.maxWidth - mapWidth * scale) / 2,
+              (viewportHeight - mapHeight * scale) / 2,
+              0,
+              1,
             )
             ..scaleByDouble(scale, scale, 1, 1);
         });
@@ -226,8 +159,8 @@ class _NeuroMapViewState extends State<NeuroMapView>
 
       return Stack(children: [
         Positioned.fill(
-          top: 122,
-          bottom: 4,
+          top: 66,
+          bottom: 82,
           child: InteractiveViewer(
             transformationController: _transform,
             constrained: false,
@@ -239,9 +172,7 @@ class _NeuroMapViewState extends State<NeuroMapView>
               width: mapWidth,
               height: mapHeight,
               child: Stack(clipBehavior: Clip.none, children: [
-                const Positioned.fill(child: RepaintBoundary(
-                  child: _MapAtmosphere(),
-                )),
+                const Positioned.fill(child: _MapAtmosphere()),
                 for (final fog in _fogAnchors)
                   if (NeuronMapGraph.availability(
                     nodes.firstWhere((node) => node.id == fog.$1),
@@ -257,21 +188,10 @@ class _NeuroMapViewState extends State<NeuroMapView>
                           opacity: fog.$5,
                           child: Transform.rotate(
                             angle: fog.$6,
-                            child: ShaderMask(
-                              blendMode: BlendMode.dstIn,
-                              shaderCallback: (bounds) => RadialGradient(
-                                colors: [
-                                  Colors.white,
-                                  Colors.white.withValues(alpha: .72),
-                                  Colors.transparent,
-                                ],
-                                stops: const [0, .56, 1],
-                              ).createShader(bounds),
-                              child: Image.asset(
-                                fog.$2,
-                                fit: BoxFit.fill,
-                                filterQuality: FilterQuality.medium,
-                              ),
+                            child: Image.asset(
+                              fog.$2,
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.medium,
                             ),
                           ),
                         ),
@@ -297,14 +217,12 @@ class _NeuroMapViewState extends State<NeuroMapView>
                       ),
                     ),
                   ),
-                RepaintBoundary(
-                  child: NeuroConnectionSvg(
-                    width: mapWidth,
-                    height: mapHeight,
-                    nodes: nodes,
-                    positions: positions,
-                    completed: widget.completedNeurons,
-                  ),
+                NeuroConnectionSvg(
+                  width: mapWidth,
+                  height: mapHeight,
+                  nodes: nodes,
+                  positions: positions,
+                  completed: widget.completedNeurons,
                 ),
                 AnimatedBuilder(
                   animation: _pulse,
@@ -333,7 +251,6 @@ class _NeuroMapViewState extends State<NeuroMapView>
                         state: NeuronMapGraph.availability(
                           node, widget.completedNeurons),
                         pulse: _pulse,
-                        animate: _animating,
                         onTap: widget.onNodeTap,
                       ),
                     );
@@ -343,51 +260,34 @@ class _NeuroMapViewState extends State<NeuroMapView>
           ),
         ),
         Positioned(
-          top: 8,
-          left: 14,
-          right: 14,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 5, 5, 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .78),
-              borderRadius: BorderRadius.circular(23),
-              border: Border.all(color: const Color(0xB5FFFFFF)),
-              boxShadow: const [
-                BoxShadow(color: Color(0x143C557C),
-                  blurRadius: 14, offset: Offset(0, 4)),
-              ],
+          top: 10,
+          left: 18,
+          right: 18,
+          child: Row(children: [
+            const _BrandMark(),
+            const SizedBox(width: 10),
+            const Expanded(child: Text('NEURO PLAYGROUND',
+              style: TextStyle(color: Color(0xFFF4F5FF),
+                fontSize: 13, fontWeight: FontWeight.w900,
+                letterSpacing: 1.2))),
+            _ProgressPill(value: '${widget.completedNeurons.length} / ${nodes.length}'),
+            const SizedBox(width: 3),
+            IconButton(
+              tooltip: 'Settings',
+              onPressed: widget.onSettings,
+              icon: const Icon(Icons.tune_rounded, color: Color(0xFFE9EEFF)),
             ),
-            child: Row(children: [
-              const _BrandMark(),
-              const SizedBox(width: 10),
-              const Expanded(child: Text('Flooria',
-                style: TextStyle(
-                  color: neuroText,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -.3,
-                ))),
-              _ProgressPill(
-                value: '${widget.completedNeurons.length} / ${nodes.length}',
-              ),
-              IconButton(
-                tooltip: 'Settings',
-                onPressed: widget.onSettings,
-                icon: const Icon(Icons.tune_rounded, color: neuroText),
-                iconSize: 22,
-                visualDensity: VisualDensity.compact,
-              ),
-            ]),
-          ),
+          ]),
         ),
         Positioned(
-          top: 61,
           left: 0,
           right: 0,
+          bottom: 0,
           child: NeuroNavigation(selected: 0, onTab: (tab) {
             switch (tab) {
               case 1: widget.onGames();
               case 2: widget.onAnalytics();
+              case 3: widget.onAnalytics();
               default: break;
             }
           }),
@@ -403,14 +303,12 @@ class _NeuronDot extends StatelessWidget {
     required this.node,
     required this.state,
     required this.pulse,
-    required this.animate,
     required this.onTap,
   });
 
   final NeuronNode node;
   final NeuronAvailability state;
   final Animation<double> pulse;
-  final bool animate;
   final ValueChanged<NeuronNode> onTap;
 
   @override
@@ -424,16 +322,15 @@ class _NeuronDot extends StatelessWidget {
             ? Icons.hub_rounded
             : GameGlyphs.iconFor(node.moduleId!);
     final glow = .5 + .5 * math.sin(pulse.value * math.pi * 2);
-    final size = node.id == 'node_01' && open ? 76.0
-        : open ? 68.0 : complete ? 62.0 : 49.0;
+    final size = node.id == 'node_01' && open ? 76.0 : open ? 68.0 : complete ? 66.0 : 54.0;
     final color = complete
         ? const Color(0xFF53B99F)
         : const Color(0xFF716BE0);
     final lockedTints = <(Color, Color)>[
-      (const Color(0xFFF1F4FA), const Color(0xFFD5DCEB)),
-      (const Color(0xFFF0EFF9), const Color(0xFFD8D3ED)),
-      (const Color(0xFFEEF7F4), const Color(0xFFD2E8E1)),
-      (const Color(0xFFF8F3EF), const Color(0xFFEDDCD3)),
+      (const Color(0xFFD6E8FF), const Color(0xFFAAC8F0)),
+      (const Color(0xFFE5DDFF), const Color(0xFFC2B6F0)),
+      (const Color(0xFFD4F1EA), const Color(0xFFA8D8CB)),
+      (const Color(0xFFFFE5D8), const Color(0xFFF3C4B1)),
     ];
     final lockedTint = lockedTints[(node.slot - 1) % lockedTints.length];
     return Semantics(
@@ -442,15 +339,14 @@ class _NeuronDot extends StatelessWidget {
       child: AnimatedBuilder(
         animation: pulse,
         builder: (context, _) => Transform.scale(
-          scale: animate && open ? 1 + .018 * glow : 1,
+          scale: open ? 1 + .018 * glow : 1,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               customBorder: const CircleBorder(),
               onTap: locked ? null : () => onTap(node),
               child: AnimatedContainer(
-                duration: animate ? const Duration(milliseconds: 260)
-                    : Duration.zero,
+                duration: const Duration(milliseconds: 260),
                 width: size,
                 height: size,
                 decoration: BoxDecoration(
@@ -514,7 +410,34 @@ class _NeuronDot extends StatelessWidget {
                         color: Color(0xFF35A88C)),
                     ),
                   ),
-
+                  if (locked) Positioned(
+                    right: 0, bottom: 0,
+                    child: Container(
+                      width: 17,
+                      height: 17,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFEAF0FA),
+                      ),
+                      child: const Icon(Icons.lock_rounded, size: 10,
+                        color: Color(0xFF8290A9)),
+                    ),
+                  ),
+                  if (!complete && !locked) Positioned(
+                    right: 1, top: 1,
+                    child: Container(
+                      width: 17,
+                      height: 17,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFF8F6FF),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('${node.level}', style: const TextStyle(
+                        color: Color(0xFF655BC2), fontSize: 9,
+                        fontWeight: FontWeight.w900)),
+                    ),
+                  ),
                 ]),
               ),
             ),
@@ -525,42 +448,35 @@ class _NeuronDot extends StatelessWidget {
   }
 }
 
-/// A seamless pattern fixed to map-space. It pans and zooms with the nodes,
-/// instead of stretching one bitmap across the full 2,450px world.
 class _MapAtmosphere extends StatelessWidget {
   const _MapAtmosphere();
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand,
-    children: [
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          color: Color(0xFFF2F6FB),
+  Widget build(BuildContext context) => Stack(fit: StackFit.expand, children: [
+    Positioned.fill(
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/background/neural_hex_mesh.jpg'),
             fit: BoxFit.none,
             repeat: ImageRepeat.repeat,
-            alignment: Alignment.topLeft,
-            filterQuality: FilterQuality.medium,
+            scale: 1,
           ),
         ),
       ),
-      const DecoratedBox(
+    ),
+    const Positioned.fill(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0x88F9FCFF),
-              Color(0x9BF4F2FC),
-              Color(0x8FFFF9F4),
-            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0x120B1537), Color(0x28110D38)],
           ),
         ),
       ),
-    ],
-  );
+    ),
+  ]);
 }
 
 class _BrandMark extends StatelessWidget {
@@ -571,9 +487,10 @@ class _BrandMark extends StatelessWidget {
     height: 37,
     width: 37,
     decoration: BoxDecoration(
-      color: const Color(0xFF7C84CC),
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: const [],
+      color: const Color(0xFF5468B3),
+      borderRadius: BorderRadius.circular(13),
+      boxShadow: const [BoxShadow(color: Color(0x335468B3),
+        blurRadius: 12, offset: Offset(0, 4))],
     ),
     child: const Icon(Icons.hub_rounded, color: Colors.white, size: 21),
   );
@@ -587,9 +504,9 @@ class _ProgressPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
     decoration: BoxDecoration(
-      color: const Color(0xFFEFEFFA),
+      color: const Color(0xCCFFFFFF),
       borderRadius: BorderRadius.circular(30),
-      border: Border.all(color: const Color(0xFFE6E5F2)),
+      border: Border.all(color: const Color(0xFFC7D3EF)),
     ),
     child: Text(value, style: const TextStyle(
       color: Color(0xFF52628E), fontSize: 10,
