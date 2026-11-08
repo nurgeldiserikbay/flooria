@@ -102,6 +102,7 @@ class _TargetSumPageState extends State<TargetSumPage>
   Widget build(BuildContext context) {
     final done = _engine.isCompleted;
     final round = _engine.currentRound;
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return GameScaffold(
       palette: _palette,
       title: 'Target Sum',
@@ -117,7 +118,7 @@ class _TargetSumPageState extends State<TargetSumPage>
             palette: _palette,
           ),
           const SizedBox(height: 14),
-          _TargetHeader(engine: _engine, shakes: _shakes),
+          _TargetHeader(engine: _engine, shakes: _shakes, reduceMotion: reduceMotion),
           Expanded(
             child: LayoutBuilder(builder: (context, box) {
               final columns = round.values.length == 8 ? 4 : 3;
@@ -139,6 +140,7 @@ class _TargetSumPageState extends State<TargetSumPage>
                           value: round.values[i],
                           side: tile,
                           used: _engine.isUsed(i),
+                          reduceMotion: reduceMotion,
                           onTap: done ? null : () => _toggle(i),
                         ),
                     ],
@@ -148,7 +150,7 @@ class _TargetSumPageState extends State<TargetSumPage>
             }),
           ),
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
+            duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 220),
             child: done
                 ? LevelResultPanel(
                     palette: _palette,
@@ -171,9 +173,11 @@ class _TargetSumPageState extends State<TargetSumPage>
 }
 
 class _TargetHeader extends StatelessWidget {
-  const _TargetHeader({required this.engine, required this.shakes});
+  const _TargetHeader({required this.engine, required this.shakes,
+    required this.reduceMotion});
   final TargetSumEngine engine;
   final int shakes;
+  final bool reduceMotion;
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +188,12 @@ class _TargetHeader extends StatelessWidget {
       SumPhase.solved => _palette.success,
       SumPhase.picking => _palette.edge,
     };
-    return Container(
+    return Semantics(
+      key: const ValueKey('sum-target-state'),
+      label: 'Make ${round.target} with ${round.picks} numbers. '
+          '${engine.slots.length} selected. '
+          '${switch (phase) { SumPhase.picking => 'Choose numbers', SumPhase.wrong => 'Incorrect total', SumPhase.solved => 'Correct total' }}',
+      child: Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
@@ -198,7 +207,7 @@ class _TargetHeader extends StatelessWidget {
           color: Colors.white.withValues(alpha: .6), fontSize: 11,
           fontWeight: FontWeight.w900, letterSpacing: 2)),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 240),
+          duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 240),
           transitionBuilder: (child, animation) => ScaleTransition(
             scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
             child: child,
@@ -223,6 +232,7 @@ class _TargetHeader extends StatelessWidget {
                   fontSize: 18, fontWeight: FontWeight.w900)),
               ),
               _Slot(
+                reduceMotion: reduceMotion,
                 value: i < engine.slots.length
                     ? round.values[engine.slots[i]] : null,
                 border: slotColor,
@@ -248,18 +258,20 @@ class _TargetHeader extends StatelessWidget {
           ])),
         ),
       ]),
-    );
+    ));
   }
 }
 
 class _Slot extends StatelessWidget {
-  const _Slot({required this.value, required this.border});
+  const _Slot({required this.value, required this.border,
+    required this.reduceMotion});
   final int? value;
   final Color border;
+  final bool reduceMotion;
 
   @override
   Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 160),
+    duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
     width: 46,
     height: 42,
     alignment: Alignment.center,
@@ -274,7 +286,7 @@ class _Slot extends StatelessWidget {
         ? null
         : TweenAnimationBuilder<double>(
             tween: Tween(begin: .4, end: 1),
-            duration: const Duration(milliseconds: 200),
+            duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
             curve: Curves.easeOutBack,
             builder: (context, t, child) =>
                 Transform.scale(scale: t, child: child),
@@ -286,20 +298,25 @@ class _Slot extends StatelessWidget {
 
 class _NumberTile extends StatelessWidget {
   const _NumberTile({super.key, required this.value, required this.side,
-    required this.used, required this.onTap});
+    required this.used, required this.onTap, required this.reduceMotion});
 
   final int value;
   final double side;
   final bool used;
+  final bool reduceMotion;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
+  Widget build(BuildContext context) => Semantics(
+    label: 'Number $value, ${used ? 'selected, tap to remove' : 'tap to select'}',
+    button: true,
+    enabled: onTap != null,
+    child: SizedBox(
     width: side,
     height: side,
     child: AnimatedOpacity(
-      duration: const Duration(milliseconds: 160),
-      opacity: used ? .35 : 1,
+      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
+      opacity: used ? .52 : 1,
       child: ChunkyButton(
         onPressed: onTap,
         color: used ? _slotEmpty : _tileColor,
@@ -312,5 +329,5 @@ class _NumberTile extends StatelessWidget {
           fontFeatures: const [FontFeature.tabularFigures()])),
       ),
     ),
-  );
+  ));
 }
