@@ -50,9 +50,9 @@ void main() {
       contains('Orbit 1 of 2, sector 1'));
     expect(tester.widget<Semantics>(board).properties.label,
       contains('0 moves used'));
-    expect(find.bySemanticsLabel('Switch to orbit 2'), findsOneWidget);
+    expect(find.text('SWITCH ORBIT'), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('Switch to orbit 2'));
+    await tester.tap(find.text('SWITCH ORBIT'));
     await tester.pump(const Duration(milliseconds: 150));
     expect(tester.widget<Semantics>(board).properties.label,
       contains('Orbit 2 of 2'));
