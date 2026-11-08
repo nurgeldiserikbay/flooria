@@ -29,6 +29,7 @@ class WaterSortPage extends StatefulWidget {
 class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortPage> {
   late WaterSortEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'TAP A TUBE, THEN POUR INTO A MATCHING TUBE';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -37,20 +38,32 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
   void resetLevel() {
     _engine = WaterSortEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'TAP A TUBE, THEN POUR INTO A MATCHING TUBE';
   }
 
   void _tap(int tube) {
     final result = _engine.tapTube(tube);
     if (result == PourAction.ignored) {
-      setState(() {});
+      setState(() => _feedback = _engine.selectedTube == null
+          ? 'SELECTION CLEARED · PICK A FILLED TUBE'
+          : 'PICK A DIFFERENT TUBE TO POUR INTO');
       return;
     }
     if (result == PourAction.blocked) {
       HapticFeedback.selectionClick();
-      setState(() => _blockedPulse++);
+      setState(() {
+        _blockedPulse++;
+        _feedback = 'CAN’T POUR · DESTINATION MUST HAVE ROOM AND MATCH';
+      });
       return;
     }
-    setState(() {});
+    setState(() {
+      _feedback = result == PourAction.completed
+          ? 'ALL COLOURS SORTED · GREAT JOB!'
+          : result == PourAction.selected
+              ? 'TUBE ${_engine.selectedTube! + 1} SELECTED · CHOOSE A DESTINATION'
+              : 'NICE POUR · KEEP GROUPING MATCHING COLOURS';
+    });
     if (result == PourAction.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -78,7 +91,12 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
                 StatChip(label: 'MOVES', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 26),
-          Shake(
+          Semantics(
+            key: const ValueKey('water-board-state'),
+            label: '${_engine.tubes.where((tube) => tube.length == WaterSortEngine.capacity && tube.every((color) => color == tube.first)).length} of ${_engine.colors} colours sorted. '
+                '${_engine.moves} pours made. '
+                '${_engine.selectedTube == null ? 'No tube selected' : 'Tube ${_engine.selectedTube! + 1} selected'}.',
+            child: Shake(
             trigger: _blockedPulse,
             child: Wrap(
               alignment: WrapAlignment.center,
@@ -88,6 +106,7 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
                 for (var index = 0; index < _engine.tubes.length; index++)
                   _Tube(
                     key: ValueKey('water-tube-$index'),
+                    index: index,
                     tube: _engine.tubes[index],
                     selected: _engine.selectedTube == index,
                     height: tubeHeight,
@@ -95,7 +114,7 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
                   ),
               ],
             ),
-          ),
+          )),
           const SizedBox(height: 24),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -104,15 +123,16 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
                 detail: 'Every colour is sorted into its own tube.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('TAP A TUBE, THEN POUR INTO A MATCHING TUBE', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
 }
 
 class _Tube extends StatelessWidget {
-  const _Tube({super.key, required this.tube, required this.selected,
+  const _Tube({super.key, required this.index, required this.tube, required this.selected,
     required this.height, required this.onTap});
+  final int index;
   final List<int> tube;
   final bool selected;
   final double height;
@@ -156,7 +176,9 @@ class _Tube extends StatelessWidget {
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return Semantics(
       button: true,
-      label: selected ? 'Selected water tube' : 'Water tube',
+      label: 'Tube ${index + 1}, ${tube.length} of ${WaterSortEngine.capacity} layers, '
+          '${tube.isEmpty ? 'empty' : 'top colour ${tube.last + 1}'}, '
+          '${selected ? 'selected' : 'not selected'}',
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedScale(
