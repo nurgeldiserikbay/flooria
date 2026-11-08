@@ -90,7 +90,7 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
                 _flagMode = !_flagMode;
                 _feedback = _flagMode
                     ? 'FLAG MODE ON · TAP CELLS TO MARK MINES'
-                    : 'REVEAL MODE ON · TAP TO OPEN SAFE CELLS';
+                    : 'REVEAL MODE ON · TAP TO REVEAL SAFE CELLS';
               })),
       ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
         palette: _palette, onPressed: reported ? null : replayLevel),
