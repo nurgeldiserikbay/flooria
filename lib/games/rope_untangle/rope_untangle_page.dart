@@ -26,12 +26,17 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     with LevelFlow<RopeUntanglePage> {
   late RopeUntangleEngine _engine;
   int? _dragged;
+  int? _bestCrossings;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() { _engine = RopeUntangleEngine.forLevel(level); _dragged = null; }
+  void resetLevel() {
+    _engine = RopeUntangleEngine.forLevel(level);
+    _dragged = null;
+    _bestCrossings = _engine.crossingCount;
+  }
 
   void _move(Offset local, Size size) {
     final node = _dragged;
@@ -39,7 +44,10 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     final result = _engine.moveNode(node,
       Point<double>(local.dx / size.width, local.dy / size.height));
     if (result == RopeMove.ignored) return;
-    setState(() {});
+    setState(() {
+      final crossings = _engine.crossingCount;
+      if (crossings < (_bestCrossings ?? crossings)) _bestCrossings = crossings;
+    });
     if (result == RopeMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -47,7 +55,12 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
   }
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final crossings = _engine.crossingCount;
+    final feedback = crossings == 0 ? 'ALL ROPES CLEAR'
+        : _bestCrossings == crossings ? 'KEEP UNTANGLING THE ROPES'
+        : 'DRAG A JOINT TO REMOVE CROSSINGS';
+    return GameScaffold(
     palette: _palette,
     title: 'Rope Untangle',
     level: level,
@@ -65,7 +78,11 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
                 StatChip(label: 'JOINTS', value: '${_engine.positions.length}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          GestureDetector(
+          Semantics(
+            key: const ValueKey('rope-board-state'),
+            label: '$crossings crossings remaining, ${_engine.positions.length} draggable joints'
+                '${_dragged == null ? '' : ', moving joint ${_dragged! + 1}'}',
+            child: GestureDetector(
             key: const ValueKey('rope-board'),
             onPanStart: (details) {
               if (reported) return;
@@ -98,7 +115,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
                 painter: _RopePainter(_engine, selectedNode: _dragged),
               ),
             ),
-          ),
+          )),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -107,10 +124,11 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
                 detail: 'Every rope is clear and every joint is apart.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('DRAG THE JOINTS UNTIL THE ROPES DO NOT CROSS', palette: _palette),
+            HintLine(feedback, palette: _palette),
         ]));
     }),
   );
+  }
 }
 
 class _RopePainter extends CustomPainter {
