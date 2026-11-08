@@ -39,10 +39,10 @@ class _FlowHarnessState extends State<_FlowHarness>
         Text('Reported $reported'),
         TextButton(
           key: const ValueKey('win'),
-          onPressed: () => reportWin(
+          onPressed: () => setState(() => reportWin(
             score: 500,
             metrics: const {'logic': 90},
-          ),
+          )),
           child: const Text('Win'),
         ),
         TextButton(
