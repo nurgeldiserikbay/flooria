@@ -130,7 +130,7 @@ void main() {
     expect(find.byKey(const ValueKey('clone-avatar-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('clone-board')), findsOneWidget);
 
-    await tester.tap(find.byTooltip('up'));
+    await tester.tap(find.byTooltip('Move up'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 240));
     expect(tester.widget<Semantics>(
