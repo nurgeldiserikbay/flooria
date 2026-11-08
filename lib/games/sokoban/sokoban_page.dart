@@ -82,7 +82,8 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
     child: LayoutBuilder(builder: (context, constraints) {
       final side = min(constraints.maxWidth - 28,
         constraints.maxHeight - (reported ? 245 : 215)).clamp(250.0, 430.0).toDouble();
-      return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
+      return Center(child: SingleChildScrollView(
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(padding: const EdgeInsets.symmetric(horizontal: 22),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -147,7 +148,7 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
                 onReplay: replayLevel, onNext: nextLevel))
           else
             HintLine(_feedback, palette: _palette),
-        ]));
+        ])));
     }),
   );
 }
