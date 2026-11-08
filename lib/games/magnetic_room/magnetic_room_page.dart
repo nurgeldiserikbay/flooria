@@ -19,6 +19,7 @@ class MagneticRoomPage extends StatefulWidget {
 class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<MagneticRoomPage> {
   late MagneticRoomEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'METAL TILES CARRY THE PULSE TWO CELLS';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -27,6 +28,7 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
   void resetLevel() {
     _engine = MagneticRoomEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'METAL TILES CARRY THE PULSE TWO CELLS';
   }
 
   void _pulse(MagnetDirection direction) {
@@ -34,10 +36,19 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
     if (result == MagnetMove.ignored) return;
     if (result == MagnetMove.blocked) {
       HapticFeedback.selectionClick();
-      setState(() => _blockedPulse++);
+      setState(() {
+        _blockedPulse++;
+        _feedback = 'BLOCKED · TRY A DIFFERENT DIRECTION';
+      });
       return;
     }
-    setState(() {});
+    setState(() {
+      _feedback = result == MagnetMove.completed
+          ? 'SOCKET REACHED · GREAT JOB!'
+          : _engine.metal.contains(_engine.position)
+              ? 'ON METAL · NEXT PULSE TRAVELS TWO CELLS'
+              : 'NICE MOVE · GUIDE THE CORE TO THE SOCKET';
+    });
     if (result == MagnetMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -62,7 +73,13 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
           StatChip(label: 'METAL', value: '×2', palette: _palette),
         ])),
         const SizedBox(height: 9),
-        Container(
+        Semantics(
+          key: const ValueKey('magnet-board-state'),
+          label: 'Core at row ${_engine.position ~/ MagneticRoomEngine.side + 1}, '
+              'column ${_engine.position % MagneticRoomEngine.side + 1}. '
+              '${_engine.metal.contains(_engine.position) ? 'Metal plate, next pulse moves up to two cells' : 'Regular floor, next pulse moves one cell'}. '
+              '${_engine.pulses} pulses used.',
+          child: Container(
           width: side, height: side,
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
@@ -148,16 +165,14 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
               );
             },
           ),
-        ),
+        )),
         const SizedBox(height: 9),
         _MagnetPad(onPulse: _pulse, disabled: reported),
         if (reported) Padding(padding: const EdgeInsets.all(8), child: LevelResultPanel(palette: _palette, launch: launch,
           level: level, stars: _engine.pulses <= 12 ? 3 : 2, detail: 'Guided the core into the socket.', onReplay: replayLevel, onNext: nextLevel))
         else Shake(
           trigger: _blockedPulse,
-          child: const HintLine(
-            'METAL TILES CARRY THE PULSE TWO CELLS',
-            palette: _palette),
+          child: HintLine(_feedback, palette: _palette),
         ),
       ]));
     }));
