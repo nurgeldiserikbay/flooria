@@ -128,7 +128,8 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
               constraints: const BoxConstraints(maxWidth: 500),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(22, 8, 22, 18),
-                child: Column(
+                child: SingleChildScrollView(
+                  child: Column(
                   children: [
                     Text(
                       _complete ? 'LEVEL COMPLETE' : 'ROUND $roundNumber / ${_engine.rounds.length}',
@@ -204,8 +205,13 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                           fontWeight: FontWeight.w800,
                         )),
                     ]),
-                    const Spacer(),
-                    SizedBox(
+                    const SizedBox(height: 18),
+                    Semantics(
+                      key: const ValueKey('number-hunt-board-state'),
+                      label: 'Round $roundNumber of ${_engine.rounds.length}. '
+                          'Find number ${round.target}. ${_engine.mistakes} mistakes. '
+                          '${_complete ? 'Level complete.' : 'Search the numbered grid.'}',
+                      child: SizedBox(
                       width: naturalCellWidth * _engine.columns +
                           gap * (_engine.columns - 1),
                       height: gridHeight,
@@ -223,13 +229,15 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                         itemBuilder: (context, index) => _NumberCell(
                           key: ValueKey('number-cell-$index'),
                           value: round.numbers[index],
+                          index: index,
+                          columns: _engine.columns,
                           wrong: _feedbackIndex == index,
                           enabled: !_complete,
                           onTap: () => _tapCell(index),
                         ),
                       ),
-                    ),
-                    const Spacer(),
+                    )),
+                    const SizedBox(height: 18),
                     if (_complete)
                       SizedBox(
                         width: double.infinity,
@@ -261,7 +269,7 @@ class _NumberHuntPageState extends State<NumberHuntPage> {
                           letterSpacing: 1.2,
                         )),
                   ],
-                ),
+                )),
               ),
             ),
           );
@@ -274,18 +282,27 @@ class _NumberCell extends StatelessWidget {
   const _NumberCell({
     super.key,
     required this.value,
+    required this.index,
+    required this.columns,
     required this.wrong,
     required this.enabled,
     required this.onTap,
   });
 
   final int value;
+  final int index;
+  final int columns;
   final bool wrong;
   final bool enabled;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => AnimatedContainer(
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    enabled: enabled,
+    label: 'Row ${index ~/ columns + 1}, column ${index % columns + 1}, '
+        'number $value${wrong ? ', incorrect choice' : ''}',
+    child: AnimatedContainer(
     duration: MediaQuery.maybeOf(context)?.disableAnimations == true
         ? Duration.zero : const Duration(milliseconds: 120),
     decoration: BoxDecoration(
@@ -318,5 +335,5 @@ class _NumberCell extends StatelessWidget {
         ),
       ),
     ),
-  );
+  ));
 }
