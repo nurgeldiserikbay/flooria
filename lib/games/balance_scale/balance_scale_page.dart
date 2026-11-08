@@ -39,7 +39,13 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
 
   void _toggle(int index) {
     if (_engine.toggle(index) == BalanceMove.ignored) return;
-    setState(() => _message = 'SELECTED TOTAL: ${_engine.total}');
+    setState(() => _message = _engine.selected.isEmpty
+        ? 'CHOOSE A WEIGHT TO START BALANCING'
+        : _engine.total == _engine.target
+            ? 'SCALES ARE EVEN · TAP CHECK BALANCE'
+            : _engine.total < _engine.target
+                ? 'NEED ${_engine.difference} MORE KG TO BALANCE'
+                : 'REMOVE ${_engine.difference} KG TO BALANCE');
     HapticFeedback.selectionClick();
   }
 
@@ -90,8 +96,11 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
             ),
             const SizedBox(height: 8),
             Semantics(
+              key: const ValueKey('balance-progress-state'),
               label: 'Balance scale: object ${_engine.target} kilograms, '
-                  'your weights ${_engine.total} kilograms',
+                  'your weights ${_engine.total} kilograms. '
+                  '${_engine.selected.length} weights selected. '
+                  '${_engine.total == _engine.target ? 'Balanced' : _engine.total < _engine.target ? '${_engine.difference} kilograms too light' : '${_engine.difference} kilograms too heavy'}.',
               child: TweenAnimationBuilder<double>(
                 key: const ValueKey('balance-scale-motion'),
                 tween: Tween<double>(
@@ -114,6 +123,7 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
                   width: min(64, (width - 32) / 5).toDouble(),
                   height: 48,
                   child: ChunkyButton(
+                    key: ValueKey('balance-weight-$index'),
                     onPressed: reported ? null : () => _toggle(index),
                     color: _engine.selected.contains(index)
                         ? const Color(0xFFFFD981) : Colors.white,
@@ -147,7 +157,8 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
             const SizedBox(height: 8),
             if (!reported)
               SizedBox(width: 210, height: 46,
-                child: ChunkyButton(onPressed: _engine.selected.isEmpty ? null : _check,
+                child: ChunkyButton(key: const ValueKey('balance-check'),
+                  onPressed: _engine.selected.isEmpty ? null : _check,
                   color: _palette.accent, edgeColor: _palette.edge, depth: 3, radius: 12,
                   child: const Text('CHECK BALANCE', style: TextStyle(color: Colors.white,
                     fontWeight: FontWeight.w900, letterSpacing: .8)))),
