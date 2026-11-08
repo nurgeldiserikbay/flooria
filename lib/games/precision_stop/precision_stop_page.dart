@@ -84,7 +84,9 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
   String _clock(double seconds) => seconds.toStringAsFixed(2);
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return GameScaffold(
     palette: _palette,
     title: 'Precision Stop',
     level: level,
@@ -102,7 +104,11 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
             StatChip(label: 'MISSES', value: '${_engine.misses}', palette: _palette),
           ]),
           const SizedBox(height: 18),
-          SizedBox(width: size, height: size,
+          Semantics(
+            key: const ValueKey('precision-clock-state'),
+            label: 'Timer ${_running ? 'running' : 'stopped'}, target ${_clock(_engine.targetSeconds)} seconds, '
+                '${_engine.round} of 3 successful stops',
+            child: SizedBox(width: size, height: size,
             child: Stack(alignment: Alignment.center, children: [
               SizedBox.expand(child: CircularProgressIndicator(
                 value: _running
@@ -115,17 +121,21 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
                     ? const Color(0xFFE98A75) : _palette.accent,
               )),
               Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(_running ? _clock(shown) : '0.00',
+                AnimatedScale(
+                  key: const ValueKey('precision-clock-scale'),
+                  scale: _running ? 1.04 : 1,
+                  duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 160),
+                  child: Text(_running ? _clock(shown) : '0.00',
                   style: TextStyle(color: _palette.ink,
                     fontSize: 48, fontWeight: FontWeight.w900,
-                    fontFeatures: [FontFeature.tabularFigures()])),
+                    fontFeatures: [FontFeature.tabularFigures()]))),
                 const SizedBox(height: 8),
                 Text('TARGET  ${_clock(_engine.targetSeconds)} s',
                   style: TextStyle(color: _palette.muted,
                     fontSize: 12, fontWeight: FontWeight.w900,
                     letterSpacing: 1.1)),
               ]),
-            ])),
+            ]))),
           const SizedBox(height: 18),
           Text(_message, style: TextStyle(color: _palette.muted,
             fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: .8)),
@@ -148,4 +158,5 @@ class _PrecisionStopPageState extends State<PrecisionStopPage>
         ]));
     }),
   );
+  }
 }
