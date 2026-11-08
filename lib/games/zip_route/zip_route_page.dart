@@ -40,7 +40,9 @@ class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage
     final side = _engine.side;
     final current = _engine.position;
     if ((cell ~/ side - current ~/ side).abs() +
-        (cell % side - current % side).abs() != 1) return false;
+        (cell % side - current % side).abs() != 1) {
+      return false;
+    }
     final checkpoint = _engine.checkpoints[cell];
     return checkpoint == null || checkpoint == _engine.nextCheckpoint;
   }
