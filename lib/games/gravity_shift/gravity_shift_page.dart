@@ -25,6 +25,7 @@ class GravityShiftPage extends StatefulWidget {
 class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<GravityShiftPage> {
   late GravityShiftEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'TILT GRAVITY · USE WALLS TO CHANGE COURSE';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -33,6 +34,7 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
   void resetLevel() {
     _engine = GravityShiftEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'TILT GRAVITY · USE WALLS TO CHANGE COURSE';
   }
 
   void _tilt(GravityDirection direction) {
@@ -40,11 +42,20 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
     if (result == GravityMove.ignored || result == GravityMove.blocked) {
       if (result == GravityMove.blocked) {
         HapticFeedback.selectionClick();
-        setState(() => _blockedPulse++);
+        setState(() {
+          _blockedPulse++;
+          _feedback = 'NO ROOM TO ROLL · TRY ANOTHER DIRECTION';
+        });
       }
       return;
     }
-    setState(() {});
+    setState(() {
+      _feedback = result == GravityMove.completed
+          ? 'EXIT REACHED · GREAT JOB!'
+          : _engine.movesLeft <= 2
+              ? 'ALMOST OUT OF MOVES · PLAN THE NEXT TILT'
+              : 'GOOD ROLL · USE THE WALLS TO STOP';
+    });
     if (result == GravityMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -70,7 +81,14 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
               StatChip(label: 'WALLS', value: '${_engine.walls.length}', palette: _palette),
             ])),
           const SizedBox(height: 14),
-          Shake(
+          Semantics(
+            key: const ValueKey('gravity-board-state'),
+            label: 'Ball at row ${_engine.ball ~/ GravityShiftEngine.side + 1}, '
+                'column ${_engine.ball % GravityShiftEngine.side + 1}. '
+                '${_engine.movesLeft} moves remaining. '
+                'Goal at row ${_engine.goal ~/ GravityShiftEngine.side + 1}, '
+                'column ${_engine.goal % GravityShiftEngine.side + 1}.',
+            child: Shake(
             trigger: _blockedPulse,
             child: Container(
               width: side,
@@ -182,17 +200,17 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
                 ]);
               }),
             ),
-          ),
+          )),
           const SizedBox(height: 10),
           if (!reported && !_engine.isFailed)
             Column(mainAxisSize: MainAxisSize.min, children: [
-              _DirectionButton(icon: Icons.keyboard_arrow_up_rounded, onTap: () => _tilt(GravityDirection.up)),
+              _DirectionButton(icon: Icons.keyboard_arrow_up_rounded, label: 'Tilt up', onTap: () => _tilt(GravityDirection.up)),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                _DirectionButton(icon: Icons.keyboard_arrow_left_rounded, onTap: () => _tilt(GravityDirection.left)),
+                _DirectionButton(icon: Icons.keyboard_arrow_left_rounded, label: 'Tilt left', onTap: () => _tilt(GravityDirection.left)),
                 const SizedBox(width: 52),
-                _DirectionButton(icon: Icons.keyboard_arrow_right_rounded, onTap: () => _tilt(GravityDirection.right)),
+                _DirectionButton(icon: Icons.keyboard_arrow_right_rounded, label: 'Tilt right', onTap: () => _tilt(GravityDirection.right)),
               ]),
-              _DirectionButton(icon: Icons.keyboard_arrow_down_rounded, onTap: () => _tilt(GravityDirection.down)),
+              _DirectionButton(icon: Icons.keyboard_arrow_down_rounded, label: 'Tilt down', onTap: () => _tilt(GravityDirection.down)),
             ]),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -204,19 +222,21 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
               child: RetryPanel(palette: _palette, title: 'MOVES USED',
                 detail: 'Each tilt rolls the core until a wall stops it.', onRetry: replayLevel))
           else
-            const HintLine('TILT GRAVITY · USE WALLS TO CHANGE COURSE', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
 }
 
 class _DirectionButton extends StatelessWidget {
-  const _DirectionButton({required this.icon, required this.onTap});
+  const _DirectionButton({required this.icon, required this.label, required this.onTap});
   final IconData icon;
+  final String label;
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => SizedBox(width: 46, height: 44,
-    child: ChunkyButton(onPressed: onTap, color: Colors.white, edgeColor: _palette.edge,
+    child: ChunkyButton(onPressed: onTap, semanticLabel: label,
+      color: Colors.white, edgeColor: _palette.edge,
       depth: 3, radius: 10, padding: EdgeInsets.zero,
       child: Icon(icon, color: _palette.ink, size: 27)));
 }
