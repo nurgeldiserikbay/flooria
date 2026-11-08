@@ -28,17 +28,31 @@ class ColorFloodPage extends StatefulWidget {
 
 class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFloodPage> {
   late ColorFloodEngine _engine;
+  String _feedback = 'CHOOSE COLOURS TO FILL THE WHOLE BOARD';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = ColorFloodEngine.forLevel(level);
+  void resetLevel() {
+    _engine = ColorFloodEngine.forLevel(level);
+    _feedback = 'CHOOSE COLOURS TO FILL THE WHOLE BOARD';
+  }
 
   void _choose(int color) {
+    final before = _engine.claimedCount;
     final result = _engine.chooseColor(color);
     if (result == FloodMove.ignored) return;
-    setState(() {});
+    setState(() {
+      final gained = _engine.claimedCount - before;
+      _feedback = result == FloodMove.completed
+          ? 'WHOLE BOARD FILLED · GREAT JOB!'
+          : result == FloodMove.failed
+              ? 'OUT OF MOVES · TRY A NEW COLOUR ORDER'
+              : gained > 0
+                  ? 'GREAT · $gained MORE TILES CLAIMED'
+                  : 'NO NEW TILES · TRY ANOTHER COLOUR';
+    });
     if (result == FloodMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -69,7 +83,12 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
                 StatChip(label: 'MOVES', value: '${_engine.moves}/${_engine.moveLimit}', palette: _palette),
               ])),
           const SizedBox(height: 13),
-          TweenAnimationBuilder<double>(
+          Semantics(
+            key: const ValueKey('flood-board-state'),
+            label: '${_engine.claimedCount} of ${_engine.board.length} tiles claimed. '
+                '${_engine.moveLimit - _engine.moves} moves remaining. '
+                'Current colour ${_engine.currentColor + 1}.',
+            child: TweenAnimationBuilder<double>(
             key: ValueKey('flood-board-${_engine.moves}'),
             tween: Tween(begin: .975, end: 1),
             duration: MediaQuery.maybeOf(context)?.disableAnimations == true
@@ -108,7 +127,7 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
                 ),
               ),
             ),
-          ),
+          )),
           const SizedBox(height: 14),
           if (!reported && !_engine.isFailed)
             Wrap(alignment: WrapAlignment.center, spacing: 9, runSpacing: 8,
@@ -130,7 +149,7 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
               child: RetryPanel(palette: _palette, title: 'MOVE LIMIT REACHED',
                 detail: 'Try a different colour order.', onRetry: replayLevel))
           else
-            const HintLine('CHOOSE COLOURS TO FILL THE WHOLE BOARD', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
