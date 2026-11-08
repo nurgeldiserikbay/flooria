@@ -85,7 +85,10 @@ class _TetrisPageState extends State<TetrisPage> with LevelFlow<TetrisPage> {
               ])),
           const SizedBox(height: 8),
           SizedBox(width: boardWidth, height: boardHeight,
-            child: CustomPaint(painter: _TetrisPainter(_engine))),
+            child: CustomPaint(
+              key: const ValueKey('tetris-board'),
+              painter: _TetrisPainter(_engine),
+            )),
           const SizedBox(height: 8),
           if (!reported && !_engine.isFailed) _Controls(onAction: _action),
           if (reported) ...[
@@ -102,7 +105,7 @@ class _TetrisPageState extends State<TetrisPage> with LevelFlow<TetrisPage> {
                 detail: 'Clear the line goal before the board fills.',
                 onRetry: replayLevel)),
           ] else
-            const HintLine('CLEAR LINES TO REACH THE GOAL', palette: _palette,
+            const HintLine('CLEAR LINES · HOLD TO MOVE · TAP DROP TO PLACE', palette: _palette,
               height: 28),
         ]));
     }),
@@ -139,8 +142,68 @@ class _Control extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 2),
     child: SizedBox(width: 48, height: 50,
-      child: ChunkyIconButton(icon: icon, tooltip: label, size: 46,
-        palette: _palette, onPressed: () => onAction(action))),
+      child: _RepeatControl(
+        icon: icon,
+        label: label,
+        action: action,
+        onAction: onAction,
+        repeat: action != TetrisAction.hardDrop,
+      )),
+  );
+}
+
+class _RepeatControl extends StatefulWidget {
+  const _RepeatControl({
+    required this.icon,
+    required this.label,
+    required this.action,
+    required this.onAction,
+    required this.repeat,
+  });
+
+  final IconData icon;
+  final String label;
+  final TetrisAction action;
+  final ValueChanged<TetrisAction> onAction;
+  final bool repeat;
+
+  @override
+  State<_RepeatControl> createState() => _RepeatControlState();
+}
+
+class _RepeatControlState extends State<_RepeatControl> {
+  Timer? _repeatTimer;
+
+  void _beginRepeat(LongPressStartDetails details) {
+    widget.onAction(widget.action);
+    _repeatTimer?.cancel();
+    _repeatTimer = Timer.periodic(const Duration(milliseconds: 105), (_) {
+      widget.onAction(widget.action);
+    });
+  }
+
+  void _endRepeat(LongPressEndDetails details) {
+    _repeatTimer?.cancel();
+    _repeatTimer = null;
+  }
+
+  @override
+  void dispose() {
+    _repeatTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onLongPressStart: widget.repeat ? _beginRepeat : null,
+    onLongPressEnd: widget.repeat ? _endRepeat : null,
+    child: ChunkyIconButton(
+      icon: widget.icon,
+      tooltip: widget.label,
+      size: 46,
+      palette: _palette,
+      onPressed: () => widget.onAction(widget.action),
+    ),
   );
 }
 
@@ -156,6 +219,7 @@ class _TetrisPainter extends CustomPainter {
       Paint()..color = const Color(0xFFCAD8E7));
     final settled = engine.board;
     final active = engine.activeCells().toSet();
+    final ghost = engine.ghostCells().toSet();
     for (var index = 0; index < settled.length; index++) {
       final value = active.contains(index) ? engine.activeColor : settled[index];
       final row = index ~/ TetrisEngine.width, col = index % TetrisEngine.width;
@@ -165,7 +229,16 @@ class _TetrisPainter extends CustomPainter {
           : _blockColors[(value - 1) % _blockColors.length];
       canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(3)),
           Paint()..color = color);
-      if (value != 0) {
+      if (value == 0 && ghost.contains(index)) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect.deflate(2), const Radius.circular(3)),
+          Paint()
+            ..color = _blockColors[(engine.activeColor - 1) % _blockColors.length]
+                .withValues(alpha: .42)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.8,
+        );
+      } else if (value != 0) {
         canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(2), const Radius.circular(2)),
           Paint()..color = Colors.white.withValues(alpha: .18));
       }
