@@ -6,7 +6,7 @@ A mobile-first puzzle adventure built with Flutter. Fifty games sit on a branchi
 
 - A branching neuron map; each game node contains three consecutive levels
   before it unlocks the next part of the map.
-- A Games library that lists only approved and unlocked modules.
+- A Games library that lists all 50 enabled modules, including games not yet unlocked on the neuron map.
 - A Skills view that displays only measurements reported by games.
 - Local progress, level records, skill scores, favorites, motion, and haptic preferences.
 - A shared visual style drawn in Flutter with gradients, shapes, and vector icons; no game artwork is required.
@@ -43,6 +43,21 @@ A mobile-first puzzle adventure built with Flutter. Fifty games sit on a branchi
 | Domino Chain | Connect every domino to the matching open end | logic |
 | Whack the Target | Tap each highlighted target before it moves | control |
 | Color Catcher | Catch fruit and dodge bombs by moving between lanes | control |
+| Zip Route | Draw a connected route through numbered checkpoints | planning |
+| Rope Untangle | Drag knots to eliminate crossed ropes | spatial |
+| Knight's Tour | Move a knight across the board without repeating squares | planning |
+| Stacker | Time block drops to build a stable tower | control |
+| Tangram Fit | Rotate and place shapes to fill a silhouette | spatial |
+| Match Three | Swap adjacent tiles to clear matching groups | planning |
+| Bubble Shooter | Aim and match bubbles to clear the board | focus |
+| Rail Router | Switch track junctions to guide a train | planning |
+| Gravity Shift | Change gravity to guide an orb to its target | spatial |
+| Combination Lock | Use clues to deduce a secret number | logic |
+| Billiard Order | Pot numbered balls in the required sequence | planning |
+| Robot Program | Arrange commands to guide a robot to its goal | logic |
+| Find a Set | Spot three cards forming a valid set | focus |
+| Balance Scale | Choose weights to balance a scale | math |
+| Picture Assembly | Slide pieces to restore a picture | spatial |
 | Mirror Beam | Rotate mirrors to route a laser into its receiver | logic |
 | Clone Shift | Guide two linked explorers whose horizontal moves are mirrored | planning |
 | Shadow Bridge | Turn the light to reveal safe shadow tiles across a gap | spatial |
