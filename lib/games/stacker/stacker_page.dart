@@ -83,14 +83,22 @@ class _StackerPageState extends State<StackerPage> with LevelFlow<StackerPage> {
                 StatChip(label: 'WIDTH', value: '${(_engine.layers.last.width * 100).round()}%', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          GestureDetector(onTap: _drop,
-            child: Container(width: boardWidth, height: boardHeight,
+          Semantics(
+            key: const ValueKey('stacker-board-state'),
+            button: true,
+            enabled: !reported && !_engine.isFailed,
+            label: 'Drop block. ${_engine.placed} of ${_engine.targetLayers} layers. '
+              'Stack width ${(_engine.layers.last.width * 100).round()} percent',
+            child: GestureDetector(onTap: reported || _engine.isFailed ? null : _drop,
+            child: Container(
+              key: const ValueKey('stacker-board'),
+              width: boardWidth, height: boardHeight,
               decoration: BoxDecoration(color: const Color(0xFFDCE9F5),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: _palette.edge, width: 2),
                 boxShadow: [BoxShadow(color: _palette.edge, offset: const Offset(0, 5))]),
               child: CustomPaint(painter: _StackPainter(_engine)),
-            )),
+            ))),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -117,11 +125,27 @@ class _StackPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const blockHeight = 17.0;
     final baseline = size.height - 13;
+    // A quiet measuring guide lets players read the target alignment without
+    // depending on the block colours alone.
+    final target = engine.layers.last;
+    final guide = Rect.fromLTWH(target.left * size.width,
+      8, target.width * size.width, baseline - 8);
+    canvas.drawRRect(RRect.fromRectAndRadius(guide, const Radius.circular(7)),
+      Paint()..color = const Color(0xFF78BCE5).withValues(alpha: .12));
+    final guidePaint = Paint()
+      ..color = const Color(0xFF568DCA).withValues(alpha: .45)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(guide.left, 8), Offset(guide.left, baseline), guidePaint);
+    canvas.drawLine(Offset(guide.right, 8), Offset(guide.right, baseline), guidePaint);
     for (var i = 0; i < engine.layers.length; i++) {
       final layer = engine.layers[i];
       final top = baseline - blockHeight * (i + 1);
       final rect = Rect.fromLTWH(layer.left * size.width, top,
         layer.width * size.width, blockHeight - 2);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect.shift(const Offset(0, 2)),
+        const Radius.circular(4)),
+        Paint()..color = const Color(0xFF466582).withValues(alpha: .28));
       canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)),
         Paint()..color = _layerColors[layer.colorIndex]);
       canvas.drawRRect(RRect.fromRectAndRadius(rect.deflate(1), const Radius.circular(3)),
@@ -131,6 +155,8 @@ class _StackPainter extends CustomPainter {
       final rect = Rect.fromLTWH(engine.movingLeft * size.width,
         baseline - blockHeight * (engine.layers.length + 1),
         engine.layers.last.width * size.width, blockHeight - 2);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect.inflate(2), const Radius.circular(5)),
+        Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: .5));
       canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(4)),
         Paint()..color = _layerColors[engine.layers.length % _layerColors.length]);
     }
