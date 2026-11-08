@@ -25,6 +25,7 @@ class NumberMazePage extends StatefulWidget {
 class _NumberMazePageState extends State<NumberMazePage> with LevelFlow<NumberMazePage> {
   late NumberMazeEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'STEP ON + CELLS TO KEEP YOUR ENERGY';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -33,17 +34,32 @@ class _NumberMazePageState extends State<NumberMazePage> with LevelFlow<NumberMa
   void resetLevel() {
     _engine = NumberMazeEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'STEP ON + CELLS TO KEEP YOUR ENERGY';
   }
 
   void _enter(int cell) {
+    final before = _engine.energy;
     final result = _engine.enter(cell);
     if (result == MazeMove.ignored) return;
     if (result == MazeMove.blocked) {
       HapticFeedback.selectionClick();
-      setState(() => _blockedPulse++);
+      setState(() {
+        _blockedPulse++;
+        _feedback = 'MOVE ONE SPACE · AVOID VISITED CELLS';
+      });
       return;
     }
-    setState(() {});
+    setState(() {
+      _feedback = result == MazeMove.completed
+          ? 'EXIT REACHED · GREAT WORK!'
+          : result == MazeMove.failed
+              ? 'OUT OF ENERGY · TRY A SAFER ROUTE'
+              : _engine.energy > before
+                  ? 'ENERGY +${_engine.energy - before} · KEEP GOING'
+                  : _engine.energy < before
+                      ? 'ENERGY ${_engine.energy - before} · WATCH YOUR STEPS'
+                      : 'ENERGY STEADY · FIND THE EXIT';
+    });
     if (result == MazeMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -78,7 +94,13 @@ class _NumberMazePageState extends State<NumberMazePage> with LevelFlow<NumberMa
                 StatChip(label: 'STEPS', value: '${_engine.moves}', palette: _palette),
               ])),
           const SizedBox(height: 14),
-          Container(
+          Semantics(
+            key: const ValueKey('number-maze-progress'),
+            label: 'Energy ${_engine.energy}. ${_engine.moves} steps taken. '
+                'Player at row ${_engine.position ~/ NumberMazeEngine.side + 1}, '
+                'column ${_engine.position % NumberMazeEngine.side + 1}. '
+                'Reach the exit on the bottom right.',
+            child: Container(
             width: side, height: side,
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
@@ -187,7 +209,7 @@ class _NumberMazePageState extends State<NumberMazePage> with LevelFlow<NumberMa
                 );
               },
             ),
-          ),
+          )),
           const SizedBox(height: 14),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -202,9 +224,7 @@ class _NumberMazePageState extends State<NumberMazePage> with LevelFlow<NumberMa
           else
             Shake(
               trigger: _blockedPulse,
-              child: const HintLine(
-                'STEP ON + CELLS TO KEEP YOUR ENERGY',
-                palette: _palette),
+              child: HintLine(_feedback, palette: _palette),
             ),
         ]));
     }),
