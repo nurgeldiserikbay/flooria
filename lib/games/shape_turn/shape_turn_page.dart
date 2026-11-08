@@ -91,6 +91,7 @@ class _ShapeTurnPageState extends State<ShapeTurnPage>
     final done = _engine.isCompleted;
     final failed = _engine.isFailed;
     final chosen = _engine.chosen;
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return GameScaffold(
       palette: _palette,
       title: 'Shape Turn',
@@ -125,7 +126,7 @@ class _ShapeTurnPageState extends State<ShapeTurnPage>
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _TargetCard(round: round, side: targetSide,
-                    span: _span(round)),
+                    span: _span(round), reducedMotion: reducedMotion),
                   SizedBox(
                     width: optionSide * 2 + 12,
                     child: Wrap(
@@ -138,6 +139,8 @@ class _ShapeTurnPageState extends State<ShapeTurnPage>
                             option: round.options[i],
                             side: optionSide,
                             span: _span(round),
+                            reducedMotion: reducedMotion,
+                            index: i,
                             state: chosen == null
                                 ? _CardState.idle
                                 : round.options[i].correct
@@ -155,7 +158,7 @@ class _ShapeTurnPageState extends State<ShapeTurnPage>
             }),
           ),
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
+            duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 220),
             child: done
                 ? LevelResultPanel(
                     palette: _palette,
@@ -191,16 +194,20 @@ int _span(ShapeRound round) => [
 
 class _TargetCard extends StatelessWidget {
   const _TargetCard({required this.round, required this.side,
-    required this.span});
+    required this.span, required this.reducedMotion});
   final ShapeRound round;
   final double side;
   final int span;
+  final bool reducedMotion;
 
   @override
   Widget build(BuildContext context) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Container(
+      Semantics(
+        key: const ValueKey('shape-target-state'),
+        label: 'Reference shape, ${round.target.length} square cells',
+        child: Container(
         width: side,
         height: side * .82,
         padding: EdgeInsets.all(side * .1),
@@ -211,7 +218,7 @@ class _TargetCard extends StatelessWidget {
           boxShadow: const [BoxShadow(color: Color(0xFFC8A98C), offset: Offset(0, 5))],
         ),
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 260),
+          duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 260),
           transitionBuilder: (child, animation) => ScaleTransition(
             scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
             child: child,
@@ -224,7 +231,7 @@ class _TargetCard extends StatelessWidget {
             child: const SizedBox.expand(),
           ),
         ),
-      ),
+      )),
     ],
   );
 }
@@ -233,13 +240,16 @@ enum _CardState { idle, right, wrong, faded }
 
 class _OptionCard extends StatelessWidget {
   const _OptionCard({super.key, required this.option, required this.side,
-    required this.span, required this.state, required this.onTap});
+    required this.span, required this.state, required this.onTap,
+    required this.reducedMotion, required this.index});
 
   final ShapeOption option;
   final double side;
   final int span;
   final _CardState state;
   final VoidCallback? onTap;
+  final bool reducedMotion;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
@@ -252,8 +262,19 @@ class _OptionCard extends StatelessWidget {
     final turns = state == _CardState.right
         ? (option.turns <= 2 ? 0.0 : 1.0)
         : option.turns / 4;
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
+    final feedback = switch (state) {
+      _CardState.idle => 'Select option',
+      _CardState.right => 'Correct matching rotation',
+      _CardState.wrong => 'Incorrect selection',
+      _CardState.faded => 'Not selected',
+    };
+    return Semantics(
+      key: ValueKey('shape-option-state-$index'),
+      button: true,
+      enabled: onTap != null,
+      label: 'Option ${index + 1}, $feedback',
+      child: AnimatedOpacity(
+      duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
       opacity: state == _CardState.faded ? .45 : 1,
       child: SizedBox(
         width: side,
@@ -271,7 +292,7 @@ class _OptionCard extends StatelessWidget {
           padding: EdgeInsets.all(side * .16),
           child: AnimatedRotation(
             turns: turns,
-            duration: const Duration(milliseconds: 420),
+            duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 420),
             curve: Curves.easeInOutBack,
             child: CustomPaint(
               painter: _ShapePainter(option.base, span: span,
@@ -281,7 +302,7 @@ class _OptionCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 
