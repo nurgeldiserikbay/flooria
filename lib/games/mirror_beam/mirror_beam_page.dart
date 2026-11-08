@@ -21,21 +21,30 @@ class MirrorBeamPage extends StatefulWidget {
 
 class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBeamPage> {
   late MirrorBeamEngine _engine;
+  String _feedback = 'TAP THE MIRRORS · GUIDE THE BEAM TO THE TARGET';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = MirrorBeamEngine.forLevel(level);
+  void resetLevel() {
+    _engine = MirrorBeamEngine.forLevel(level);
+    _feedback = 'TAP THE MIRRORS · GUIDE THE BEAM TO THE TARGET';
+  }
 
   void _rotate(int cell) {
     final result = _engine.rotate(cell);
     if (result == MirrorBeamResult.ignored) return;
-    setState(() {});
-    HapticFeedback.selectionClick();
+    setState(() {
+      _feedback = result == MirrorBeamResult.completed
+          ? 'BEAM CONNECTED · GREAT JOB!'
+          : 'MIRROR TURNED · KEEP GUIDING THE LIGHT';
+    });
     if (result == MirrorBeamResult.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
+    } else {
+      HapticFeedback.selectionClick();
     }
   }
 
@@ -47,9 +56,15 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
     child: LayoutBuilder(builder: (context, box) {
       final side = math.min(box.maxWidth - 36, box.maxHeight - (reported ? 340 : 250)).clamp(220.0, 350.0).toDouble();
       final lit = _engine.beamCells.toSet();
+      final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const HintLine('TURN THE MIRRORS · GUIDE THE BEAM', palette: _palette),
-        Container(width: side, height: side, padding: const EdgeInsets.all(7),
+        HintLine(_feedback, palette: _palette),
+        Semantics(
+          key: const ValueKey('mirror-board-state'),
+          label: '${_engine.mirrors.length} mirrors, ${_engine.rotations} turns. '
+              'Light passes through ${lit.length} cells. '
+              '${_engine.isCompleted ? 'Receiver reached' : 'Receiver not yet reached'}',
+          child: Container(width: side, height: side, padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(color: const Color(0xFFE9D7B8), borderRadius: BorderRadius.circular(22),
             border: Border.all(color: _palette.edge, width: 2), boxShadow: const [BoxShadow(color: Color(0xFFBDA783), offset: Offset(0, 5))]),
           child: Stack(children: [
@@ -62,12 +77,22 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
               final isMirror = _engine.mirrors.containsKey(cell);
               final slash = _engine.mirrors[cell];
               return Semantics(
+                key: ValueKey('mirror-cell-state-$cell'),
                 button: isMirror,
-                label: isMirror ? 'Turn mirror' : null,
+                enabled: isMirror && !reported,
+                label: isMirror
+                    ? 'Mirror at row ${cell ~/ MirrorBeamEngine.side + 1}, '
+                        'column ${cell % MirrorBeamEngine.side + 1}, '
+                        '${slash! ? 'slash' : 'backslash'} orientation. Tap to rotate'
+                    : cell == MirrorBeamEngine.emitter ? 'Light source'
+                    : cell == MirrorBeamEngine.receiver
+                        ? '${lit.contains(cell) ? 'Activated' : 'Waiting'} light receiver'
+                        : null,
                 child: GestureDetector(
                   key: ValueKey('mirror-cell-$cell'),
                   onTap: isMirror && !reported ? () => _rotate(cell) : null,
-                child: AnimatedContainer(duration: const Duration(milliseconds: 160),
+                child: AnimatedContainer(
+                  duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
                   decoration: BoxDecoration(color: lit.contains(cell) ? const Color(0xFFFFD45D) : const Color(0xFFFFFAEF),
                     borderRadius: BorderRadius.circular(8), border: Border.all(color: _palette.edge.withValues(alpha: .25))),
                   child: Center(child: cell == MirrorBeamEngine.emitter
@@ -118,7 +143,7 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
               ),
             ),
           ]),
-        ),
+        )),
         const SizedBox(height: 14),
         if (reported)
           Padding(padding: const EdgeInsets.symmetric(horizontal: 18), child: LevelResultPanel(palette: _palette,
