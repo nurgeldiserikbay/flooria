@@ -24,12 +24,16 @@ class MinefieldPage extends StatefulWidget {
 
 class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldPage> {
   late MinefieldEngine _engine;
+  bool _flagMode = false;
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = MinefieldEngine.forLevel(level);
+  void resetLevel() {
+    _engine = MinefieldEngine.forLevel(level);
+    _flagMode = false;
+  }
 
   void _reveal(int cell) {
     final result = _engine.revealCell(cell);
@@ -52,12 +56,22 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
   }
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return GameScaffold(
     palette: _palette,
     title: 'Minefield',
     level: level,
-    actions: [ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
-      palette: _palette, onPressed: reported ? null : replayLevel)],
+    actions: [
+      ChunkyIconButton(
+        icon: _flagMode ? Icons.flag_rounded : Icons.outlined_flag_rounded,
+        tooltip: 'Toggle flag mode',
+        palette: _palette,
+        onPressed: reported || _engine.isFailed
+            ? null : () => setState(() => _flagMode = !_flagMode)),
+      ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
+        palette: _palette, onPressed: reported ? null : replayLevel),
+    ],
     child: LayoutBuilder(builder: (context, constraints) {
       final side = min(constraints.maxWidth - 26,
         constraints.maxHeight - (reported || _engine.isFailed ? 245 : 175))
@@ -88,12 +102,24 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
                 final isMine = _engine.mines.contains(cell);
                 final visibleMine = isMine && (_engine.isFailed || _engine.isCompleted);
                 final clue = _engine.clues[cell];
-                return Material(color: Colors.transparent,
+                final row = cell ~/ MinefieldEngine.side + 1;
+                final column = cell % MinefieldEngine.side + 1;
+                final description = opened
+                    ? (isMine ? 'mine' : clue == 0 ? 'clear' : '$clue nearby mines')
+                    : flagged ? 'flagged' : visibleMine ? 'mine' : 'covered';
+                return Semantics(
+                  key: ValueKey('mine-cell-state-$cell'),
+                  button: true,
+                  enabled: !reported && !_engine.isFailed,
+                  label: 'Row $row, column $column, $description',
+                  child: Material(color: Colors.transparent,
                   child: InkWell(
-                    onTap: reported || _engine.isFailed ? null : () => _reveal(cell),
+                    onTap: reported || _engine.isFailed ? null
+                        : () => _flagMode ? _flag(cell) : _reveal(cell),
                     onLongPress: reported || _engine.isFailed ? null : () => _flag(cell),
                     borderRadius: BorderRadius.circular(5),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 100),
+                    child: AnimatedContainer(
+                      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 120),
                       decoration: BoxDecoration(
                         color: opened ? const Color(0xFFE7EFF1)
                           : flagged ? const Color(0xFFFFE2A2)
@@ -111,7 +137,7 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
                                 fontWeight: FontWeight.w900, color: _clueColor(clue)))
                             : null),
                     )),
-                );
+                ));
               },
             )),
           const SizedBox(height: 12),
@@ -126,10 +152,14 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
               child: RetryPanel(palette: _palette, title: 'MINE FOUND',
                 detail: 'Watch the number clues and try again.', onRetry: replayLevel))
           else
-            const HintLine('TAP TO REVEAL · HOLD TO FLAG', palette: _palette),
+            HintLine(
+              _flagMode ? 'FLAG MODE · TAP TO FLAG · HOLD TO TOGGLE FLAG'
+                : 'TAP TO REVEAL · HOLD TO FLAG',
+              palette: _palette),
         ]));
     }),
   );
+  }
 
   Color _clueColor(int clue) => switch (clue) {
     1 => const Color(0xFF3977C5),
