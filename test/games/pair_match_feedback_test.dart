@@ -45,8 +45,8 @@ void main() {
     await openPairs(tester, 1);
     final engine = PairMatchEngine.forLevel(1);
     final board = find.byKey(const ValueKey('pair-board-state'));
-    final partner = engine.symbols.indexWhere((value) =>
-        value == engine.symbols.first && engine.symbols.indexOf(value) != 0);
+    final partner = [for (var i = 1; i < engine.symbols.length; i++)
+      if (engine.symbols[i] == engine.symbols.first) i].single;
     expect(partner, isNot(-1));
     expect(tester.widget<Semantics>(board).properties.label,
       contains('0 of ${engine.pairCount} pairs matched'));
