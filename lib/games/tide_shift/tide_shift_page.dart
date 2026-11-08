@@ -19,6 +19,7 @@ class TideShiftPage extends StatefulWidget {
 class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftPage> {
   late TideShiftEngine _engine;
   int _blockedPulse = 0;
+  String _feedback = 'LOW GROUND FLOODS AS THE TIDE RISES';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -27,6 +28,7 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
   void resetLevel() {
     _engine = TideShiftEngine.forLevel(level);
     _blockedPulse = 0;
+    _feedback = 'LOW GROUND FLOODS AS THE TIDE RISES';
   }
 
   void _step(int dr, int dc) {
@@ -34,10 +36,22 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
     if (result == TideMove.ignored) return;
     if (result == TideMove.blocked) {
       HapticFeedback.selectionClick();
-      setState(() => _blockedPulse++);
+      setState(() {
+        _blockedPulse++;
+        _feedback = 'EDGE OF MAP · CHOOSE ANOTHER DIRECTION';
+      });
       return;
     }
-    setState(() {});
+    setState(() {
+      final standingHigh = _engine.heights[_engine.position] >= 4;
+      _feedback = result == TideMove.flooded
+          ? 'WATER REACHED YOU · TRY THE GREEN HIGH PATH'
+          : result == TideMove.completed
+              ? 'SAFE ARRIVAL · YOU BEAT THE TIDE!'
+              : standingHigh
+                  ? 'ON HIGH GROUND · KEEP MOVING TOWARD THE FLAG'
+                  : 'LOW GROUND · WATCH THE RISING WATER';
+    });
     if (result == TideMove.flooded) {
       HapticFeedback.heavyImpact();
     } else if (result == TideMove.completed) {
@@ -75,7 +89,14 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
           StatChip(label: 'STEPS', value: _engine.moves.toString(), palette: _palette),
         ])),
         const SizedBox(height: 9),
-        Container(
+        Semantics(
+          key: const ValueKey('tide-board-state'),
+          label: 'Tide level ${_engine.tide}. Player at row '
+              '${_engine.position ~/ TideShiftEngine.side + 1}, '
+              'column ${_engine.position % TideShiftEngine.side + 1}. '
+              '${_engine.heights[_engine.position] >= 4 ? 'High ground' : 'Low ground'}. '
+              '${_engine.moves} steps taken.',
+          child: Container(
           width: side, height: side,
           padding: const EdgeInsets.all(5),
           decoration: BoxDecoration(
@@ -144,7 +165,7 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
               );
             },
           ),
-        ),
+        )),
         const SizedBox(height: 9),
         _TidePad(onStep: _step, disabled: reported || _engine.isFailed),
         if (reported) Padding(padding: const EdgeInsets.all(8), child: LevelResultPanel(palette: _palette, launch: launch,
@@ -153,8 +174,7 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
           title: 'THE TIDE CAUGHT YOU', detail: 'Stay on the raised green path.', onRetry: replayLevel))
         else Shake(
           trigger: _blockedPulse,
-          child: const HintLine(
-            'LOW GROUND FLOODS AS THE TIDE RISES', palette: _palette),
+          child: HintLine(_feedback, palette: _palette),
         ),
       ]));
     }));
