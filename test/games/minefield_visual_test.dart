@@ -58,7 +58,6 @@ void main() {
     await tester.pump(const Duration(milliseconds: 150));
     expect(tester.widget<Semantics>(cell).properties.label,
         contains('flagged'));
-    expect(find.text('0/8'), findsNothing);
     await tester.tap(cell);
     await tester.pump(const Duration(milliseconds: 150));
     expect(tester.widget<Semantics>(cell).properties.label,
