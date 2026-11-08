@@ -21,6 +21,7 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
   int _fromLane = 0;
   int _fromSector = 0;
   int _hazardPulse = 0;
+  String _feedback = 'DODGE RED METEORS · COLLECT GOLD STARS';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -31,6 +32,7 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
     _fromLane = _engine.lane;
     _fromSector = _engine.sector;
     _hazardPulse = 0;
+    _feedback = 'DODGE RED METEORS · COLLECT GOLD STARS';
   }
 
   void _act(OrbitAction action) {
@@ -42,6 +44,14 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
       _fromLane = previousLane;
       _fromSector = previousSector;
       if (result == OrbitMove.hitHazard) _hazardPulse++;
+      _feedback = switch (result) {
+        OrbitMove.collected => 'STAR COLLECTED · KEEP EXPLORING!',
+        OrbitMove.completed => 'ALL STARS COLLECTED · GREAT JOB!',
+        OrbitMove.hitHazard => 'METEOR HIT · TRY A DIFFERENT ORBIT',
+        _ => action == OrbitAction.switchLane
+            ? 'ORBIT SWITCHED · WATCH FOR GOLD STARS'
+            : 'KEEP MOVING · AVOID RED METEORS',
+      };
     });
     if (result == OrbitMove.hitHazard) {
       HapticFeedback.heavyImpact();
@@ -69,9 +79,11 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
         ])),
         const SizedBox(height: 9),
         Semantics(
+          key: const ValueKey('orbit-board-state'),
           label: 'Orbit ${_engine.lane + 1} of 2, '
               'sector ${_engine.sector + 1}, '
-              '${_engine.collected.length} of ${_engine.stars.length} stars',
+              '${_engine.collected.length} of ${_engine.stars.length} stars, '
+              '${_engine.moves} moves used',
           child: Shake(
             trigger: _hazardPulse,
             child: SizedBox(
@@ -100,6 +112,7 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
             onPressed: reported || _engine.isFailed ? null : () => _act(OrbitAction.counterClockwise)),
           const SizedBox(width: 9),
           SizedBox(width: 130, height: 48, child: ChunkyButton(onPressed: reported || _engine.isFailed ? null : () => _act(OrbitAction.switchLane),
+            semanticLabel: 'Switch to orbit ${2 - _engine.lane}',
             color: _palette.accent, edgeColor: _palette.edge, depth: 3, radius: 12,
             child: const Text('SWITCH ORBIT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)))),
           const SizedBox(width: 9),
@@ -110,7 +123,7 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
           level: level, stars: _engine.moves <= _engine.stars.length * 3 ? 3 : 2, detail: 'Collected every star in orbit.', onReplay: replayLevel, onNext: nextLevel))
         else if (_engine.isFailed) Padding(padding: const EdgeInsets.all(8), child: RetryPanel(palette: _palette,
           title: 'METEOR IMPACT', detail: 'Switch to the other orbit to avoid hazards.', onRetry: replayLevel))
-        else const HintLine('DODGE RED METEORS · COLLECT GOLD STARS', palette: _palette),
+        else HintLine(_feedback, palette: _palette),
       ]));
     }));
 }
