@@ -65,10 +65,11 @@ void main() {
   testWidgets('Domino Chain respects reduced-motion mode',
       (tester) async {
     await openDomino(tester, 1, reducedMotion: true);
-    final valid = find.byType(AnimatedContainer);
-    expect(valid, findsWidgets);
-    expect(tester.widgetList<AnimatedContainer>(valid)
-      .where((widget) => widget.duration != Duration.zero), isEmpty);
+    final engine = DominoChainEngine.forLevel(1);
+    final choice = find.byKey(ValueKey('domino-choice-${engine.tiles.first.id}'));
+    final tile = find.descendant(of: choice, matching: find.byType(AnimatedContainer));
+    expect(tile, findsOneWidget);
+    expect(tester.widget<AnimatedContainer>(tile).duration, Duration.zero);
     expect(tester.takeException(), isNull);
   });
 }
