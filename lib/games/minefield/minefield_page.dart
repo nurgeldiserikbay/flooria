@@ -25,6 +25,7 @@ class MinefieldPage extends StatefulWidget {
 class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldPage> {
   late MinefieldEngine _engine;
   bool _flagMode = false;
+  String _feedback = 'TAP TO REVEAL · HOLD TO FLAG';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -33,12 +34,24 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
   void resetLevel() {
     _engine = MinefieldEngine.forLevel(level);
     _flagMode = false;
+    _feedback = 'TAP TO REVEAL · HOLD TO FLAG';
   }
 
   void _reveal(int cell) {
+    final before = _engine.revealed.length;
     final result = _engine.revealCell(cell);
-    if (result == MineAction.ignored) return;
-    setState(() {});
+    if (result == MineAction.ignored) {
+      setState(() => _feedback = 'ALREADY OPEN OR FLAGGED · CHOOSE ANOTHER CELL');
+      return;
+    }
+    setState(() {
+      _feedback = switch (result) {
+        MineAction.won => 'ALL SAFE CELLS FOUND · GREAT JOB!',
+        MineAction.hit => 'MINE FOUND · TRY ANOTHER ROUTE',
+        MineAction.revealed => '${_engine.revealed.length - before} SAFE CELLS OPENED · KEEP EXPLORING',
+        _ => _feedback,
+      };
+    });
     if (result == MineAction.won) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -50,8 +63,13 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
   }
 
   void _flag(int cell) {
-    if (_engine.toggleFlag(cell) == MineAction.ignored) return;
-    setState(() {});
+    if (_engine.toggleFlag(cell) == MineAction.ignored) {
+      setState(() => _feedback = 'OPEN CELLS CANNOT BE FLAGGED');
+      return;
+    }
+    setState(() => _feedback = _engine.flags.contains(cell)
+        ? 'FLAG PLACED · ${_engine.flags.length} OF ${_engine.mineCount} MINES MARKED'
+        : 'FLAG REMOVED · ${_engine.flags.length} OF ${_engine.mineCount} MINES MARKED');
     HapticFeedback.selectionClick();
   }
 
@@ -68,7 +86,12 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
         tooltip: 'Toggle flag mode',
         palette: _palette,
         onPressed: reported || _engine.isFailed
-            ? null : () => setState(() => _flagMode = !_flagMode)),
+            ? null : () => setState(() {
+                _flagMode = !_flagMode;
+                _feedback = _flagMode
+                    ? 'FLAG MODE ON · TAP CELLS TO MARK MINES'
+                    : 'REVEAL MODE ON · TAP TO OPEN SAFE CELLS';
+              })),
       ChunkyIconButton(icon: Icons.refresh_rounded, tooltip: 'Restart',
         palette: _palette, onPressed: reported ? null : replayLevel),
     ],
@@ -85,7 +108,12 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
                 StatChip(label: 'SAFE', value: '${_engine.revealed.length}/${_engine.safeCount}', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          Container(width: side, height: side, padding: const EdgeInsets.all(6),
+          Semantics(
+            key: const ValueKey('mine-board-state'),
+            label: '${_engine.revealed.length} of ${_engine.safeCount} safe cells revealed. '
+                '${_engine.flags.length} flags placed for ${_engine.mineCount} mines. '
+                '${_flagMode ? 'Flag' : 'Reveal'} mode active.',
+            child: Container(width: side, height: side, padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(color: const Color(0xFFB9CED6),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: _palette.edge, width: 2),
@@ -139,7 +167,7 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
                     )),
                 ));
               },
-            )),
+            ))),
           const SizedBox(height: 12),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -152,10 +180,7 @@ class _MinefieldPageState extends State<MinefieldPage> with LevelFlow<MinefieldP
               child: RetryPanel(palette: _palette, title: 'MINE FOUND',
                 detail: 'Watch the number clues and try again.', onRetry: replayLevel))
           else
-            HintLine(
-              _flagMode ? 'FLAG MODE · TAP TO FLAG · HOLD TO TOGGLE FLAG'
-                : 'TAP TO REVEAL · HOLD TO FLAG',
-              palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
