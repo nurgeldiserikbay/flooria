@@ -121,7 +121,7 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
                       : const Color(0xFFD1E0D0), width: bucket ? 2 : 1)),
                   child: Center(child: token != null
                     ? Icon(token.kind == CatchKind.fruit
-                        ? Icons.apple_rounded : Icons.warning_rounded,
+                        ? Icons.local_florist_rounded : Icons.warning_rounded,
                       size: boardWidth / 16,
                       color: token.kind == CatchKind.fruit
                         ? const Color(0xFFE47A50) : const Color(0xFF58585C))
@@ -129,7 +129,7 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
                         size: 27, color: Color(0xFF477A50)) : null),
                 );
               },
-            ))),
+            )))),
           const SizedBox(height: 12),
           if (!reported && !_engine.isFailed)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
