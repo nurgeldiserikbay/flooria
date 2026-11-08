@@ -24,20 +24,39 @@ class ZipRoutePage extends StatefulWidget {
 
 class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage> {
   late ZipRouteEngine _engine;
+  String _hint = 'FILL EVERY CELL · FOLLOW THE NUMBERED DOTS';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = ZipRouteEngine.forLevel(level);
+  void resetLevel() {
+    _engine = ZipRouteEngine.forLevel(level);
+    _hint = 'FILL EVERY CELL · FOLLOW THE NUMBERED DOTS';
+  }
+
+  bool _canEnter(int cell) {
+    if (reported || _engine.isCompleted || _engine.path.contains(cell)) return false;
+    final side = _engine.side;
+    final current = _engine.position;
+    if ((cell ~/ side - current ~/ side).abs() +
+        (cell % side - current % side).abs() != 1) {
+      return false;
+    }
+    final checkpoint = _engine.checkpoints[cell];
+    return checkpoint == null || checkpoint == _engine.nextCheckpoint;
+  }
 
   void _enter(int cell) {
     final result = _engine.enter(cell);
     if (result == ZipMove.ignored || result == ZipMove.blocked) {
-      if (result == ZipMove.blocked) HapticFeedback.selectionClick();
+      if (result == ZipMove.blocked) {
+        setState(() => _hint = 'CHOOSE A GLOWING NEIGHBOR · FOLLOW DOTS IN ORDER');
+        HapticFeedback.selectionClick();
+      }
       return;
     }
-    setState(() {});
+    setState(() => _hint = 'KEEP GOING · FILL THE WHOLE GRID');
     if (result == ZipMove.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -47,7 +66,9 @@ class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage
   }
 
   @override
-  Widget build(BuildContext context) => GameScaffold(
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    return GameScaffold(
     palette: _palette,
     title: 'Zip Route',
     level: level,
@@ -81,16 +102,29 @@ class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage
                 final checkpoint = _engine.checkpoints[cell];
                 final current = cell == _engine.position;
                 final filled = visited.contains(cell);
-                return Material(color: Colors.transparent,
+                final available = _canEnter(cell);
+                final row = cell ~/ _engine.side + 1;
+                final col = cell % _engine.side + 1;
+                return Semantics(
+                  key: ValueKey('zip-cell-state-$cell'),
+                  button: true,
+                  enabled: !reported,
+                  label: 'Row $row, column $col, '
+                    '${checkpoint == null ? 'empty' : 'checkpoint $checkpoint'}, '
+                    '${current ? 'current position' : filled ? 'visited' : available ? 'available next step' : 'not available'}',
+                  child: Material(color: Colors.transparent,
                   child: InkWell(onTap: reported ? null : () => _enter(cell),
                     borderRadius: BorderRadius.circular(8),
-                    child: AnimatedContainer(duration: const Duration(milliseconds: 110),
+                    child: AnimatedContainer(
+                      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 160),
+                      curve: Curves.easeOutCubic,
                       decoration: BoxDecoration(color: current
                         ? const Color(0xFF76BDE2) : filled ? const Color(0xFF8DD0B3)
-                        : const Color(0xFFF7FBFD),
+                        : available ? const Color(0xFFE1F4FF) : const Color(0xFFF7FBFD),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: current ? _palette.edge
-                          : const Color(0xFFB8CDD8), width: current ? 2 : 1)),
+                          : available ? const Color(0xFF4B9BC7)
+                          : const Color(0xFFB8CDD8), width: current || available ? 2 : 1)),
                       child: Center(child: checkpoint != null
                         ? Text('$checkpoint', style: TextStyle(color: current
                             ? Colors.white : _palette.ink,
@@ -99,7 +133,7 @@ class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage
                         : current ? const Icon(Icons.circle, size: 10, color: Colors.white)
                           : null),
                     )),
-                );
+                ));
               },
             )),
           const SizedBox(height: 14),
@@ -109,8 +143,9 @@ class _ZipRoutePageState extends State<ZipRoutePage> with LevelFlow<ZipRoutePage
                 level: level, stars: 3, detail: 'Connected every cell in order.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('FILL EVERY CELL · FOLLOW THE NUMBERED DOTS', palette: _palette),
+            HintLine(_hint, palette: _palette),
         ]));
     }),
   );
+  }
 }
