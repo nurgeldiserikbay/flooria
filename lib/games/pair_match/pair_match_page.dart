@@ -37,6 +37,7 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
   late PairMatchEngine _engine;
   Timer? _mismatchTimer;
   bool _locked = false;
+  String _feedback = 'TURN TWO CARDS TO FIND A MATCH';
   @override
   GameLaunch get launch => widget.launch;
   @override
@@ -48,13 +49,22 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
     _mismatchTimer?.cancel();
     _locked = false;
     _engine = PairMatchEngine.forLevel(level);
+    _feedback = 'TURN TWO CARDS TO FIND A MATCH';
   }
 
   void _tap(int index) {
     if (_locked || reported) return;
     final result = _engine.tap(index);
     if (result == PairTap.ignored) return;
-    setState(() {});
+    setState(() {
+      _feedback = switch (result) {
+        PairTap.flipped => 'ONE CARD REVEALED · FIND ITS MATCH',
+        PairTap.mismatch => 'NOT A MATCH · REMEMBER BOTH SYMBOLS',
+        PairTap.matched => 'MATCH FOUND · ${_engine.pairCount - _engine.pairsFound} PAIRS LEFT',
+        PairTap.completed => 'ALL PAIRS FOUND · GREAT MEMORY!',
+        PairTap.ignored => _feedback,
+      };
+    });
     if (result == PairTap.mismatch) {
       _locked = true;
       HapticFeedback.selectionClick();
@@ -63,6 +73,7 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
         setState(() {
           _engine.hideMismatch();
           _locked = false;
+          _feedback = 'CARDS HIDDEN · TRY ANOTHER PAIR';
         });
       });
     } else if (result == PairTap.completed) {
@@ -101,7 +112,12 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
                 StatChip(label: 'TRIES', value: '${_engine.attempts}', palette: _palette),
               ])),
           const SizedBox(height: 12),
-          SizedBox(width: width, height: height,
+          Semantics(
+            key: const ValueKey('pair-board-state'),
+            label: '${_engine.pairsFound} of ${_engine.pairCount} pairs matched. '
+                '${_engine.attempts} attempts. '
+                '${_engine.revealed.length} cards revealed.',
+            child: SizedBox(width: width, height: height,
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
@@ -110,12 +126,13 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
                 crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
               itemBuilder: (context, index) => _MemoryCard(
                 key: ValueKey('pair-card-$index'),
+                index: index,
                 symbol: _engine.symbols[index],
                 open: _engine.revealed.contains(index) || _engine.matched.contains(index),
                 matched: _engine.matched.contains(index),
                 onTap: () => _tap(index),
               ),
-            )),
+            ))),
           const SizedBox(height: 12),
           if (reported)
             Padding(padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -124,15 +141,16 @@ class _PairMatchPageState extends State<PairMatchPage> with LevelFlow<PairMatchP
                 detail: 'You found every pair.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('TURN TWO CARDS TO FIND A MATCH', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
 }
 
 class _MemoryCard extends StatelessWidget {
-  const _MemoryCard({super.key, required this.symbol, required this.open,
+  const _MemoryCard({super.key, required this.index, required this.symbol, required this.open,
     required this.matched, required this.onTap});
+  final int index;
   final int symbol;
   final bool open, matched;
   final VoidCallback onTap;
@@ -142,7 +160,9 @@ class _MemoryCard extends StatelessWidget {
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     return Semantics(
       button: true,
-      label: matched ? 'Matched card' : open ? 'Revealed card' : 'Hidden card',
+      label: 'Card ${index + 1}, '
+          '${matched ? 'matched' : open ? 'revealed' : 'hidden'}'
+          '${open ? ', ${['star', 'heart', 'lightning', 'leaf', 'cloud', 'paw', 'sun', 'flower'][symbol]}' : ''}',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
