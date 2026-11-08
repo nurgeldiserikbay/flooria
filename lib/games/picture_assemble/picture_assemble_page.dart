@@ -32,6 +32,30 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
   @override
   void resetLevel() => _engine = PictureAssembleEngine.forLevel(level);
 
+  void _showPicturePreview() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Finished picture'),
+        content: Semantics(
+          label: 'Reference picture: sun above green hills and a river',
+          image: true,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: CustomPaint(
+              key: const ValueKey('picture-large-preview'),
+              painter: _ScenePreviewPainter(),
+            ),
+          ),
+        ),
+        actions: [TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('BACK TO PUZZLE'),
+        )],
+      ),
+    );
+  }
+
   void _tap(int cell) {
     final result = _engine.tap(cell);
     if (result == PictureMove.ignored) return;
@@ -69,7 +93,30 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
               const SizedBox(width: 12),
               const Expanded(child: HintLine('RESTORE THE SCENE', palette: _palette)),
               const SizedBox(width: 8),
-              CustomPaint(size: const Size(54, 54), painter: _ScenePreviewPainter()),
+              Tooltip(
+                message: 'View complete picture',
+                child: InkWell(
+                  key: const ValueKey('picture-preview-open'),
+                  onTap: _showPicturePreview,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Semantics(
+                    button: true,
+                    label: 'View complete picture',
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFFFFF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF62B5BF), width: 2),
+                      ),
+                      child: CustomPaint(
+                        size: const Size(48, 48),
+                        painter: _ScenePreviewPainter(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ])),
           const SizedBox(height: 12),
           Container(
@@ -164,7 +211,7 @@ class _PictureAssemblePageState extends State<PictureAssemblePage>
                 detail: 'Put every picture fragment back in place.',
                 onReplay: replayLevel, onNext: nextLevel))
           else
-            const HintLine('TAP A TILE NEXT TO THE EMPTY SPACE', palette: _palette),
+            const HintLine('SLIDE A NEIGHBOR · TAP THE PICTURE TO PREVIEW', palette: _palette),
         ]));
     }),
   );
