@@ -27,17 +27,25 @@ class BilliardsPage extends StatefulWidget {
 
 class _BilliardsPageState extends State<BilliardsPage> with LevelFlow<BilliardsPage> {
   late BilliardsEngine _engine;
+  String _feedback = 'POCKET THE BALLS IN NUMBER ORDER';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = BilliardsEngine.forLevel(level);
+  void resetLevel() {
+    _engine = BilliardsEngine.forLevel(level);
+    _feedback = 'POCKET THE BALLS IN NUMBER ORDER';
+  }
 
   void _shoot(BilliardDirection direction) {
     final result = _engine.shoot(direction);
     if (result == BilliardShot.ignored) return;
-    setState(() {});
+    setState(() => _feedback = result == BilliardShot.missed
+        ? 'WRONG BALL · FIND NUMBER ${_engine.nextNumber}'
+        : result == BilliardShot.completed
+            ? 'ALL BALLS POCKETED'
+            : 'GREAT SHOT · FIND NUMBER ${_engine.nextNumber}');
     if (result == BilliardShot.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -65,7 +73,13 @@ class _BilliardsPageState extends State<BilliardsPage> with LevelFlow<BilliardsP
               StatChip(label: 'MISSES', value: '${_engine.misses}/${_engine.maxMisses}', palette: _palette),
             ])),
           const SizedBox(height: 10),
-          CustomPaint(size: Size(size, size), painter: _BilliardPainter(_engine)),
+          Semantics(
+            key: const ValueKey('billiard-table-state'),
+            label: 'Billiards table. Next ball ${_engine.nextNumber}. '
+                '${_engine.remaining.map((ball) => 'Ball ${ball.number} ${ball.direction.name}').join(', ')}',
+            child: CustomPaint(
+              key: const ValueKey('billiard-table'),
+              size: Size(size, size), painter: _BilliardPainter(_engine))),
           const SizedBox(height: 8),
           _AimPad(onShoot: _shoot, disabled: reported || _engine.isFailed),
           const SizedBox(height: 4),
@@ -79,7 +93,7 @@ class _BilliardsPageState extends State<BilliardsPage> with LevelFlow<BilliardsP
               child: RetryPanel(palette: _palette, title: 'FOULS USED',
                 detail: 'Aim at the ball with the next number.', onRetry: replayLevel))
           else
-            const HintLine('POCKET THE BALLS IN NUMBER ORDER', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
@@ -142,11 +156,22 @@ class _BilliardPainter extends CustomPainter {
     final cue = Offset(size.width * .5, size.height * .5);
     canvas.drawCircle(cue, size.shortestSide * .075,
       Paint()..color = const Color(0xFFF8F7E9));
+    canvas.drawCircle(cue - Offset(size.width * .018, size.height * .018),
+      size.shortestSide * .028,
+      Paint()..color = Colors.white.withValues(alpha: .8));
     for (final ball in engine.remaining) {
       final position = _positions[ball.direction]!;
       final center = Offset(position.dx * size.width, position.dy * size.height);
       final radius = size.shortestSide * .075;
-      canvas.drawCircle(center, radius, Paint()..color = _ballColors[(ball.number - 1) % _ballColors.length]);
+      final next = ball.number == engine.nextNumber;
+      if (next) {
+        canvas.drawCircle(center, radius * 1.27,
+          Paint()..color = const Color(0xFFFFE9A5).withValues(alpha: .68));
+      }
+      canvas.drawCircle(center, radius,
+        Paint()..color = _ballColors[(ball.number - 1) % _ballColors.length]);
+      canvas.drawCircle(center - Offset(radius * .23, radius * .29),
+        radius * .31, Paint()..color = Colors.white.withValues(alpha: .38));
       canvas.drawCircle(center, radius, Paint()..color = Colors.white
         ..style = PaintingStyle.stroke..strokeWidth = 2);
       final painter = TextPainter(text: TextSpan(text: '${ball.number}',
