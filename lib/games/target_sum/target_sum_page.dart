@@ -34,6 +34,7 @@ class _TargetSumPageState extends State<TargetSumPage>
     with LevelFlow<TargetSumPage> {
   late TargetSumEngine _engine;
   int _shakes = 0;
+  String _feedback = 'PICK NUMBERS THAT ADD UP TO THE TARGET';
   int _generation = 0;
   Timer? _timer;
 
@@ -58,6 +59,7 @@ class _TargetSumPageState extends State<TargetSumPage>
     _generation++;
     _engine = TargetSumEngine.forLevel(level);
     _shakes = 0;
+    _feedback = 'PICK NUMBERS THAT ADD UP TO THE TARGET';
   }
 
   void _later(Duration delay, VoidCallback action) {
@@ -77,18 +79,33 @@ class _TargetSumPageState extends State<TargetSumPage>
       case SumResult.placed:
       case SumResult.removed:
         HapticFeedback.selectionClick();
-        setState(() {});
+        setState(() {
+          _feedback = result == SumResult.removed
+              ? 'NUMBER REMOVED · ${_engine.currentRound.picks - _engine.slots.length} SPOTS LEFT'
+              : '${_engine.slots.length} OF ${_engine.currentRound.picks} NUMBERS SELECTED';
+        });
       case SumResult.incorrect:
         HapticFeedback.heavyImpact();
-        setState(() => _shakes++);
+        setState(() {
+          _shakes++;
+          _feedback = 'NOT THE TARGET · TRY A DIFFERENT COMBINATION';
+        });
         _later(const Duration(milliseconds: 650),
-          () => setState(_engine.clearWrong));
+          () => setState(() {
+            _engine.clearWrong();
+            _feedback = 'TRY AGAIN · PICK ${_engine.currentRound.picks} NUMBERS';
+          }));
       case SumResult.correct:
       case SumResult.completed:
         HapticFeedback.lightImpact();
-        setState(() {});
+        setState(() => _feedback = 'CORRECT TOTAL · GREAT WORK!');
         _later(const Duration(milliseconds: 600), () {
-          setState(_engine.advance);
+          setState(() {
+            _engine.advance();
+            if (!_engine.isCompleted) {
+              _feedback = 'NEXT ROUND · MAKE ${_engine.currentRound.target}';
+            }
+          });
           if (_engine.isCompleted) {
             HapticFeedback.mediumImpact();
             reportWin(score: _engine.score,
@@ -163,8 +180,7 @@ class _TargetSumPageState extends State<TargetSumPage>
                     onNext: nextLevel,
                     onReplay: replayLevel,
                   )
-                : HintLine('TAP A PLACED NUMBER TO TAKE IT BACK',
-                    palette: _palette),
+                : HintLine(_feedback, palette: _palette),
           ),
         ]),
       ),
@@ -192,6 +208,8 @@ class _TargetHeader extends StatelessWidget {
       key: const ValueKey('sum-target-state'),
       label: 'Make ${round.target} with ${round.picks} numbers. '
           '${engine.slots.length} selected. '
+          '${engine.showRunningTotal ? 'Current sum ${engine.runningTotal}. ' : ''}'
+          'Round ${engine.roundIndex + 1} of ${engine.rounds.length}. '
           '${switch (phase) { SumPhase.picking => 'Choose numbers', SumPhase.wrong => 'Incorrect total', SumPhase.solved => 'Correct total' }}',
       child: Container(
       width: double.infinity,
