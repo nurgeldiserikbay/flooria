@@ -64,7 +64,7 @@ void main() {
     await openShape(tester, 1, reducedMotion: true);
     final first = find.byKey(const ValueKey('shape-option-state-0'));
     expect(tester.widget<AnimatedOpacity>(
-      find.descendant(of: first, matching: find.byType(AnimatedOpacity)),
+      find.descendant(of: first, matching: find.byType(AnimatedOpacity)).first,
     ).duration, Duration.zero);
     expect(tester.widget<AnimatedRotation>(
       find.descendant(of: first, matching: find.byType(AnimatedRotation)),
