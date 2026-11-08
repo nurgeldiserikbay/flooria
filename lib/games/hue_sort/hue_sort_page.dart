@@ -31,6 +31,7 @@ class _HueSortPageState extends State<HueSortPage> with LevelFlow<HueSortPage> {
   late HueSortEngine _engine;
   int? _selected;
   int _nudge = 0;
+  String _feedback = 'DOTS ARE FIXED · TAP TWO TILES TO SWAP';
 
   @override
   GameLaunch get launch => widget.launch;
@@ -46,24 +47,38 @@ class _HueSortPageState extends State<HueSortPage> with LevelFlow<HueSortPage> {
     _engine = HueSortEngine.forLevel(level);
     _selected = null;
     _nudge = 0;
+    _feedback = 'DOTS ARE FIXED · TAP TWO TILES TO SWAP';
   }
 
   void _tap(int position) {
     if (_engine.isCompleted) return;
     if (_engine.isFixed(position)) {
       HapticFeedback.selectionClick();
-      setState(() => _nudge++);
+      setState(() {
+        _nudge++;
+        _feedback = 'DOTTED TILES ARE FIXED · CHOOSE ANOTHER';
+      });
       return;
     }
     final selected = _selected;
     if (selected == null || selected == position) {
       HapticFeedback.selectionClick();
-      setState(() => _selected = selected == position ? null : position);
+      setState(() {
+        _selected = selected == position ? null : position;
+        _feedback = _selected == null
+            ? 'SELECTION CLEARED · PICK A TILE'
+            : 'TILE SELECTED · TAP ANOTHER TO SWAP';
+      });
       return;
     }
     final result = _engine.swap(selected, position);
     if (result == HueSwapResult.ignored) return;
-    setState(() => _selected = null);
+    setState(() {
+      _selected = null;
+      _feedback = result == HueSwapResult.completed
+          ? 'GRADIENT RESTORED · GREAT JOB!'
+          : '${_engine.misplaced} TILES OUT OF PLACE · KEEP SORTING';
+    });
     if (result == HueSwapResult.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score,
@@ -108,13 +123,19 @@ class _HueSortPageState extends State<HueSortPage> with LevelFlow<HueSortPage> {
                 (box.maxHeight - 24) / _engine.rows,
               ).clamp(30.0, 84.0).toDouble();
               return Center(
-                child: _HueBoard(
+                child: Semantics(
+                  key: const ValueKey('hue-board-state'),
+                  label: '${_engine.misplaced} tiles out of place. '
+                      '${_engine.swaps} swaps used. '
+                      '${_engine.fixed.length} fixed reference tiles. '
+                      '${_selected == null ? 'No tile selected' : 'Tile at row ${_selected! ~/ _engine.columns + 1}, column ${_selected! % _engine.columns + 1} selected'}.',
+                  child: _HueBoard(
                   engine: _engine,
                   cell: cell,
                   selected: _selected,
                   nudge: _nudge,
                   onTap: _tap,
-                ),
+                )),
               );
             }),
           ),
@@ -131,7 +152,7 @@ class _HueSortPageState extends State<HueSortPage> with LevelFlow<HueSortPage> {
                     onNext: nextLevel,
                     onReplay: replayLevel,
                   )
-                : HintLine('DOTS ARE FIXED  ·  TAP TWO TO SWAP',
+                : HintLine(_feedback,
                     palette: _palette,
                     leading: Container(width: 8, height: 8,
                       decoration: BoxDecoration(color: _palette.ink,
