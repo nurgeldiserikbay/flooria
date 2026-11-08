@@ -140,6 +140,7 @@ class _SignalGuardPageState extends State<SignalGuardPage>
   @override
   Widget build(BuildContext context) {
     final finished = _stage == _Stage.finished;
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
     final mean = _engine.meanReactionMs;
     return GameScaffold(
       palette: _palette,
@@ -149,7 +150,7 @@ class _SignalGuardPageState extends State<SignalGuardPage>
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
         child: Column(children: [
-          _OutcomeStrip(engine: _engine),
+          _OutcomeStrip(engine: _engine, reducedMotion: reducedMotion),
           const SizedBox(height: 12),
           _RuleBar(rule: _engine.rule),
           const SizedBox(height: 12),
@@ -159,6 +160,7 @@ class _SignalGuardPageState extends State<SignalGuardPage>
               behavior: HitTestBehavior.opaque,
               onTapDown: (_) => _tapArena(),
               child: _Arena(
+                reducedMotion: reducedMotion,
                 stage: _stage,
                 trial: _engine.current,
                 trialIndex: _engine.index,
@@ -169,7 +171,7 @@ class _SignalGuardPageState extends State<SignalGuardPage>
           ),
           const SizedBox(height: 12),
           AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
+            duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 220),
             child: _stage == _Stage.intro
                 ? SizedBox(
                     key: const ValueKey('signal-start'),
@@ -216,16 +218,19 @@ class _SignalGuardPageState extends State<SignalGuardPage>
 }
 
 class _OutcomeStrip extends StatelessWidget {
-  const _OutcomeStrip({required this.engine});
+  const _OutcomeStrip({required this.engine, required this.reducedMotion});
   final SignalGuardEngine engine;
+  final bool reducedMotion;
 
   @override
   Widget build(BuildContext context) => Row(children: [
     for (var i = 0; i < engine.trials.length; i++) ...[
       if (i > 0) const SizedBox(width: 3),
       Expanded(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+        child: Semantics(
+          label: 'Trial ${i + 1}: ${switch (engine.outcomes[i]) { TrialOutcome.hit => 'correct tap', TrialOutcome.correctRejection => 'correct hold', TrialOutcome.miss => 'missed', TrialOutcome.falseAlarm => 'false alarm', null => i == engine.index ? 'up next' : 'pending' }}',
+          child: AnimatedContainer(
+          duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 200),
           height: 8,
           decoration: BoxDecoration(
             color: switch (engine.outcomes[i]) {
@@ -236,7 +241,7 @@ class _OutcomeStrip extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
             border: Border.all(color: _palette.edge, width: 1),
           ),
-        ),
+        )),
       ),
     ],
   ]);
@@ -288,13 +293,15 @@ class _RuleBar extends StatelessWidget {
 
 class _Arena extends StatelessWidget {
   const _Arena({required this.stage, required this.trial,
-    required this.trialIndex, required this.windowMs, required this.outcome});
+    required this.trialIndex, required this.windowMs, required this.outcome,
+    required this.reducedMotion});
 
   final _Stage stage;
   final SignalTrial trial;
   final int trialIndex;
   final int windowMs;
   final TrialOutcome? outcome;
+  final bool reducedMotion;
 
   @override
   Widget build(BuildContext context) {
@@ -302,8 +309,17 @@ class _Arena extends StatelessWidget {
         outcome == TrialOutcome.correctRejection;
     final border = outcome == null ? const Color(0xFF3A2F66)
         : good ? _mint : _coral;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 160),
+    final status = switch (stage) {
+      _Stage.intro => 'Ready to start',
+      _Stage.gap => 'Wait for the next signal',
+      _Stage.signal => '${trial.tint.name} ${trial.shape.name} signal. Tap only when the rule matches',
+      _Stage.finished => 'Round finished',
+    };
+    return Semantics(
+      key: const ValueKey('signal-arena-state'),
+      label: status,
+      child: AnimatedContainer(
+      duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 160),
       width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFF1E1640),
@@ -326,7 +342,7 @@ class _Arena extends StatelessWidget {
               ),
             ),
           if (stage == _Stage.signal) ...[
-            TweenAnimationBuilder<double>(
+            if (!reducedMotion) TweenAnimationBuilder<double>(
               key: ValueKey('ring-$trialIndex'),
               tween: Tween(begin: 1, end: 0),
               duration: Duration(milliseconds: windowMs),
@@ -344,7 +360,7 @@ class _Arena extends StatelessWidget {
             TweenAnimationBuilder<double>(
               key: ValueKey('signal-$trialIndex'),
               tween: Tween(begin: .3, end: 1),
-              duration: const Duration(milliseconds: 160),
+              duration: reducedMotion ? Duration.zero : const Duration(milliseconds: 160),
               curve: Curves.easeOutBack,
               builder: (context, t, child) =>
                   Transform.scale(scale: t, child: child),
@@ -371,7 +387,7 @@ class _Arena extends StatelessWidget {
             ),
         ]);
       }),
-    );
+    ));
   }
 }
 
