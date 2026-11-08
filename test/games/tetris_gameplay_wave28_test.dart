@@ -36,9 +36,12 @@ void main() {
       expect(find.byKey(const ValueKey('tetris-board')), findsOneWidget);
       expect(find.byTooltip('Left'), findsOneWidget);
       expect(find.byTooltip('Hard drop'), findsOneWidget);
-      await tester.longPress(find.byTooltip('Left'),
-          duration: const Duration(milliseconds: 750));
-      await tester.pump(const Duration(milliseconds: 130));
+      final hold = await tester.startGesture(
+          tester.getCenter(find.byTooltip('Left')));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 220));
+      await hold.up();
+      await tester.pump();
       expect(tester.takeException(), isNull);
     });
   }
