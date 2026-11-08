@@ -25,22 +25,35 @@ class RailRouterPage extends StatefulWidget {
 
 class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRouterPage> {
   late RailRouterEngine _engine;
+  String _feedback = 'SWITCH ONE ROUTE BEFORE THE TRAINS MEET';
   @override
   GameLaunch get launch => widget.launch;
   @override
   void initState() { super.initState(); resetLevel(); }
   @override
-  void resetLevel() => _engine = RailRouterEngine.forLevel(level);
+  void resetLevel() {
+    _engine = RailRouterEngine.forLevel(level);
+    _feedback = 'SWITCH ONE ROUTE BEFORE THE TRAINS MEET';
+  }
 
   void _switch(int train) {
     if (_engine.toggle(train) == RailAction.ignored) return;
-    setState(() {});
+    setState(() => _feedback = _engine.diverted[train]
+        ? 'TRAIN ${train + 1} USES THE BYPASS · PRESS ADVANCE'
+        : 'TRAIN ${train + 1} RETURNS TO THE CROSSING');
     HapticFeedback.selectionClick();
   }
 
   void _advance() {
     final result = _engine.advance();
-    setState(() {});
+    if (result == RailAction.ignored) return;
+    setState(() {
+      _feedback = result == RailAction.completed
+          ? 'BOTH TRAINS PASSED · GREAT JOB!'
+          : result == RailAction.collision
+              ? 'TRAINS COLLIDED · SWITCH ONE TO THE BYPASS'
+              : 'TRAINS MOVING · WATCH THE CROSSING';
+    });
     if (result == RailAction.completed) {
       HapticFeedback.mediumImpact();
       reportWin(score: _engine.score, metrics: const {});
@@ -69,7 +82,15 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               StatChip(label: 'TRAINS', value: '${_engine.passed.where((x) => x).length}/2', palette: _palette),
             ])),
           const SizedBox(height: 6),
-          Container(
+          Semantics(
+            key: const ValueKey('rail-board-state'),
+            label: 'Time ${_engine.time}. '
+                '${_engine.passed.where((passed) => passed).length} of 2 trains passed. '
+                'Train 1 ${_engine.diverted[0] ? 'bypass' : 'crossing'}, '
+                '${_engine.countdowns[0]} ticks remaining. '
+                'Train 2 ${_engine.diverted[1] ? 'bypass' : 'crossing'}, '
+                '${_engine.countdowns[1]} ticks remaining.',
+            child: Container(
             key: const ValueKey('rail-board'),
             width: size, height: size, padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -90,12 +111,14 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
                 painter: _RailPainter(_engine, visualTime: visualTime),
               ),
             ),
-          ),
+          )),
           const SizedBox(height: 6),
           if (!reported && !_engine.isFailed)
             for (var train = 0; train < 2; train++)
               Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
               child: ChunkyButton(
+                key: ValueKey('rail-route-$train'),
+                semanticLabel: 'Train ${train + 1}, ${_engine.diverted[train] ? 'bypass' : 'crossing'} route. Tap to switch',
                 onPressed: reported || _engine.isFailed ? null : () => _switch(train),
                 color: _engine.diverted[train] ? _trainColors[train] : Colors.white,
                 edgeColor: _engine.diverted[train] ? GamePalette.shade(_trainColors[train]) : _palette.edge,
@@ -114,7 +137,9 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
           const SizedBox(height: 3),
           if (!reported && !_engine.isFailed)
             SizedBox(width: 220, height: 48,
-              child: ChunkyButton(onPressed: _advance, color: _palette.accent,
+              child: ChunkyButton(key: const ValueKey('rail-advance'),
+                semanticLabel: 'Advance both trains one tick',
+                onPressed: _advance, color: _palette.accent,
                 edgeColor: _palette.edge, depth: 4, radius: 14,
                 child: const Text('ADVANCE TRAINS', style: TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1)))),
@@ -130,7 +155,7 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
               child: RetryPanel(palette: _palette, title: 'COLLISION',
                 detail: 'Switch one train onto the bypass.', onRetry: replayLevel))
           else
-            const HintLine('SWITCH ONE ROUTE BEFORE THE TRAINS MEET', palette: _palette),
+            HintLine(_feedback, palette: _palette),
         ]));
     }),
   );
