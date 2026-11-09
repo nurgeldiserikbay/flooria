@@ -182,4 +182,25 @@ class TetrisEngine {
     }
     return cells;
   }
+
+  /// Cells where the current piece would land if dropped immediately.
+  List<int> ghostCells() {
+    var landingY = _y;
+    while (_canPlace(_x, landingY + 1, _matrix())) {
+      landingY++;
+    }
+    final cells = <int>[];
+    final matrix = _matrix();
+    for (var row = 0; row < 4; row++) {
+      for (var col = 0; col < 4; col++) {
+        final x = _x + col;
+        final y = landingY + row;
+        if (matrix[row][col] == '1' &&
+            y >= 0 && y < height && x >= 0 && x < width) {
+          cells.add(y * width + x);
+        }
+      }
+    }
+    return cells;
+  }
 }
