@@ -181,7 +181,8 @@ class ChunkyIconButton extends StatelessWidget {
   );
 }
 
-/// Shared chrome: back button, game title, level and optional tools.
+/// Shared gameplay stage. Keeps controls outside the board so each module
+/// can use its own interaction layout without losing a consistent identity.
 class GameScaffold extends StatelessWidget {
   const GameScaffold({
     super.key,
@@ -201,83 +202,206 @@ class GameScaffold extends StatelessWidget {
   final Key? titleKey;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: palette.ground,
-    body: Stack(fit: StackFit.expand, children: [
-      DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        // Blend toward each game's own surface. White would wash out
-        // dark boards such as Synapse Link and conceal their atmosphere.
-        colors: [
-          palette.ground,
-          Color.lerp(palette.ground, palette.surface, .64)!,
-          palette.ground,
-        ],
-      ))),
-      Positioned(top: 74, right: -82,
-        child: _GameOrb(size: 230, color: palette.accent)),
-      Positioned(bottom: 62, left: -84,
-        child: _GameOrb(size: 210, color: palette.success)),
-      SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-                child: Row(children: [
-                  Tooltip(
-                    message: 'Back',
-                    child: Material(
-                      color: palette.surface.withValues(alpha: .84),
-                      borderRadius: BorderRadius.circular(15),
+  Widget build(BuildContext context) {
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final dark = ThemeData.estimateBrightnessForColor(palette.ground) ==
+        Brightness.dark;
+    return Scaffold(
+      backgroundColor: palette.ground,
+      body: Stack(fit: StackFit.expand, children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                palette.ground,
+                Color.lerp(palette.ground, palette.surface, dark ? .24 : .55)!,
+                palette.ground,
+              ],
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CustomPaint(
+              painter: _GameStagePainter(
+                color: palette.accent.withValues(alpha: dark ? .11 : .09),
+              ),
+            ),
+          ),
+        ),
+        Positioned(top: 60, right: -115,
+          child: _GameOrb(size: 300, color: palette.accent)),
+        Positioned(bottom: -45, left: -120,
+          child: _GameOrb(size: 260, color: palette.success)),
+        SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: Column(children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+                  child: Row(children: [
+                    Material(
+                      color: palette.surface.withValues(alpha: .94),
+                      borderRadius: BorderRadius.circular(17),
                       child: InkWell(
                         key: const ValueKey('game-back'),
-                        borderRadius: BorderRadius.circular(15),
                         onTap: () => Navigator.of(context).maybePop(),
-                        child: SizedBox(
-                          width: 44, height: 44,
-                          child: Icon(Icons.arrow_back_rounded,
-                            color: palette.ink, size: 23),
+                        borderRadius: BorderRadius.circular(17),
+                        child: Tooltip(
+                          message: 'Back to games',
+                          child: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(17),
+                              border: Border.all(
+                                color: palette.edge.withValues(alpha: .18),
+                              ),
+                            ),
+                            child: Icon(Icons.arrow_back_rounded,
+                              color: palette.ink, size: 23),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(title,
-                          key: titleKey,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: palette.ink, fontSize: 18,
-                            fontWeight: FontWeight.w800, letterSpacing: -.2)),
-                        const SizedBox(height: 2),
-                        Text('LEVEL $level', style: TextStyle(
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            key: titleKey,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: palette.ink,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -.55,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: palette.success,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'READY TO PLAY',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: palette.muted,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 56),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 11, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: palette.accent.withValues(alpha: dark ? .22 : .11),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: palette.accent.withValues(alpha: .20),
+                        ),
+                      ),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        Text('LEVEL', style: TextStyle(
                           color: palette.muted,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: .7)),
-                      ],
+                          fontSize: 9,
+                          letterSpacing: .8,
+                          fontWeight: FontWeight.w800,
+                        )),
+                        Text('$level', style: TextStyle(
+                          color: palette.ink,
+                          fontSize: 19,
+                          height: 1.05,
+                          fontWeight: FontWeight.w900,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        )),
+                      ]),
+                    ),
+                    for (final action in actions) ...[
+                      const SizedBox(width: 6),
+                      action,
+                    ],
+                  ]),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(colors: [
+                        palette.accent.withValues(alpha: .75),
+                        palette.success.withValues(alpha: .45),
+                        palette.accent.withValues(alpha: 0),
+                      ]),
                     ),
                   ),
-                  for (final action in actions) ...[
-                    const SizedBox(width: 6),
-                    action,
-                  ],
-                ]),
-              ),
-              Expanded(child: child),
-            ]),
+                ),
+                Expanded(
+                  child: TweenAnimationBuilder<double>(
+                    key: ValueKey('game-stage-$title'),
+                    tween: Tween<double>(begin: reducedMotion ? 1 : .97, end: 1),
+                    duration: reducedMotion
+                        ? Duration.zero : const Duration(milliseconds: 380),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, scale, stage) =>
+                        Transform.scale(scale: scale, child: stage),
+                    child: child,
+                  ),
+                ),
+              ]),
+            ),
           ),
         ),
-      ),
-    ]),
-  );
+      ]),
+    );
+  }
+}
+
+/// Low-contrast decorative dots: drawn rather than loaded as bitmap assets.
+class _GameStagePainter extends CustomPainter {
+  const _GameStagePainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    const spacing = 38.0;
+    for (double y = 22; y < size.height; y += spacing) {
+      final row = (y / spacing).round();
+      for (double x = row.isEven ? 16 : 35;
+          x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), 1.15, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GameStagePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _GameOrb extends StatelessWidget {
@@ -347,7 +471,7 @@ class StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
     decoration: BoxDecoration(
       color: palette.surface.withValues(alpha: .86),
       borderRadius: BorderRadius.circular(13),
@@ -355,11 +479,11 @@ class StatChip extends StatelessWidget {
         color: palette.edge.withValues(alpha: .16), width: 1),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Text(label, style: TextStyle(color: palette.muted, fontSize: 9.5,
-        fontWeight: FontWeight.w700, letterSpacing: .45)),
+      Text(label, style: TextStyle(color: palette.muted, fontSize: 11,
+        fontWeight: FontWeight.w700, letterSpacing: .2)),
       const SizedBox(width: 6),
       Text(value, key: valueKey, style: TextStyle(color: palette.ink,
-        fontSize: 13, fontWeight: FontWeight.w800,
+        fontSize: 15, fontWeight: FontWeight.w900,
         fontFeatures: const [FontFeature.tabularFigures()])),
     ]),
   );
@@ -386,8 +510,8 @@ class HintLine extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             if (leading != null) ...[leading!, const SizedBox(width: 8)],
-            Text(text, style: TextStyle(color: palette.muted, fontSize: 10.5,
-              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            Text(text, style: TextStyle(color: palette.muted, fontSize: 12.5,
+              fontWeight: FontWeight.w700, letterSpacing: .15)),
           ]),
         ),
       ),
