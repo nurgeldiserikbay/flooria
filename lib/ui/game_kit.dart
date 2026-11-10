@@ -471,7 +471,7 @@ class StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
     decoration: BoxDecoration(
       color: palette.surface.withValues(alpha: .86),
       borderRadius: BorderRadius.circular(13),
@@ -479,11 +479,11 @@ class StatChip extends StatelessWidget {
         color: palette.edge.withValues(alpha: .16), width: 1),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Text(label, style: TextStyle(color: palette.muted, fontSize: 9.5,
-        fontWeight: FontWeight.w700, letterSpacing: .45)),
+      Text(label, style: TextStyle(color: palette.muted, fontSize: 11,
+        fontWeight: FontWeight.w700, letterSpacing: .2)),
       const SizedBox(width: 6),
       Text(value, key: valueKey, style: TextStyle(color: palette.ink,
-        fontSize: 13, fontWeight: FontWeight.w800,
+        fontSize: 15, fontWeight: FontWeight.w900,
         fontFeatures: const [FontFeature.tabularFigures()])),
     ]),
   );
@@ -510,8 +510,8 @@ class HintLine extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             if (leading != null) ...[leading!, const SizedBox(width: 8)],
-            Text(text, style: TextStyle(color: palette.muted, fontSize: 10.5,
-              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            Text(text, style: TextStyle(color: palette.muted, fontSize: 12.5,
+              fontWeight: FontWeight.w700, letterSpacing: .15)),
           ]),
         ),
       ),
