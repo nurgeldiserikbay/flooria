@@ -31,6 +31,9 @@ class ColorCatcherEngine {
   bool isCompleted = false;
   bool isFailed = false;
   int get score => max(100, caught * 100 - strikes * 80).toInt();
+  /// Share of catches that were fruit rather than bombs.
+  int get controlMetric =>
+      caught + strikes == 0 ? 0 : (caught * 100 / (caught + strikes)).round();
 
   factory ColorCatcherEngine.forLevel(int level) {
     final safe = max(1, level).toInt();

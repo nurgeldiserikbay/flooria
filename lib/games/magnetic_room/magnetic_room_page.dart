@@ -51,7 +51,7 @@ class _MagneticRoomPageState extends State<MagneticRoomPage> with LevelFlow<Magn
     });
     if (result == MagnetMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.selectionClick();
     }

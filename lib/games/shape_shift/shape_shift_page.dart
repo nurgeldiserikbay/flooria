@@ -34,7 +34,7 @@ class _ShapeShiftPageState extends State<ShapeShiftPage> with LevelFlow<ShapeShi
     } else {
       HapticFeedback.lightImpact();
     }
-    if (result == ShapeShiftResult.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: const {}); }
+    if (result == ShapeShiftResult.completed) { HapticFeedback.mediumImpact(); reportWin(score: _engine.score, metrics: {'control': efficiencyMetric(_engine.score)}); }
   }
 
   @override

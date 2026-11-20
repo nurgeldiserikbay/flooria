@@ -48,7 +48,7 @@ class _BilliardsPageState extends State<BilliardsPage> with LevelFlow<BilliardsP
             : 'GREAT SHOT · FIND NUMBER ${_engine.nextNumber}');
     if (result == BilliardShot.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else if (result == BilliardShot.missed) {
       HapticFeedback.selectionClick();
     } else {

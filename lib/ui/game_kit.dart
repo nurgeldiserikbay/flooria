@@ -849,3 +849,9 @@ mixin LevelFlow<T extends StatefulWidget> on State<T> {
     });
   }
 }
+
+/// Maps a game's own efficiency score onto the 0–100 skill scale. Most
+/// engines award 1000 for a flawless clear and subtract penalties down to a
+/// floor of 100, so the floor maps to 0 and a flawless clear maps to 100.
+int efficiencyMetric(int score, {int perfect = 1000, int floor = 100}) =>
+    ((score - floor) * 100 / (perfect - floor)).round().clamp(0, 100).toInt();

@@ -53,7 +53,7 @@ class _SetMatchPageState extends State<SetMatchPage> with LevelFlow<SetMatchPage
     });
     if (result == SetMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'focus': _engine.focusMetric});
     } else if (result == SetMove.invalid) {
       HapticFeedback.selectionClick();
     } else {

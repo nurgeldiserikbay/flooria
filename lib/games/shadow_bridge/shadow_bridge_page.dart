@@ -38,7 +38,7 @@ class _ShadowBridgePageState extends State<ShadowBridgePage> with LevelFlow<Shad
     });
     if (result == ShadowMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'spatial': efficiencyMetric(_engine.score)});
     } else if (result == ShadowMove.blocked) {
       HapticFeedback.selectionClick();
     } else {

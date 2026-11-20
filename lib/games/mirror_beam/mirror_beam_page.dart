@@ -42,7 +42,7 @@ class _MirrorBeamPageState extends State<MirrorBeamPage> with LevelFlow<MirrorBe
     });
     if (result == MirrorBeamResult.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.selectionClick();
     }

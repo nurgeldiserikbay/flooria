@@ -59,7 +59,7 @@ class _WhackTargetPageState extends State<WhackTargetPage> with LevelFlow<WhackT
     if (result == TargetAction.completed) {
       _timer?.cancel();
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'control': _engine.controlMetric});
     } else {
       HapticFeedback.lightImpact();
     }

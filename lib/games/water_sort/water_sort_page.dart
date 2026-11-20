@@ -66,7 +66,7 @@ class _WaterSortPageState extends State<WaterSortPage> with LevelFlow<WaterSortP
     });
     if (result == PourAction.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

@@ -53,7 +53,7 @@ class _DominoChainPageState extends State<DominoChainPage> with LevelFlow<Domino
     });
     if (result == DominoMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

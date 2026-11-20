@@ -55,7 +55,7 @@ class _BalanceScalePageState extends State<BalanceScalePage> with LevelFlow<Bala
     if (result == BalanceMove.balanced) {
       setState(() => _message = 'PERFECT BALANCE');
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'math': efficiencyMetric(_engine.score)});
     } else {
       setState(() {
         _message = _engine.total < _engine.target

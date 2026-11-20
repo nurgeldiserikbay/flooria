@@ -61,7 +61,7 @@ class _TangramFitPageState extends State<TangramFitPage>
     setState(() {});
     if (result == TangramMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'spatial': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

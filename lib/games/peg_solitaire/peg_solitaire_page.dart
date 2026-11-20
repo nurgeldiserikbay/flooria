@@ -80,7 +80,10 @@ class _PegSolitairePageState extends State<PegSolitairePage>
     });
     if (result == PegMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: {'remainingPegs': _engine.pegCount});
+      reportWin(score: _engine.score, metrics: {
+        'planning': efficiencyMetric(_engine.score),
+        'remainingPegs': _engine.pegCount,
+      });
     } else if (result == PegMove.moved) {
       HapticFeedback.lightImpact();
     } else if (result == PegMove.blocked || result == PegMove.failed) {

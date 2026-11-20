@@ -44,7 +44,7 @@ class _ColorCatcherPageState extends State<ColorCatcherPage> with LevelFlow<Colo
       if (result == CatchTick.completed) {
         _timer?.cancel();
         HapticFeedback.mediumImpact();
-        reportWin(score: _engine.score, metrics: const {});
+        reportWin(score: _engine.score, metrics: {'control': _engine.controlMetric});
       } else if (result == CatchTick.failed) {
         _timer?.cancel();
         HapticFeedback.vibrate();

@@ -19,6 +19,9 @@ class WhackTargetEngine {
   bool isCompleted = false;
   bool isFailed = false;
   int get score => max(100, 1000 - misses * 140 + hits * 15).toInt();
+  /// Share of highlighted targets that were hit.
+  int get controlMetric =>
+      hits + misses == 0 ? 0 : (hits * 100 / (hits + misses)).round();
 
   factory WhackTargetEngine.forLevel(int level) {
     final safe = max(1, level).toInt();

@@ -58,7 +58,7 @@ class _GravityShiftPageState extends State<GravityShiftPage> with LevelFlow<Grav
     });
     if (result == GravityMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'spatial': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

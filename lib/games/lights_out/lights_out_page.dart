@@ -50,7 +50,7 @@ class _LightsOutPageState extends State<LightsOutPage> with LevelFlow<LightsOutP
     });
     if (result == LightMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

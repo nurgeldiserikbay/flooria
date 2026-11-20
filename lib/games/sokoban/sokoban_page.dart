@@ -66,7 +66,7 @@ class _SokobanPageState extends State<SokobanPage> with LevelFlow<SokobanPage> {
     });
     if (result == SokobanMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

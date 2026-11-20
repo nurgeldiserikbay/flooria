@@ -51,7 +51,7 @@ class _CloneShiftPageState extends State<CloneShiftPage> with LevelFlow<CloneShi
     });
     if (result == CloneMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.selectionClick();
     }
