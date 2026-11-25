@@ -50,7 +50,7 @@ void main() {
         viewport(tester, size);
         await openPeg(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('peg-board-state')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

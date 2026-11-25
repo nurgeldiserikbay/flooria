@@ -35,7 +35,7 @@ void main() {
         viewport(tester, size);
         await openSum(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         final goal = TargetSumEngine.forLevel(level).currentRound;
         expect(tester.widget<Semantics>(
           find.byKey(const ValueKey('sum-target-state')),

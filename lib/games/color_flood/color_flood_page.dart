@@ -77,10 +77,14 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
       return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(padding: const EdgeInsets.symmetric(horizontal: 22),
+            // Each chip may shrink so two wide counters fit a 360px phone.
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                StatChip(label: 'CLAIMED', value: '${_engine.claimedCount}/${_engine.board.length}', palette: _palette),
-                StatChip(label: 'MOVES', value: '${_engine.moves}/${_engine.moveLimit}', palette: _palette),
+                Flexible(child: FittedBox(fit: BoxFit.scaleDown,
+                  child: StatChip(label: 'CLAIMED', value: '${_engine.claimedCount}/${_engine.board.length}', palette: _palette))),
+                const SizedBox(width: 8),
+                Flexible(child: FittedBox(fit: BoxFit.scaleDown,
+                  child: StatChip(label: 'MOVES', value: '${_engine.moves}/${_engine.moveLimit}', palette: _palette))),
               ])),
           const SizedBox(height: 13),
           Semantics(

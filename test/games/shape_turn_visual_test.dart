@@ -35,7 +35,7 @@ void main() {
         viewport(tester, size);
         await openShape(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('shape-target-state')), findsOneWidget);
         expect(find.byKey(const ValueKey('shape-option-state-0')), findsOneWidget);
         expect(tester.takeException(), isNull);

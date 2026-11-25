@@ -27,8 +27,11 @@ jobs:
         run: flutter create --project-name flooria --platforms=web,android,ios .
       - name: Get dependencies
         run: flutter pub get
+      # Infos stay visible but non-fatal: Flutter 3.47+ marks the
+      # package:flutter/material.dart import deprecated (material_ui).
+      # Errors and warnings still fail the build.
       - name: Analyze Dart
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
       - name: Run automated tests
         run: flutter test --reporter expanded
       - name: Build web without publishing

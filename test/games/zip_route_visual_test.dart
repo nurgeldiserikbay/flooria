@@ -35,7 +35,7 @@ void main() {
         viewport(tester, size);
         await openZip(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('zip-cell-state-0')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

@@ -35,7 +35,7 @@ void main() {
         viewport(tester, size);
         await openDomino(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('domino-chain-state')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

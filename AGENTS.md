@@ -16,4 +16,4 @@ Approved games are listed in `lib/games/README.md`. Do not add another game modu
 ## Workflow
 Work on a new feature or fix branch from current `main`. Never push directly to `main`. Keep new game work isolated in its module folder and tests until integration is assigned. Use stable IDs; assign an ID to map nodes only after the game is approved. A game may recur on harder nodes and still have one standalone library entry.
 
-Before opening a PR, run `flutter analyze`, `flutter test`, and `flutter build web --release --base-href /flooria/` for UI changes when the SDK is available. State clearly when checks could not be run.
+Before opening a PR, run `flutter analyze --no-fatal-infos`, `flutter test`, and `flutter build web --release --base-href /flooria/` for UI changes when the SDK is available. State clearly when checks could not be run.

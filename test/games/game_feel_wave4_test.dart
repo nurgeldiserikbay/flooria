@@ -44,7 +44,7 @@ void main() {
             (tester) async {
           _viewport(tester, size);
           await _open(tester, id, level);
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }

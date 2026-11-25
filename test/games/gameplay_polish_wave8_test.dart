@@ -72,12 +72,12 @@ void main() {
           _viewport(tester, size);
           await _open(tester, id, level: level);
           expect(find.byType(GameScaffold), findsOneWidget);
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           _expectNoLayoutErrors(tester);
 
           await tester.tap(find.byTooltip('Restart'));
           await tester.pump(const Duration(milliseconds: 210));
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           _expectNoLayoutErrors(tester);
         });
       }
@@ -142,7 +142,7 @@ void main() {
     expect(results.single.level, 1);
     await tester.tap(find.text('NEXT LEVEL'));
     await tester.pump(const Duration(milliseconds: 210));
-    expect(find.text('LEVEL 2'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-2')), findsOneWidget);
     expect(results, hasLength(1));
     _expectNoLayoutErrors(tester);
   });

@@ -37,12 +37,12 @@ void main() {
         ));
         await tester.pump(const Duration(milliseconds: 270));
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL 1'), findsOneWidget);
+        expect(find.byKey(const ValueKey('game-level-1')), findsOneWidget);
         expect(tester.takeException(), isNull);
 
         await tester.tap(find.byTooltip('Restart'));
         await tester.pump(const Duration(milliseconds: 250));
-        expect(find.text('LEVEL 1'), findsOneWidget);
+        expect(find.byKey(const ValueKey('game-level-1')), findsOneWidget);
         expect(tester.takeException(), isNull);
         expect(results, isEmpty);
       });

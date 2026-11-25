@@ -75,7 +75,7 @@ The product concept and module contract are described in [docs/GAME_CONCEPT.md](
 ```sh
 flutter pub get
 flutter run -d chrome
-flutter analyze
+flutter analyze --no-fatal-infos
 flutter test
 ```
 

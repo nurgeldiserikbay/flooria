@@ -71,11 +71,11 @@ void main() {
           _viewport(tester, size);
           await _open(tester, id, level: level);
           expect(find.byType(GameScaffold), findsOneWidget);
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           expect(tester.takeException(), isNull);
           await tester.tap(find.byTooltip('Restart'));
           await tester.pump(const Duration(milliseconds: 280));
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }
@@ -139,7 +139,9 @@ void main() {
     expect(tester.widget<Semantics>(
       find.byKey(const ValueKey('clone-cell-19')),
     ).properties.label, contains('explorer 2'));
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byWidgetPredicate((widget) => widget is Text &&
+        widget.data == '1' && widget.key != const ValueKey('game-level-1')),
+        findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

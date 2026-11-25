@@ -29,7 +29,7 @@ void main() {
         viewport(tester, size);
         await openPicture(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('picture-preview-open')),
           findsOneWidget);
         expect(tester.takeException(), isNull);
@@ -52,7 +52,7 @@ void main() {
     await tester.tap(find.text('BACK TO PUZZLE'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('picture-large-preview')), findsNothing);
-    expect(find.text('LEVEL 1'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-1')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

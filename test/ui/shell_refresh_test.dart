@@ -78,7 +78,7 @@ void main() {
       ),
     ));
     expect(find.text('Sample Puzzle'), findsOneWidget);
-    expect(find.text('LEVEL 7'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-7')), findsOneWidget);
     expect(find.byKey(const ValueKey('game-back')), findsOneWidget);
     expect(find.byIcon(Icons.star_rounded), findsNothing);
     expect(tester.takeException(), isNull);
