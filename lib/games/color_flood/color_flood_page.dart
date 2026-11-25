@@ -55,7 +55,7 @@ class _ColorFloodPageState extends State<ColorFloodPage> with LevelFlow<ColorFlo
     });
     if (result == FloodMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'perception': efficiencyMetric(_engine.score)});
     } else if (result == FloodMove.failed) {
       HapticFeedback.selectionClick();
     } else {

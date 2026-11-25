@@ -56,7 +56,7 @@ class _RailRouterPageState extends State<RailRouterPage> with LevelFlow<RailRout
     });
     if (result == RailAction.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else if (result == RailAction.collision) {
       HapticFeedback.vibrate();
     } else {

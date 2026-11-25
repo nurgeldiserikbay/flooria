@@ -55,7 +55,7 @@ class _RobotProgramPageState extends State<RobotProgramPage> with LevelFlow<Robo
     });
     if (result == ProgramRun.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else if (result == ProgramRun.crashed) {
       HapticFeedback.vibrate();
     }

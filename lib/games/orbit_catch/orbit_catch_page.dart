@@ -57,7 +57,7 @@ class _OrbitCatchPageState extends State<OrbitCatchPage> with LevelFlow<OrbitCat
       HapticFeedback.heavyImpact();
     } else if (result == OrbitMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'control': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.selectionClick();
     }

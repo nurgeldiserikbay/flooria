@@ -53,7 +53,7 @@ class _StackerPageState extends State<StackerPage> with LevelFlow<StackerPage> {
     if (result == StackDrop.completed) {
       _timer?.cancel();
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'control': efficiencyMetric(_engine.score)});
     } else if (result == StackDrop.failed) {
       _timer?.cancel();
       HapticFeedback.vibrate();

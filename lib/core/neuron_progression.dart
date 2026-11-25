@@ -213,7 +213,8 @@ class PlayerProgress {
   /// QA switch: expose every registered map module in the standalone Games
   /// library while the full catalog is being reviewed. Map-node locks remain
   /// governed by [NeuronMapGraph.availability]. Set false for release gating.
-  static const bool unlockAllGamesForQa = true;
+  static const bool unlockAllGamesForQa =
+      bool.fromEnvironment('FLOORIA_UNLOCK_ALL');
 
   PlayerProgress({
     Set<String>? completedNeurons,
@@ -285,18 +286,19 @@ class PlayerProgress {
 
   factory PlayerProgress.fromJson(Map<String, dynamic> json) {
     final knownNodeIds = NeuronMapGraph.nodes.map((node) => node.id).toSet();
-    Map<String, int> intMap(Object? raw) => raw is Map
+    // Levels never exceed the 100-level catalog; scores can pass 1000.
+    Map<String, int> intMap(Object? raw, {required int max}) => raw is Map
         ? raw.map((key, value) => MapEntry(key.toString(),
-            value is num ? value.toInt().clamp(0, 999).toInt() : 0))
+            value is num ? value.toInt().clamp(0, max).toInt() : 0))
         : <String, int>{};
     final rawCompleted = json['completedNeurons'];
     return PlayerProgress(
       completedNeurons: rawCompleted is List
           ? rawCompleted.whereType<String>().where(knownNodeIds.contains).toSet()
           : <String>{},
-      neuronLevels: intMap(json['neuronLevels']),
-      bestStandaloneLevels: intMap(json['bestStandaloneLevels']),
-      bestStandaloneScores: intMap(json['bestStandaloneScores']),
+      neuronLevels: intMap(json['neuronLevels'], max: 999),
+      bestStandaloneLevels: intMap(json['bestStandaloneLevels'], max: 999),
+      bestStandaloneScores: intMap(json['bestStandaloneScores'], max: 1 << 30),
     );
   }
 }

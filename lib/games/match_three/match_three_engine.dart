@@ -20,6 +20,9 @@ class MatchThreeEngine {
   bool get isFailed => !isCompleted && moves >= moveLimit;
   int get movesLeft => moveLimit - moves;
   int get score => max(100, 1000 + cleared * 12 - moves * 18).toInt();
+  /// Share of the move budget left when the goal is reached.
+  int get planningMetric =>
+      (movesLeft * 100 / moveLimit).round().clamp(0, 100).toInt();
 
   factory MatchThreeEngine.forLevel(int level) {
     final safe = max(1, level).toInt();

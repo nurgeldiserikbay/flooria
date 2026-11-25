@@ -60,7 +60,7 @@ class _RopeUntanglePageState extends State<RopeUntanglePage>
     });
     if (result == RopeMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'spatial': efficiencyMetric(_engine.score)});
     }
   }
 

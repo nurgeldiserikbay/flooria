@@ -39,7 +39,7 @@ class _MatchThreePageState extends State<MatchThreePage> with LevelFlow<MatchThr
     setState(() {});
     if (result == MatchMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': _engine.planningMetric});
     } else if (result == MatchMove.rejected) {
       HapticFeedback.selectionClick();
     } else {

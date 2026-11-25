@@ -68,7 +68,7 @@ class _CombinationLockPageState extends State<CombinationLockPage>
     });
     if (result == LockMove.solved) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else if (result == LockMove.failed) {
       HapticFeedback.vibrate();
     } else {

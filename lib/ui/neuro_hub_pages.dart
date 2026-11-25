@@ -171,12 +171,16 @@ class NeuroShell extends StatelessWidget {
 class NeuroGamesPage extends StatefulWidget {
   const NeuroGamesPage({super.key, required this.onTab, required this.onPlay,
     required this.favorites, required this.onFavorite,
-    required this.bestStandaloneLevels});
+    required this.bestStandaloneLevels, this.unlockedIds});
   final ValueChanged<int> onTab;
   final ValueChanged<String> onPlay;
   final Set<String> favorites;
   final ValueChanged<String> onFavorite;
   final Map<String, int> bestStandaloneLevels;
+  /// Games reached on the neuron map. Null treats every game as unlocked.
+  final Set<String>? unlockedIds;
+
+  bool isUnlocked(String id) => unlockedIds?.contains(id) ?? true;
 
   @override
   State<NeuroGamesPage> createState() => _NeuroGamesPageState();
@@ -218,18 +222,30 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
   };
 
   void _surprise(List<GameDefinition> games) {
-    if (games.isEmpty) {
+    final playable = games.where((game) => widget.isUnlocked(game.id)).toList();
+    if (playable.isEmpty) {
+      _showLocked();
       return;
     }
-    widget.onPlay(games[math.Random().nextInt(games.length)].id);
+    widget.onPlay(playable[math.Random().nextInt(playable.length)].id);
+  }
+
+  void _showLocked() {
+    ScaffoldMessenger.maybeOf(context)
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(
+        content: Text('Reach this game on the map to unlock it'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ));
   }
 
   @override
   Widget build(BuildContext context) => NeuroShell(
     title: 'Games', tab: 1, onTab: widget.onTab,
     child: LayoutBuilder(builder: (context, constraints) {
-      // The Games page is the QA library: show every enabled catalog entry,
-      // even when its neuron has not been reached on the progression map.
+      // List every enabled catalog entry; games not yet reached on the
+      // progression map are shown locked.
       final allGames = GameRegistry.enabledGames;
       final skills = allGames.map((game) => game.skill).toSet().toList()..sort();
       final filters = ['all', ...skills];
@@ -412,11 +428,15 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
             final level = (widget.bestStandaloneLevels[entry.id] ?? 0) + 1;
             final accent = GameGlyphs.colorFor(entry.id);
             final favorite = widget.favorites.contains(entry.id);
+            final unlocked = widget.isUnlocked(entry.id);
             return Semantics(
-              label: '${entry.title}, ${_skillLabels[entry.skill] ?? entry.skill}, level $level',
+              label: '${entry.title}, ${_skillLabels[entry.skill] ?? entry.skill}, '
+                  '${unlocked ? 'level $level' : 'locked'}',
               button: true,
-              child: _GameCardPress(
-                onTap: () => widget.onPlay(entry.id),
+              child: Opacity(
+                opacity: unlocked ? 1 : .55,
+                child: _GameCardPress(
+                onTap: unlocked ? () => widget.onPlay(entry.id) : _showLocked,
                 child: Ink(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(begin: Alignment.topLeft,
@@ -459,13 +479,25 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
                             style: const TextStyle(color: neuroText,
                               fontSize: 15, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 6),
-                          Text('Level $level', style: const TextStyle(
-                            color: neuroMuted, fontSize: 11,
-                            fontWeight: FontWeight.w600)),
+                          if (unlocked)
+                            Text('Level $level', style: const TextStyle(
+                              color: neuroMuted, fontSize: 11,
+                              fontWeight: FontWeight.w600))
+                          else
+                            const Row(children: [
+                              Icon(Icons.lock_rounded,
+                                key: ValueKey('game-locked'),
+                                size: 13, color: neuroMuted),
+                              SizedBox(width: 4),
+                              Text('Locked', style: TextStyle(
+                                color: neuroMuted, fontSize: 11,
+                                fontWeight: FontWeight.w600)),
+                            ]),
                         ],
                       ),
                     ),
                   ),
+                ),
               ),
             );
           },

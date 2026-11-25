@@ -248,6 +248,7 @@ class _FlooriaHomeState extends State<FlooriaHome> {
         )),
         TickerMode(enabled: _tab == 1, child: NeuroGamesPage(
           bestStandaloneLevels: _progress.bestStandaloneLevels,
+          unlockedIds: _progress.unlockedModuleIds,
           favorites: _favorites,
           onFavorite: _toggleFavorite,
           onPlay: (id) {

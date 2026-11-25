@@ -56,7 +56,7 @@ class _TideShiftPageState extends State<TideShiftPage> with LevelFlow<TideShiftP
       HapticFeedback.heavyImpact();
     } else if (result == TideMove.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'planning': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.selectionClick();
     }

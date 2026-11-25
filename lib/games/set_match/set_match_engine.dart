@@ -22,6 +22,8 @@ class SetMatchEngine {
   int moves = 0;
   bool isCompleted = false;
   int get score => max(100, 1000 + setsFound * 180 - moves * 8).toInt();
+  /// Share of submitted triples that formed a valid set.
+  int get focusMetric => moves == 0 ? 0 : (setsFound * 100 / moves).round();
 
   factory SetMatchEngine.forLevel(int level) {
     final safe = max(1, level).toInt();

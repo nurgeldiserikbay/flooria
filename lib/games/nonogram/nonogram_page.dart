@@ -50,7 +50,7 @@ class _NonogramPageState extends State<NonogramPage> with LevelFlow<NonogramPage
     });
     if (result == NonogramMark.completed) {
       HapticFeedback.mediumImpact();
-      reportWin(score: _engine.score, metrics: const {});
+      reportWin(score: _engine.score, metrics: {'logic': efficiencyMetric(_engine.score)});
     } else {
       HapticFeedback.lightImpact();
     }

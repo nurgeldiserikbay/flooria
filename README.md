@@ -79,4 +79,7 @@ flutter analyze --no-fatal-infos
 flutter test
 ```
 
+Library games unlock as their map nodes open. For QA, unlock every game with
+`flutter run -d chrome --dart-define=FLOORIA_UNLOCK_ALL=true`.
+
 When the approved games are ready, place each module in `lib/games/<game_id>/`, keep its rules separate from its Flutter screen, and register it in `lib/core/game_registry.dart`.
