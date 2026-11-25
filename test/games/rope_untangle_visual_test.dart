@@ -31,7 +31,7 @@ void main() {
         await openRope(tester, level);
         final engine = RopeUntangleEngine.forLevel(level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         final board = find.byKey(const ValueKey('rope-board-state'));
         expect(tester.widget<Semantics>(board).properties.label,
           contains('${engine.crossingCount} crossings remaining'));

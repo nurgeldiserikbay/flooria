@@ -44,7 +44,9 @@ void main() {
       ));
       await tester.tap(find.byKey(const ValueKey('lights-cell-0')));
       await tester.pump(const Duration(milliseconds: 260));
-      expect(find.text('1'), findsOneWidget);
+      expect(find.byWidgetPredicate((widget) => widget is Text &&
+        widget.data == '1' && widget.key != const ValueKey('game-level-1')),
+        findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

@@ -71,7 +71,7 @@ void main() {
         ),
       ));
       expect(find.text('Sample Puzzle'), findsOneWidget);
-      expect(find.text('LEVEL 4'), findsOneWidget);
+      expect(find.byKey(const ValueKey('game-level-4')), findsOneWidget);
       expect(find.text('Game board'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

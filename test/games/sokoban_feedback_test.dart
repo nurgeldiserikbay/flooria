@@ -33,7 +33,7 @@ void main() {
         viewport(tester, size);
         await openSokoban(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('sokoban-board-state')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

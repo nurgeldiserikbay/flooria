@@ -324,21 +324,29 @@ class GameScaffold extends StatelessWidget {
                           color: palette.accent.withValues(alpha: .20),
                         ),
                       ),
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text('LEVEL', style: TextStyle(
-                          color: palette.muted,
-                          fontSize: 9,
-                          letterSpacing: .8,
-                          fontWeight: FontWeight.w800,
-                        )),
-                        Text('$level', style: TextStyle(
-                          color: palette.ink,
-                          fontSize: 19,
-                          height: 1.05,
-                          fontWeight: FontWeight.w900,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        )),
-                      ]),
+                      // Read as one phrase ("Level 7") rather than two
+                      // unrelated labels.
+                      child: Semantics(
+                        label: 'Level $level',
+                        excludeSemantics: true,
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Text('LEVEL', style: TextStyle(
+                            color: palette.muted,
+                            fontSize: 9,
+                            letterSpacing: .8,
+                            fontWeight: FontWeight.w800,
+                          )),
+                          Text('$level',
+                            key: ValueKey('game-level-$level'),
+                            style: TextStyle(
+                              color: palette.ink,
+                              fontSize: 19,
+                              height: 1.05,
+                              fontWeight: FontWeight.w900,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            )),
+                        ]),
+                      ),
                     ),
                     for (final action in actions) ...[
                       const SizedBox(width: 6),

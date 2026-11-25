@@ -33,7 +33,7 @@ void main() {
         viewport(tester, size);
         await openScale(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('balance-progress-state')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

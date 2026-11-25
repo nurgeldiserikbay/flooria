@@ -45,7 +45,7 @@ void main() {
           await _view(tester, size);
           final results = await _open(tester, id, level);
           expect(tester.takeException(), isNull);
-          expect(find.text('LEVEL $level'), findsOneWidget);
+          expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
           expect(results, isEmpty);
         });
       }
@@ -124,7 +124,7 @@ void main() {
 
     await tester.tap(find.text('NEXT LEVEL'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('LEVEL 2'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-2')), findsOneWidget);
     expect(find.byKey(const ValueKey('level-clear')), findsNothing);
     expect(tester.takeException(), isNull);
   });

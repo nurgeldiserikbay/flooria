@@ -35,7 +35,7 @@ void main() {
         viewport(tester, size);
         await openSet(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('set-board-progress')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

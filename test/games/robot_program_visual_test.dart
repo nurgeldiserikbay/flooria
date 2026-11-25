@@ -35,7 +35,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
         await openRobot(tester, level: level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('robot-cell-0')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });

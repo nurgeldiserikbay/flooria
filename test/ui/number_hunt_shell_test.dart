@@ -28,7 +28,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 250));
         expect(find.byType(GameScaffold), findsOneWidget);
         expect(find.text('Find the Number'), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byTooltip('Restart'), findsOneWidget);
         expect(find.byKey(const ValueKey('number-hunt-target')),
             findsOneWidget);
@@ -60,7 +60,7 @@ void main() {
     expect(find.text('NEXT LEVEL'), findsOneWidget);
     await tester.tap(find.text('NEXT LEVEL'));
     await tester.pump(const Duration(milliseconds: 170));
-    expect(find.text('LEVEL 2'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-2')), findsOneWidget);
     expect(find.byType(GameScaffold), findsOneWidget);
     expect(results, hasLength(1));
     expect(tester.takeException(), isNull);

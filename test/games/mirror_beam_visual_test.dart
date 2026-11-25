@@ -34,7 +34,7 @@ void main() {
         viewport(tester, size);
         await openMirror(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('mirror-board-state')), findsOneWidget);
         expect(find.byKey(const ValueKey('mirror-cell-state-22')), findsOneWidget);
         expect(tester.takeException(), isNull);

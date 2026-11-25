@@ -117,7 +117,7 @@ void main() {
     final color = ((gradients.first.decoration as BoxDecoration)
         .gradient! as LinearGradient).colors[1];
     expect(ThemeData.estimateBrightnessForColor(color), Brightness.dark);
-    expect(find.text('LEVEL 5'), findsOneWidget);
+    expect(find.byKey(const ValueKey('game-level-5')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

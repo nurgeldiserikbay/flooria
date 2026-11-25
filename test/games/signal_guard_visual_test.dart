@@ -30,7 +30,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
         await openSignal(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         final arena = find.byKey(const ValueKey('signal-arena-state'));
         expect(tester.widget<Semantics>(arena).properties.label,
           'Ready to start');

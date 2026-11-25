@@ -34,7 +34,7 @@ void main() {
         viewport(tester, size);
         await openShadow(tester, level);
         expect(find.byType(GameScaffold), findsOneWidget);
-        expect(find.text('LEVEL $level'), findsOneWidget);
+        expect(find.byKey(ValueKey('game-level-$level')), findsOneWidget);
         expect(find.byKey(const ValueKey('shadow-board-state')), findsOneWidget);
         expect(find.byTooltip('Move up'), findsOneWidget);
         expect(find.byTooltip('Move down'), findsOneWidget);
