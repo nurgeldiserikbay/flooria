@@ -88,6 +88,9 @@ class NeuroConnectionSvg extends StatelessWidget {
       ..write('<circle cx="${_n(center.dx)}" cy="${_n(center.dy)}" '
           'r="${_n(radius + 4)}" fill="none" stroke="$color" '
           'stroke-width="1.6" stroke-opacity=".48"/>');
+    // Locked cells stay a quiet ring; branching arms are reserved for the
+    // part of the brain the player has reached, so the map reads at a glance.
+    if (state == NeuronAvailability.locked) return body.toString();
 
     const armAngles = [11.0, 82.0, 176.0, 281.0];
     const armLengths = [15.0, 23.0, 18.0, 25.0];
@@ -134,6 +137,11 @@ class NeuroConnectionSvg extends StatelessWidget {
   String _drawEdge(int index, _NeuralEdge edge, int motif) {
     final path = edge.curve.svgPath;
     final gradient = 'url(#axon$index)';
+    if (!edge.active) {
+      // Unreached paths: one soft dashed line, no beads or forks.
+      return '<path d="$path" stroke="$gradient" stroke-width="2.2" '
+          'stroke-opacity=".42" stroke-dasharray="2 7"/>';
+    }
     final opacity = edge.active ? '.88' : '.58';
     final terminal = '<circle cx="${_n(edge.curve.end.dx)}" '
         'cy="${_n(edge.curve.end.dy)}" r="4.1" fill="$gradient" '

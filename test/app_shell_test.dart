@@ -45,6 +45,14 @@ void main() {
       findsOneWidget,
     );
     expect(find.byType(InteractiveViewer), findsOneWidget);
+    // The open neuron is named and invites play; locked ones show a lock.
+    final label = find.byKey(const ValueKey('neuron-label-node_01'));
+    expect(find.descendant(of: label, matching: find.text('Pattern Repeat')),
+        findsOneWidget);
+    expect(find.descendant(of: label,
+        matching: find.byIcon(Icons.play_arrow_rounded)), findsOneWidget);
+    expect(find.byKey(const ValueKey('neuron-label-node_02')), findsNothing);
+    expect(find.byKey(const ValueKey('neuron-lock')), findsNWidgets(54));
   });
 
   testWidgets('Games, skills and settings follow the new progression shell',
@@ -59,7 +67,14 @@ void main() {
     expect(find.byType(NeuroSkillsPage), findsOneWidget);
     expect(find.byType(SkillRadarChart), findsOneWidget);
 
-    expect(find.text('PLAY MORE'), findsOneWidget);
+    // A fresh save explains how to start measuring, and Play returns to the map.
+    expect(find.text('Play a game to measure your first skill'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('skills-play')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.byKey(const ValueKey('neuron-label-node_01')).hitTestable(),
+        findsOneWidget);
+    await goTo(tester, 2);
 
     await goTo(tester, 0);
     expect(find.byType(NeuroMapView), findsOneWidget);

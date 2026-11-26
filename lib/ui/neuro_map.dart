@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../core/game_registry.dart';
 import '../core/neuron_progression.dart';
 import 'game_glyph.dart';
 import 'neuro_connection_svg.dart';
@@ -214,10 +215,12 @@ class _NeuroMapViewState extends State<NeuroMapView>
             orElse: () => nodes.first,
           );
           final focusPoint = positions[focus.id]!;
+          // The map runs under the floating header, so place the focus a
+          // little below the chrome rather than at the top of the screen.
           _transform.value = Matrix4.identity()
             ..translateByDouble(
               (bounds.maxWidth / 2) - focusPoint.dx * scale,
-              viewportHeight * .28 - focusPoint.dy * scale,
+              chromeHeight + viewportHeight * .24 - focusPoint.dy * scale,
               0, 1,
             )
             ..scaleByDouble(scale, scale, 1, 1);
@@ -225,9 +228,28 @@ class _NeuroMapViewState extends State<NeuroMapView>
       }
 
       return Stack(children: [
+        // Stationary pearl sky behind the pannable world.
+        const Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFF5F6FD),
+                    Color(0xFFEEEFFB),
+                    Color(0xFFF1F6F8),
+                    Color(0xFFFAF4F0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // World first: the map fills the whole screen and the header floats
+        // above it, so there is no seam between chrome and world.
         Positioned.fill(
-          top: 122,
-          bottom: 4,
           child: InteractiveViewer(
             transformationController: _transform,
             constrained: false,
@@ -253,8 +275,10 @@ class _NeuroMapViewState extends State<NeuroMapView>
                       width: mapWidth * fog.$3,
                       height: mapHeight * fog.$4,
                       child: IgnorePointer(
+                        // Fog hints at unexplored areas without greying out
+                        // the whole map on a fresh save.
                         child: Opacity(
-                          opacity: fog.$5,
+                          opacity: fog.$5 * .4,
                           child: Transform.rotate(
                             angle: fog.$6,
                             child: ShaderMask(
@@ -338,7 +362,49 @@ class _NeuroMapViewState extends State<NeuroMapView>
                       ),
                     );
                   }),
+                // Name the games the player can reach; the open ones also
+                // carry a Play cue so the next step is obvious.
+                for (final node in nodes)
+                  if (node.moduleId != null &&
+                      NeuronMapGraph.availability(
+                        node, widget.completedNeurons) !=
+                          NeuronAvailability.locked)
+                    Builder(builder: (context) {
+                      final point = positions[node.id]!;
+                      final diameter = _diameter(node, widget.completedNeurons);
+                      const labelWidth = 176.0;
+                      return Positioned(
+                        left: point.dx - labelWidth / 2,
+                        top: point.dy + diameter / 2 + 8,
+                        width: labelWidth,
+                        child: _NeuronLabel(
+                          node: node,
+                          open: NeuronMapGraph.availability(
+                            node, widget.completedNeurons) ==
+                              NeuronAvailability.open,
+                          onTap: () => widget.onNodeTap(node),
+                        ),
+                      );
+                    }),
               ]),
+            ),
+          ),
+        ),
+        // Soft scrim keeps the floating header legible over the map.
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: chromeHeight + 28,
+          child: const IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xE6F6F7FD), Color(0x00F6F7FD)],
+                ),
+              ),
             ),
           ),
         ),
@@ -514,7 +580,17 @@ class _NeuronDot extends StatelessWidget {
                         color: Color(0xFF35A88C)),
                     ),
                   ),
-
+                  // Shape, not just colour, tells locked from open.
+                  if (locked) const Positioned(
+                    right: -3, bottom: -3,
+                    child: CircleAvatar(
+                      key: ValueKey('neuron-lock'),
+                      radius: 9,
+                      backgroundColor: Color(0xFFFFFFFF),
+                      child: Icon(Icons.lock_rounded, size: 11,
+                        color: Color(0xFF8A97B3)),
+                    ),
+                  ),
                 ]),
               ),
             ),
@@ -525,37 +601,91 @@ class _NeuronDot extends StatelessWidget {
   }
 }
 
-/// A seamless pattern fixed to map-space. It pans and zooms with the nodes,
-/// instead of stretching one bitmap across the full 2,450px world.
+/// Game name under a reachable neuron; open neurons add a Play cue.
+class _NeuronLabel extends StatelessWidget {
+  const _NeuronLabel({required this.node, required this.open,
+    required this.onTap});
+
+  final NeuronNode node;
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = GameRegistry.maybeById(node.moduleId!)?.title ?? '';
+    return Center(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          key: ValueKey('neuron-label-${node.id}'),
+          // Sized for the map's ~0.72 resting scale (≈11–12px on screen).
+          padding: EdgeInsets.fromLTRB(open ? 8 : 12, 6, 13, 6),
+          decoration: BoxDecoration(
+            color: open
+                ? const Color(0xFF716BE0)
+                : Colors.white.withValues(alpha: .9),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(color: Color(0x1F3A4A7A), blurRadius: 10,
+                offset: Offset(0, 3)),
+            ],
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (open) ...[
+              const Icon(Icons.play_arrow_rounded,
+                size: 21, color: Colors.white),
+              const SizedBox(width: 3),
+            ],
+            Flexible(
+              child: Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: open ? Colors.white : neuroText,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -.2,
+                )),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Calm pearl world with a faint neural texture fixed to map-space. The
+/// texture stays subtle so its 512px tile edges never read as seams.
 class _MapAtmosphere extends StatelessWidget {
   const _MapAtmosphere();
 
   @override
-  Widget build(BuildContext context) => Stack(
+  // The world itself is transparent: the stationary screen gradient behind
+  // the viewer shows through, so panning or zooming out never reveals a
+  // rectangle where the world ends.
+  Widget build(BuildContext context) => const Stack(
     fit: StackFit.expand,
     children: [
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          color: Color(0xFFF2F6FB),
-          image: DecorationImage(
-            image: AssetImage('assets/background/neural_hex_mesh.jpg'),
-            fit: BoxFit.none,
-            repeat: ImageRepeat.repeat,
-            alignment: Alignment.topLeft,
-            filterQuality: FilterQuality.medium,
-          ),
-        ),
-      ),
-      const DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0x88F9FCFF),
-              Color(0x9BF4F2FC),
-              Color(0x8FFFF9F4),
-            ],
+      Opacity(
+        opacity: .22,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/background/neural_hex_mesh.jpg'),
+              fit: BoxFit.none,
+              repeat: ImageRepeat.repeat,
+              alignment: Alignment.topLeft,
+              filterQuality: FilterQuality.medium,
+              // The source texture is a dark nebula. Inverting its luminance
+              // turns it into a light, neutral mesh, so it adds depth without
+              // greying the pearl background.
+              colorFilter: ColorFilter.matrix(<double>[
+                -.2126, -.7152, -.0722, 0, 255,
+                -.2126, -.7152, -.0722, 0, 255,
+                -.2126, -.7152, -.0722, 0, 255,
+                0, 0, 0, 1, 0,
+              ]),
+            ),
           ),
         ),
       ),
