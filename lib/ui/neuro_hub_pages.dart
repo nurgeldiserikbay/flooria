@@ -12,6 +12,19 @@ const neuroText = Color(0xFF29354F);
 const neuroMuted = Color(0xFF71809B);
 const neuroAccent = Color(0xFF8176D7);
 
+/// Player-facing names for catalog skill IDs, shared by Games and Skills.
+const neuroSkillLabels = <String, String>{
+  'all': 'All games',
+  'memory': 'Memory',
+  'focus': 'Focus',
+  'logic': 'Logic',
+  'math': 'Numbers',
+  'control': 'Reflexes',
+  'planning': 'Strategy',
+  'spatial': 'Shapes',
+  'perception': 'Colors',
+};
+
 /// Quiet floating world navigation instead of a full-width bottom tab bar.
 class NeuroNavigation extends StatelessWidget {
   const NeuroNavigation({super.key, required this.selected, required this.onTab});
@@ -209,17 +222,7 @@ class _NeuroGamesPageState extends State<NeuroGamesPage> {
     });
   }
 
-  static const _skillLabels = <String, String>{
-    'all': 'All games',
-    'memory': 'Memory',
-    'focus': 'Focus',
-    'logic': 'Logic',
-    'math': 'Numbers',
-    'control': 'Reflexes',
-    'planning': 'Strategy',
-    'spatial': 'Shapes',
-    'perception': 'Colors',
-  };
+  static const _skillLabels = neuroSkillLabels;
 
   void _surprise(List<GameDefinition> games) {
     final playable = games.where((game) => widget.isUnlocked(game.id)).toList();
@@ -556,8 +559,16 @@ class NeuroSkillsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final measured = ratings.where((rating) => rating.value != null)
-        .toList();
+    // Always draw every catalog skill so a new player sees the full web;
+    // unmeasured axes show "—" and are never given an invented value.
+    final measuredById = {for (final r in ratings) r.name: r.value};
+    final skillIds = GameRegistry.enabledGames
+        .map((game) => game.skill).toSet().toList()..sort();
+    final axes = [
+      for (final id in skillIds)
+        GameSkillRating(neuroSkillLabels[id] ?? id, measuredById[id]),
+    ];
+    final measured = axes.where((rating) => rating.value != null).toList();
     measured.sort((a, b) => a.value!.compareTo(b.value!));
     final focus = measured.isEmpty ? null : measured.first;
 
@@ -577,9 +588,33 @@ class NeuroSkillsPage extends StatelessWidget {
           const SizedBox(height: 12),
           Expanded(child: Center(child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420, maxHeight: 290),
-            child: SkillRadarChart(ratings: ratings),
+            child: SkillRadarChart(ratings: axes),
           ))),
-          _panel(Row(children: [
+          if (focus == null) _panel(Row(children: [
+            Container(width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8EAFE),
+                borderRadius: BorderRadius.circular(14)),
+              child: const Icon(Icons.insights_rounded,
+                color: neuroAccent, size: 22)),
+            const SizedBox(width: 12),
+            const Expanded(child: Text(
+              'Play a game to measure your first skill',
+              style: TextStyle(color: neuroText, fontSize: 13.5,
+                fontWeight: FontWeight.w700, height: 1.25))),
+            const SizedBox(width: 8),
+            FilledButton(
+              key: const ValueKey('skills-play'),
+              onPressed: () => onTab(0),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF716BE0),
+                minimumSize: const Size(64, 44),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14))),
+              child: const Text('Play',
+                style: TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ])) else _panel(Row(children: [
             Container(width: 40, height: 40,
               decoration: BoxDecoration(
                 color: const Color(0xFFE8EAFE),
@@ -590,15 +625,15 @@ class NeuroSkillsPage extends StatelessWidget {
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(focus == null ? 'PLAY MORE' : 'NEXT FOCUS',
-                  style: const TextStyle(color: neuroMuted, fontSize: 9,
+                const Text('NEXT FOCUS',
+                  style: TextStyle(color: neuroMuted, fontSize: 9,
                     letterSpacing: 1.1, fontWeight: FontWeight.w900)),
-                Text(focus?.name ?? '—', style: const TextStyle(
+                Text(focus.name, style: const TextStyle(
                   color: neuroText, fontSize: 15,
                   fontWeight: FontWeight.w900)),
               ],
             )),
-            if (focus?.value != null) Text('${focus!.value}',
+            Text('${focus.value}',
               style: const TextStyle(color: neuroAccent,
                 fontSize: 19, fontWeight: FontWeight.w900)),
           ])),
